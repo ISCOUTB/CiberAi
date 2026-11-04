@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "bandit",
+          "informationUri": "https://bandit.readthedocs.io",
+          "rules": [
+            {
+              "id": "B403",
+              "name": "B403",
+              "shortDescription": {
+                "text": "CWE-502"
+              },
+              "properties": {
+                "cwe": "CWE-502"
+              }
+            },
+            {
+              "id": "B404",
+              "name": "B404",
+              "shortDescription": {
+                "text": "CWE-78"
+              },
+              "properties": {
+                "cwe": "CWE-78"
+              }
+            },
+            {
+              "id": "B105",
+              "name": "B105",
+              "shortDescription": {
+                "text": "CWE-259"
+              },
+              "properties": {
+                "cwe": "CWE-259"
+              }
+            },
+            {
+              "id": "B608",
+              "name": "B608",
+              "shortDescription": {
+                "text": "CWE-89"
+              },
+              "properties": {
+                "cwe": "CWE-89"
+              }
+            },
+            {
+              "id": "B324",
+              "name": "B324",
+              "shortDescription": {
+                "text": "CWE-327"
+              },
+              "properties": {
+                "cwe": "CWE-327"
+              }
+            },
+            {
+              "id": "B301",
+              "name": "B301",
+              "shortDescription": {
+                "text": "CWE-502"
+              },
+              "properties": {
+                "cwe": "CWE-502"
+              }
+            },
+            {
+              "id": "B602",
+              "name": "B602",
+              "shortDescription": {
+                "text": "CWE-78"
+              },
+              "properties": {
+                "cwe": "CWE-78"
+              }
+            },
+            {
+              "id": "B101",
+              "name": "B101",
+              "shortDescription": {
+                "text": "CWE-703"
+              },
+              "properties": {
+                "cwe": "CWE-703"
+              }
+            }
+          ]
+        }
+      },
+      "originalUriBaseIds": {
+        "SRCROOT": {
+          "uri": "C:\\Games\\u\\proyecto ing\\agente\\examples\\sample_repo"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "B403",
+          "level": "note",
+          "message": {
+            "text": "Consider possible security implications associated with pickle module."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "vuln.py"
+                },
+                "region": {
+                  "startLine": 2,
+                  "endLine": 13
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "findingId": "e9bd0abcaa5dc335"
+          },
+          "properties": {
+            "cwe": "CWE-502",
+            "severity": "baja",
+            "confidence": "HIGH",
+            "function": "<modulo>"
+          }
+        },
+        {
+          "ruleId": "B404",
+          "level": "note",
+          "message": {
+            "text": "Consider possible security implications associated with the subprocess module."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "vuln.py"
+                },
+                "region": {
+                  "startLine": 3,
+                  "endLine": 17
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "findingId": "847bfc6c094ae7e1"
+          },
+          "properties": {
+            "cwe": "CWE-78",
+            "severity": "baja",
+            "confidence": "HIGH",
+            "function": "<modulo>"
+          }
+        },
+        {
+          "ruleId": "B105",
+          "level": "note",
+          "message": {
+            "text": "Possible hardcoded password: 'SuperSecreto123'"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "vuln.py"
+                },
+                "region": {
+                  "startLine": 5,
+                  "endLine": 31
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "findingId": "2e9256ff913498af"
+          },
+          "properties": {
+            "cwe": "CWE-259",
+            "severity": "baja",
+            "confidence": "MEDIUM",
+            "function": "<modulo>"
+          }
+        },
+        {
+          "ruleId": "B105",
+          "level": "note",
+          "message": {
+            "text": "Possible hardcoded password: 'admin123'"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "vuln.py"
+                },
+                "region": {
+                  "startLine": 9,
+                  "endLine": 29
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "findingId": "d88e5d813102cedd"
+          },
+          "properties": {
+            "cwe": "CWE-259",
+            "severity": "baja",
+            "confidence": "MEDIUM",
+            "function": "login"
+          }
+        },
+        {
+          "ruleId": "B608",
+          "level": "warning",
+          "message": {
+            "text": "Possible SQL injection vector through string-based query construction."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "vuln.py"
+                },
+                "region": {
+                  "startLine": 15,
+                  "endLine": 56
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "findingId": "7be2ec4686d0006f"
+          },
+          "properties": {
+            "cwe": "CWE-89",
+            "severity": "media",
+            "confidence": "LOW",
+            "function": "buscar"
+          }
+        },
+        {
+          "ruleId": "B324",
+          "level": "error",
+          "message": {
+            "text": "Use of weak MD5 hash for security. Consider usedforsecurity=False"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "vuln.py"
+                },
+                "region": {
+                  "startLine": 24,
+                  "endLine": 35
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "findingId": "73056c107b6a172a"
+          },
+          "properties": {
+            "cwe": "CWE-327",
+            "severity": "alta",
+            "confidence": "HIGH",
+            "function": "hash_password"
+          }
+        },
+        {
+          "ruleId": "B301",
+          "level": "warning",
+          "message": {
+            "text": "Pickle and modules that wrap it can be unsafe when used to deserialize untrusted data, possible security issue."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "vuln.py"
+                },
+                "region": {
+                  "startLine": 28,
+                  "endLine": 29
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "findingId": "ac4e4b80b4b7c51f"
+          },
+          "properties": {
+            "cwe": "CWE-502",
+            "severity": "media",
+            "confidence": "HIGH",
+            "function": "cargar"
+          }
+        },
+        {
+          "ruleId": "B602",
+          "level": "error",
+          "message": {
+            "text": "subprocess call with shell=True identified, security issue."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "vuln.py"
+                },
+                "region": {
+                  "startLine": 32,
+                  "endLine": 43
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "findingId": "f09d315bba2253c5"
+          },
+          "properties": {
+            "cwe": "CWE-78",
+            "severity": "alta",
+            "confidence": "HIGH",
+            "function": "ejecutar"
+          }
+        },
+        {
+          "ruleId": "B101",
+          "level": "note",
+          "message": {
+            "text": "Use of assert detected. The enclosed code will be removed when compiling to optimised byte code."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "vuln.py"
+                },
+                "region": {
+                  "startLine": 36,
+                  "endLine": 36
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "findingId": "01636bec2cc79881"
+          },
+          "properties": {
+            "cwe": "CWE-703",
+            "severity": "baja",
+            "confidence": "HIGH",
+            "function": "verificar"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+FROM ./training/out/gguf/qwen-coder-1.5b-q4_k_m.gguf

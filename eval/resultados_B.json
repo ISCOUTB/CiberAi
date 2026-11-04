@@ -1,0 +1,129 @@
+{
+  "config": "B",
+  "model": "qwen2.5-coder:1.5b",
+  "metricas": {
+    "alertas": 10,
+    "reales": 6,
+    "falsos_positivos": 4,
+    "conservadas": 7,
+    "recomendadas_descarte": 3,
+    "FPRR": 75.0,
+    "FNR": 0.0,
+    "FOR": 0.0,
+    "precision": 85.7,
+    "exactitud_cwe": 0.0,
+    "respuestas_invalidas": 0
+  },
+  "detalle": [
+    {
+      "id": "f10096.py:1",
+      "rule_id": "B403",
+      "cwe_sast": "CWE-502",
+      "cwe_dataset": "CWE-502",
+      "truth": "real",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-259",
+      "valido": true,
+      "decision": "conservada"
+    },
+    {
+      "id": "f10096.py:10",
+      "rule_id": "B301",
+      "cwe_sast": "CWE-502",
+      "cwe_dataset": "CWE-502",
+      "truth": "real",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-059",
+      "valido": true,
+      "decision": "conservada"
+    },
+    {
+      "id": "f10113.py:5",
+      "rule_id": "B307",
+      "cwe_sast": "CWE-78",
+      "cwe_dataset": "CWE-94",
+      "truth": "real",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "decision": "conservada"
+    },
+    {
+      "id": "f10181.py:5",
+      "rule_id": "B605",
+      "cwe_sast": "CWE-78",
+      "cwe_dataset": "CWE-94",
+      "truth": "real",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "decision": "conservada"
+    },
+    {
+      "id": "f10268.py:1",
+      "rule_id": "B404",
+      "cwe_sast": "CWE-78",
+      "cwe_dataset": "safe",
+      "truth": "falso_positivo",
+      "veredicto": "SAFE",
+      "cwe_pred": "None",
+      "valido": true,
+      "decision": "recomendada_descarte"
+    },
+    {
+      "id": "f10268.py:8",
+      "rule_id": "B602",
+      "cwe_sast": "CWE-78",
+      "cwe_dataset": "safe",
+      "truth": "falso_positivo",
+      "veredicto": "SAFE",
+      "cwe_pred": "None",
+      "valido": true,
+      "decision": "recomendada_descarte"
+    },
+    {
+      "id": "f10442.py:1",
+      "rule_id": "B403",
+      "cwe_sast": "CWE-502",
+      "cwe_dataset": "CWE-502",
+      "truth": "real",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-790",
+      "valido": true,
+      "decision": "conservada"
+    },
+    {
+      "id": "f10442.py:10",
+      "rule_id": "B301",
+      "cwe_sast": "CWE-502",
+      "cwe_dataset": "CWE-502",
+      "truth": "real",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-790",
+      "valido": true,
+      "decision": "conservada"
+    },
+    {
+      "id": "f10496.py:31",
+      "rule_id": "B102",
+      "cwe_sast": "CWE-78",
+      "cwe_dataset": "safe",
+      "truth": "falso_positivo",
+      "veredicto": "SAFE",
+      "cwe_pred": "None",
+      "valido": true,
+      "decision": "recomendada_descarte"
+    },
+    {
+      "id": "f10744.py:14",
+      "rule_id": "B102",
+      "cwe_sast": "CWE-78",
+      "cwe_dataset": "safe",
+      "truth": "falso_positivo",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-790",
+      "valido": true,
+      "decision": "conservada"
+    }
+  ]
+}

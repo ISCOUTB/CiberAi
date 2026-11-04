@@ -1,0 +1,998 @@
+"""Genera Avance 5.docx con el estilo visual de los Avances 2 y 3.
+
+Estructura: portada, resumen, arquitectura, modelo de datos, integración del
+modelo afinado, metodología de evaluación, resultados, pruebas, limitaciones,
+próximos pasos, conclusiones y referencias.
+
+Los valores de las tablas de resultados y evidencias viven en las constantes
+COMPARATIVA y EVIDENCIAS. Si se repiten las corridas de eval/run_eval.py se
+actualizan esas listas y se regenera:
+
+    python scripts/build_avance5.py
+
+El documento resultante queda en la raíz del proyecto como Avance 5.docx.
+"""
+
+from pathlib import Path
+
+import docx
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.shared import Cm, Pt, RGBColor
+
+OUT = Path(__file__).resolve().parents[1] / "Avance 5.docx"
+
+BODY_FONT = "DejaVu Sans"
+HEAD_FONT = "Carlito"
+CODE_FONT = "Consolas"
+
+NAVY = RGBColor(0x0F, 0x16, 0x33)
+BLUE = RGBColor(0x28, 0x64, 0xE8)
+CYAN = RGBColor(0x1D, 0xB6, 0xD9)
+DARK = RGBColor(0x1F, 0x2A, 0x44)
+MUTED = RGBColor(0x64, 0x70, 0x8B)
+WHITE = RGBColor(0xFF, 0xFF, 0xFF)
+
+HEADER_FILL = "0F1633"
+CALLOUT_FILL = "EEF3FF"
+CODE_FILL = "F2F2F2"
+
+# Tabla comparativa A/B/C/C0/D. Actualizar con los valores que produzca
+# eval/run_eval.py y volver a generar el documento.
+COMPARATIVA = [
+    ["A. Solo SAST", "141", "0,0 %", "0,0 %", "0,0 %", "45,1 %", "Completa"],
+    ["B. Cero-shot (piloto)", "10", "75,0 %", "0,0 %", "0,0 %", "0,0 %", "Piloto"],
+    ["C. Contexto + few-shot", "141", "2,0 %", "0,0 %", "0,0 %", "37,4 %", "Completa"],
+    ["C0. Contexto sin few-shot", "141", "22,0 %", "2,2 %", "15,4 %", "44,9 %", "Completa"],
+    ["D. Modelo afinado", "141", "48,0 %", "5,5 %", "17,2 %", "43,0 %", "Completa"],
+]
+
+# Evidencias de integración y pruebas. Reemplazar "Por registrar" / "Por medir"
+# con los resultados reales antes de la entrega.
+EVIDENCIAS = [
+    ["Pruebas unitarias (contexto, dedup, SARIF, parseo, política, Bandit)",
+     "12 de 12 correctas", "Completa (Avance 5)"],
+    ["Corrida sin modelo (--no-llm) sobre examples/sample_repo",
+     "9 alertas, 9 conservadas, 9 SOSPECHOSA", "Completa (Avance 4)"],
+    ["Corrida con modelo base sobre examples/sample_repo",
+     "9 alertas, 9 respuestas válidas, 0 errores", "Completa (Avance 4)"],
+    ["Corrida con modelo afinado sobre examples/sample_repo",
+     "9 alertas, 9 conservadas, 4 recomendadas para descarte, 0 errores",
+     "Completa (Sprint 6)"],
+    ["Modo asesor: alertas conservadas en JSON y SARIF",
+     "9 de 9 alertas en ambos reportes", "Completa (Avance 4)"],
+    ["Resiliencia: Ollama detenido o inaccesible",
+     "9 alertas, 9 conservadas como SOSPECHOSA, 9 errores de modelo, exit 0",
+     "Completa (Sprint 6)"],
+    ["Resiliencia: JSON malformado o veredicto inválido",
+     "La alerta se conserva como SOSPECHOSA", "Cubierta (prueba unitaria)"],
+    ["Resiliencia: generación truncada (B102 patológica en C)",
+     "La alerta se conserva como SOSPECHOSA; el análisis continúa", "Observada (Sprint 6)"],
+    ["Resiliencia: SAFE sin justificación",
+     "La alerta se conserva como SOSPECHOSA", "Cubierta (prueba unitaria)"],
+    ["Batería funcional sin modelo",
+     "Repo vacío, archivo vacío, sintaxis inválida y otro lenguaje: 0 alertas; repo de 40 archivos: 360 alertas; todo exit 0",
+     "Completa (Sprint 6)"],
+    ["Prompt injection en el código analizado",
+     "4 alertas conservadas; las 2 vulnerabilidades reales se clasifican como VULNERABLE; 0 respuestas inválidas",
+     "Completa (Sprint 6)"],
+    ["Recomendación SAFE con justificación",
+     "Se marca para descarte; la alerta permanece en el reporte", "Prueba unitaria"],
+    ["Salida SARIF", "Versión 2.1.0, 9 resultados, 8 reglas", "Completa (Avance 4)"],
+    ["Latencia con el modelo afinado", "43,1 s para 9 alertas (4,8 s por alerta)", "Completa (Sprint 6)"],
+    ["Memoria con el modelo afinado", "1.115 MB en VRAM (Q4_K_M) y ~700 MB de RAM del proceso llama-server",
+     "Medida (Sprint 6)"],
+]
+
+
+def set_font(run, name=BODY_FONT, size=9.5, bold=False, color=None, italic=False):
+    run.font.name = name
+    run.font.size = Pt(size)
+    run.bold = bold
+    run.italic = italic
+    if color:
+        run.font.color.rgb = color
+    rpr = run._element.get_or_add_rPr()
+    rfonts = rpr.find(qn("w:rFonts"))
+    if rfonts is None:
+        rfonts = OxmlElement("w:rFonts")
+        rpr.append(rfonts)
+    rfonts.set(qn("w:ascii"), name)
+    rfonts.set(qn("w:hAnsi"), name)
+    rfonts.set(qn("w:eastAsia"), name)
+
+
+def para(doc, text="", size=9.5, bold=False, align=None, font=BODY_FONT,
+         before=0, after=0, line=None, color=DARK, italic=False):
+    p = doc.add_paragraph()
+    pf = p.paragraph_format
+    pf.space_before = Pt(before)
+    pf.space_after = Pt(after)
+    if line is not None:
+        pf.line_spacing = Pt(line)
+    if align is not None:
+        p.alignment = align
+    if text:
+        run = p.add_run(text)
+        set_font(run, font, size, bold, color, italic)
+    return p
+
+
+def h1(doc, text):
+    p = para(doc, text, size=18, bold=True, font=HEAD_FONT, before=16, after=4,
+             line=20, color=NAVY)
+    p.paragraph_format.keep_with_next = True
+    return p
+
+
+def h2(doc, text):
+    p = para(doc, text, size=13, bold=True, font=HEAD_FONT, before=12, after=4,
+             line=15, color=BLUE)
+    p.paragraph_format.keep_with_next = True
+    return p
+
+
+def body(doc, text, keep=False):
+    p = para(doc, text, size=9.5, align=WD_ALIGN_PARAGRAPH.LEFT, before=5,
+             line=12.2, color=DARK)
+    p.paragraph_format.keep_with_next = keep
+    return p
+
+
+def bullet(doc, text, level=0, size=9.5, line=12.2, before=2):
+    p = doc.add_paragraph()
+    pf = p.paragraph_format
+    pf.left_indent = Cm(0.55 + 0.45 * level)
+    pf.first_line_indent = Cm(-0.35)
+    pf.space_before = Pt(before)
+    pf.space_after = Pt(0)
+    pf.line_spacing = Pt(line)
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    glyph = p.add_run("•  ")
+    set_font(glyph, "DejaVu Sans", size, color=DARK)
+    run = p.add_run(text)
+    set_font(run, BODY_FONT, size, color=DARK)
+    return p
+
+
+CELL_AFTER_SHD = ["w:noWrap", "w:tcMar", "w:textDirection", "w:tcFitText", "w:vAlign", "w:hideMark"]
+PAR_AFTER_SHD = ["w:tabs", "w:suppressAutoHyphens", "w:kinsoku", "w:wordWrap", "w:overflowPunct",
+                 "w:topLinePunct", "w:autoSpaceDE", "w:autoSpaceDN", "w:bidi", "w:adjustRightInd",
+                 "w:snapToGrid", "w:spacing", "w:ind", "w:contextualSpacing", "w:mirrorIndents",
+                 "w:suppressOverlap", "w:jc", "w:textDirection", "w:textAlignment",
+                 "w:textboxTightWrap", "w:outlineLvl", "w:divId", "w:cnfStyle", "w:rPr",
+                 "w:sectPr", "w:pPrChange"]
+
+
+def shade(cell_or_par, fill="F2F2F2"):
+    el = cell_or_par._element
+    is_cell = el.tag.endswith("tc")
+    pr = el.get_or_add_tcPr() if is_cell else el.get_or_add_pPr()
+    shd = OxmlElement("w:shd")
+    shd.set(qn("w:val"), "clear")
+    shd.set(qn("w:color"), "auto")
+    shd.set(qn("w:fill"), fill)
+    after = CELL_AFTER_SHD if is_cell else PAR_AFTER_SHD
+    for child in pr:
+        if child.tag in [qn(tag) for tag in after]:
+            child.addprevious(shd)
+            return
+    pr.append(shd)
+
+
+def cell_margins_zero(cell):
+    tcPr = cell._tc.get_or_add_tcPr()
+    mar = OxmlElement("w:tcMar")
+    for side in ("top", "start", "bottom", "end"):
+        node = OxmlElement("w:" + side)
+        node.set(qn("w:w"), "0")
+        node.set(qn("w:type"), "dxa")
+        mar.append(node)
+    tcPr.append(mar)
+
+
+def code(doc, text, keep=False):
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(3)
+    p.paragraph_format.space_after = Pt(8)
+    p.paragraph_format.left_indent = Cm(0.3)
+    p.paragraph_format.line_spacing = Pt(10.2)
+    p.paragraph_format.keep_with_next = keep
+    run = p.add_run(text)
+    set_font(run, CODE_FONT, 8, color=DARK)
+    shade(p, CODE_FILL)
+    return p
+
+
+def table(doc, headers, rows, widths=None, size=8):
+    t = doc.add_table(rows=1, cols=len(headers))
+    t.style = "Normal Table"
+    t.alignment = WD_TABLE_ALIGNMENT.CENTER
+    t.autofit = False
+    tblPr = t._tbl.tblPr
+    layout = OxmlElement("w:tblLayout")
+    layout.set(qn("w:type"), "fixed")
+    tblPr.append(layout)
+
+    trPr = t.rows[0]._tr.get_or_add_trPr()
+    tblHeader = OxmlElement("w:tblHeader")
+    tblHeader.set(qn("w:val"), "true")
+    trPr.append(tblHeader)
+
+    for i, h in enumerate(headers):
+        cell = t.rows[0].cells[i]
+        cell.text = ""
+        cell_margins_zero(cell)
+        shade(cell, HEADER_FILL)
+        p = cell.paragraphs[0]
+        p.paragraph_format.space_before = Pt(2)
+        p.paragraph_format.space_after = Pt(2)
+        p.paragraph_format.line_spacing = Pt(size + 1.4)
+        p.paragraph_format.left_indent = Cm(0.19)
+        run = p.add_run(h)
+        set_font(run, BODY_FONT, size, bold=True, color=WHITE)
+
+    for row in rows:
+        cells = t.add_row().cells
+        for i, value in enumerate(row):
+            cells[i].text = ""
+            cell_margins_zero(cells[i])
+            p = cells[i].paragraphs[0]
+            p.paragraph_format.space_before = Pt(3)
+            p.paragraph_format.space_after = Pt(1)
+            p.paragraph_format.line_spacing = Pt(size + 1.4)
+            p.paragraph_format.left_indent = Cm(0.19)
+            run = p.add_run(str(value))
+            set_font(run, BODY_FONT, size, color=DARK)
+
+    if widths:
+        for i, w in enumerate(widths):
+            t.columns[i].width = Cm(w)
+        for row in t.rows:
+            for i, w in enumerate(widths):
+                row.cells[i].width = Cm(w)
+
+    for row in t.rows:
+        trPr = row._tr.get_or_add_trPr()
+        cant = OxmlElement("w:cantSplit")
+        trPr.append(cant)
+
+    spacer = doc.add_paragraph()
+    spacer.paragraph_format.space_before = Pt(0)
+    spacer.paragraph_format.space_after = Pt(0)
+    spacer.paragraph_format.line_spacing = Pt(5)
+    return t
+
+
+def callout(doc, label, text):
+    t = doc.add_table(rows=1, cols=1)
+    t.style = "Normal Table"
+    t.alignment = WD_TABLE_ALIGNMENT.CENTER
+    t.autofit = False
+    tblPr = t._tbl.tblPr
+    layout = OxmlElement("w:tblLayout")
+    layout.set(qn("w:type"), "fixed")
+    tblPr.append(layout)
+
+    cell = t.rows[0].cells[0]
+    cell.width = Cm(18.0)
+    cell_margins_zero(cell)
+    shade(cell, CALLOUT_FILL)
+
+    p1 = cell.paragraphs[0]
+    p1.paragraph_format.space_before = Pt(5)
+    p1.paragraph_format.space_after = Pt(1)
+    p1.paragraph_format.line_spacing = Pt(13)
+    p1.paragraph_format.left_indent = Cm(0.19)
+    r1 = p1.add_run(label)
+    set_font(r1, BODY_FONT, 9.5, bold=True, color=BLUE)
+
+    p2 = cell.add_paragraph()
+    p2.paragraph_format.space_before = Pt(1)
+    p2.paragraph_format.space_after = Pt(6)
+    p2.paragraph_format.line_spacing = Pt(12.2)
+    p2.paragraph_format.left_indent = Cm(0.19)
+    r2 = p2.add_run(text)
+    set_font(r2, BODY_FONT, 9.5, color=DARK)
+
+    spacer = doc.add_paragraph()
+    spacer.paragraph_format.space_before = Pt(0)
+    spacer.paragraph_format.space_after = Pt(0)
+    spacer.paragraph_format.line_spacing = Pt(5)
+    return t
+
+
+def figure(doc, path, caption, width_cm=15.5):
+    """Inserta una figura centrada con pie de figura. Omite si no existe."""
+    path = Path(path)
+    if not path.exists():
+        return None
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(2)
+    p.paragraph_format.keep_with_next = True
+    p.add_run().add_picture(str(path), width=Cm(width_cm))
+    para(doc, caption, size=8.5, align=WD_ALIGN_PARAGRAPH.CENTER,
+         color=MUTED, italic=True, before=0, after=8)
+    return p
+
+
+# ---------------------------------------------------------------------------
+# Documento
+# ---------------------------------------------------------------------------
+
+doc = docx.Document()
+section = doc.sections[0]
+section.page_width = Cm(21.59)
+section.page_height = Cm(27.94)
+section.left_margin = Cm(1.71)
+section.right_margin = Cm(1.82)
+section.top_margin = Cm(0.64)
+section.bottom_margin = Cm(0.9)
+
+normal = doc.styles["Normal"]
+normal.font.name = BODY_FONT
+normal.font.size = Pt(9.5)
+normal.font.color.rgb = DARK
+
+section.different_first_page_header_footer = True
+footer_p = section.footer.paragraphs[0]
+footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+footer_r = footer_p.add_run("Agente inteligente para la revisión de seguridad de código fuente")
+set_font(footer_r, BODY_FONT, 7.5, color=MUTED)
+
+# Portada
+para(doc, "AVANCE 5  |  TERMINACIÓN, PRUEBAS Y VALIDACIÓN", size=7.5, bold=True,
+     align=WD_ALIGN_PARAGRAPH.RIGHT, color=BLUE)
+para(doc, "AVANCE 5", size=13, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER,
+     before=66, color=CYAN)
+para(doc, "Terminación, pruebas y validación del agente", size=29, bold=True,
+     font=HEAD_FONT, align=WD_ALIGN_PARAGRAPH.CENTER, before=11, line=31, color=NAVY)
+para(doc, "Agente inteligente para la revisión de seguridad de código fuente", size=14,
+     bold=True, before=12, color=BLUE)
+para(doc, "Modelo afinado · Modo asesor · Evaluación comparativa A/B/C/C0/D", size=10,
+     align=WD_ALIGN_PARAGRAPH.CENTER, before=30, color=MUTED)
+para(doc, "Periodo: 30 de octubre – 2 de noviembre de 2026  |  "
+          "Actualización: 2 de noviembre de 2026 (Sprint 6)",
+     size=9.5, align=WD_ALIGN_PARAGRAPH.CENTER, before=28, color=DARK)
+para(doc, "Integrantes: Santiago Reyes, Marien Daniela, Luis Patron, William Cuello  |  "
+          "Asignatura: Proyecto de Ingeniería",
+     size=9, align=WD_ALIGN_PARAGRAPH.CENTER, before=4, color=MUTED)
+doc.paragraphs[-1].add_run().add_break(WD_BREAK.PAGE)
+
+# 1. Resumen
+h1(doc, "1. Resumen del avance")
+body(doc,
+     "Este avance cierra la integración del componente inteligente en el producto. El flujo "
+     "Qwen2.5-Coder-1.5B-Instruct → QLoRA → fusión de pesos → GGUF Q4_K_M → Ollama queda "
+     "definido y conectado a la CLI; la tubería conserva las etapas del Avance 4 (Bandit, "
+     "normalización, deduplicación, contexto por AST, prompt, validación y política "
+     "conservadora) y solo cambia la etiqueta del modelo mediante la opción --model. El "
+     "entrenamiento del adaptador, la exportación y la corrida D se registran como las "
+     "tareas de ejecución que cierran el Sprint 6.")
+body(doc,
+     "La decisión de diseño cambió tras la revisión del avance anterior: el agente opera en "
+     "modo asesor y no suprime hallazgos. Cada alerta recibe un veredicto y una "
+     "recomendación, pero el reporte JSON y el SARIF conservan todas las alertas y la "
+     "decisión final queda en el revisor humano. Un SAFE solo se registra como recomendación "
+     "de descarte cuando el JSON es válido y está justificado; un JSON malformado, un "
+     "veredicto inválido, un SAFE sin justificación, un tiempo de espera agotado o un "
+     "servidor no disponible producen SOSPECHOSA. El motivo es concreto: en la revisión se "
+     "observó un falso negativo real con respuesta formalmente válida, de modo que el modelo "
+     "no puede usarse todavía para suprimir alertas con confianza.")
+callout(doc, "Hallazgo principal",
+        "El riesgo del componente inteligente no es solo el JSON inválido, que la política ya "
+        "contiene, sino el SAFE bien formado y equivocado. Por eso el producto pasa a modo "
+        "asesor y la evaluación incorpora la tasa de omisión sobre alertas reales, además de "
+        "la reducción de falsos positivos.")
+body(doc,
+     "La evaluación usa el mismo conjunto y el mismo protocolo del Avance 4: 141 alertas de "
+     "Bandit sobre la partición de validación en Python (91 reales y 50 falsos positivos), "
+     "temperatura 0, mismo orden y métricas explícitas. La configuración A está medida sobre "
+     "las 141 alertas; el piloto B se amplió de cinco a diez alertas respecto del Avance 4, "
+     "con el mismo protocolo y sin cambiar el orden. D y C quedaron medidas sobre las 141 "
+     "alertas con el mismo prompt con contexto del SAST; solo cambia el modelo (afinado en D, "
+     "base en C). Esa simetría es la condición para atribuir la diferencia al entrenamiento y "
+     "no únicamente a la ingeniería de prompts.")
+
+h2(doc, "1.1 Ajustes derivados de la revisión")
+bullet(doc, "Modo asesor: el agente no suprime hallazgos; el veredicto SAFE queda como "
+            "recomendación de descarte y todas las alertas permanecen en el reporte y el SARIF.")
+bullet(doc, "Métricas: se escribe la matriz de confusión y se distinguen la tasa de falsos "
+            "negativos sobre alertas reales (FNR) y la false omission rate (FOR), que tienen "
+            "denominadores distintos.")
+bullet(doc, "Deduplicación: la identidad combina regla, CWE, archivo, función, línea y contexto "
+            "normalizado; no se elimina por CWE, porque dos vulnerabilidades distintas pueden "
+            "compartir la misma familia.")
+bullet(doc, "Alcance: el proyecto se fija en Qwen2.5-Coder-1.5B-Instruct, Python con Bandit y "
+            "las familias CWE del Sprint 1; el reemplazo de Gemma y la ampliación de tipos de "
+            "vulnerabilidad quedan registrados como decisión de alcance.")
+bullet(doc, "Explicaciones: se evalúan con una rúbrica técnica (CWE correcto, vector de ataque, "
+            "corrección aplicable y claridad); la similitud textual se reporta solo como apoyo.")
+bullet(doc, "Seguridad del prompt: los delimitadores no se consideran una defensa; se mantienen "
+            "el formato fijo, la temperatura 0 y la revisión humana como controles efectivos.")
+
+h2(doc, "1.2 Correcciones conceptuales y bibliográficas")
+body(doc,
+     "La revisión también señaló afirmaciones que no deben repetirse en el documento final. "
+     "La tabla las resume con la corrección que se aplica:", keep=True)
+table(doc,
+      ["Afirmación a corregir", "Corrección", "Dónde se aplica"],
+      [["El ajuste fino hace que el modelo «solo conozca» una parte de la seguridad.",
+        "El ajuste especializa el formato de respuesta y calibra el comportamiento sobre el "
+        "corpus; no restringe el conocimiento del modelo. El alcance lo define el dataset.",
+        "Marco teórico y sección 4.1"],
+       ["La cuantización especializa o mejora el conocimiento.",
+        "Q4_K_M reduce memoria y latencia; es una decisión de despliegue. Puede degradar "
+        "ligeramente la calidad y no aporta especialización.",
+        "Sección 4.1"],
+       ["Calcular la pérdida solo sobre la respuesta impide memorizar los ejemplos.",
+        "Reduce el costo y enfoca el aprendizaje en la respuesta, pero no garantiza "
+        "generalización. La memorización se controla con particiones limpias y un test intacto.",
+        "Sección 4.1 y limitaciones"],
+       ["IRIS es únicamente un filtro posterior sobre alertas.",
+        "IRIS combina el LLM con el análisis estático y usa modelos para inferir "
+        "especificaciones que guían la detección; no es solo un filtro.",
+        "Estado del arte del documento final"],
+       ["SecurityEval es de MSR 2023 y evalúa alertas estáticas.",
+        "Pertenece a MSR4P&S 2022 y se diseñó para evaluar generación de código; usarlo con "
+        "alertas exige adaptar la tarea y la métrica.",
+        "Estado del arte y referencias"],
+       ["El estudio de Tencent reporta más de 90 % de falsos positivos.",
+        "La muestra construida tiene 328 falsos positivos de 433 alarmas (75,8 %). La cifra "
+        ">90 % es una extrapolación de los autores sobre casos descartados, no el resultado "
+        "de la muestra.",
+        "Estado del arte del documento final"]],
+      widths=[5.0, 8.8, 4.2])
+
+# 2. Arquitectura
+h1(doc, "2. Arquitectura del agente")
+body(doc,
+     "El agente se organiza en una tubería lineal con un único punto de decisión final. Cada "
+     "etapa es un módulo independiente y testeable; el orquestador solo compone las etapas y "
+     "decide el código de salida. La única diferencia respecto del Avance 4 es el modelo que "
+     "responde al último tramo: la tubería es la misma y el modelo es sustituible por "
+     "configuración. La figura lógica del flujo es:", keep=True)
+code(doc, "repositorio -> Bandit (JSON) -> normalización -> deduplicación\n"
+          "            -> contexto (AST) -> prompt -> Ollama (modelo afinado) -> validación\n"
+          "            -> política conservadora -> reporte.json + hallazgos.sarif + consola")
+table(doc,
+      ["Componente", "Archivo", "Responsabilidad"],
+      [["Orquestador / CLI", "cli.py",
+        "Valida argumentos, ejecuta el pipeline, escribe salidas y fija el código de salida."],
+       ["Ejecutor SAST", "sast/bandit_runner.py",
+        "Invoca Bandit con salida JSON y normaliza cada alerta a Finding."],
+       ["Exportador SARIF", "sast/sarif.py",
+        "Genera SARIF 2.1.0 con reglas, niveles y ubicaciones físicas."],
+       ["Contexto", "context.py",
+        "Localiza la función o clase contenedora con ast; si falla, usa ±20 líneas."],
+       ["Deduplicación", "dedup.py",
+        "Calcula la huella SHA-256 y elimina duplicados por regla, CWE, archivo, función, "
+        "línea y contexto normalizado."],
+       ["Cliente LLM", "llm/ollama_client.py",
+        "POST a /api/generate con format=json y temperatura 0; acepta cualquier etiqueta "
+        "servida por Ollama, base o afinada."],
+       ["Triage", "triage.py",
+        "Construye el prompt, parsea el JSON, valida el veredicto y aplica la política "
+        "conservadora."],
+       ["Reportes", "report.py",
+        "Resumen agregado, reporte JSON y tabla de consola; conserva todas las alertas."],
+       ["Modelos", "models.py",
+        "Finding, ToolRun, Scan y TriageResult; serialización y marcas de tiempo UTC."],
+       ["Modelo afinado", "training/",
+        "Entrenamiento QLoRA, fusión de pesos y conversión a GGUF Q4_K_M; se registra en "
+        "Ollama con etiqueta propia."]],
+      widths=[3.4, 4.2, 10.4])
+
+h2(doc, "2.1 Contrato de decisión")
+body(doc,
+     "El veredicto del modelo se acepta solo si el JSON contiene VULNERABLE o SAFE. En modo "
+     "asesor, ninguno de los dos suprime la alerta: cambian la prioridad y la recomendación "
+     "que ve el revisor. La tabla fija el contrato:", keep=True)
+table(doc,
+      ["Salida", "Interpretación", "Acción del agente"],
+      [["VULNERABLE válido", "La alerta es probablemente real.",
+        "Se conserva y se prioriza para revisión."],
+       ["SAFE válido y justificado", "Recomendación de que la alerta es un falso positivo.",
+        "Se conserva en JSON y SARIF, marcada como candidata a descarte."],
+       ["SOSPECHOSA (JSON inválido, veredicto inválido, SAFE sin justificación, timeout o "
+        "servidor caído)", "No hay una decisión confiable.",
+        "Se conserva y se envía a revisión humana."]],
+      widths=[4.6, 6.4, 7.0])
+body(doc,
+     "La consecuencia práctica es que un fallo del modelo nunca elimina una vulnerabilidad "
+     "del reporte: el peor caso es una alerta adicional o una recomendación equivocada que el "
+     "revisor debe corregir. El riesgo residual —un SAFE bien formado sobre una alerta real— "
+     "no se elimina con la política; se mide con la tasa de omisión y se controla con "
+     "revisión humana.")
+
+h2(doc, "2.2 Interfaz de línea de comandos")
+code(doc, "python agente/run.py scan <ruta> [--out DIR] [--model NOMBRE]\n"
+          "       [--ollama-url URL] [--no-llm] [--max-alerts N] [--quiet]")
+body(doc,
+     "La opción --no-llm ejecuta solo la fase SAST y conserva todas las alertas como "
+     "SOSPECHOSA; sirve para validar el pipeline sin modelo. --model permite alternar entre "
+     "el modelo base (para reproducir B y C) y el modelo afinado (para D) sin tocar el "
+     "código. El modelo afinado está registrado en Ollama como qwen2.5-coder-triage y el "
+     "modelo base como qwen2.5-coder:1.5b; el despliegue solo cambia la etiqueta.")
+
+# 3. Modelo de datos
+h1(doc, "3. Modelo de datos consolidado")
+body(doc,
+     "El contrato de datos no cambia entre el Avance 4 y el Avance 5. Esa estabilidad es "
+     "intencional: permite comparar configuraciones y sustituir el modelo sin migrar "
+     "reportes ni romper el SARIF. Todas las etapas comparten las mismas estructuras, de modo "
+     "que el JSON intermedio, el reporte y el SARIF son proyecciones del mismo objeto. Los "
+     "campos principales son:", keep=True)
+table(doc,
+      ["Estructura", "Campos"],
+      [["Finding", "finding_id, rule_id, cwe, severity, confidence, message, file, line, "
+                   "end_line, code, function, fingerprint, context, triage"],
+       ["TriageResult", "finding_id, veredicto (VULNERABLE | SAFE | SOSPECHOSA), cwe, "
+                        "severidad, explicacion, vector_ataque, correccion, origen, valido"],
+       ["ToolRun", "tool, version, started, finished, findings"],
+       ["Scan", "scan_id, target, created, tool_runs"]],
+      widths=[3.4, 14.6])
+body(doc,
+     "El finding_id es determinista (SHA-256 truncado de regla, CWE, archivo, función, línea "
+     "y contexto normalizado), lo que permite comparar corridas y deduplicar entre "
+     "herramientas sin confundir dos problemas distintos que comparten CWE. El campo origen "
+     "distingue si el triage provino del modelo (llm) o de la política de respaldo (respaldo). "
+     "Un registro de salida tiene esta forma:")
+code(doc, '{\n'
+          '  "finding_id": "7be2ec4686d0006f", "rule_id": "B608", "cwe": "CWE-89",\n'
+          '  "severity": "media", "file": "vuln.py", "line": 15, "function": "buscar",\n'
+          '  "triage": {"veredicto": "VULNERABLE", "cwe": "CWE-89", "severidad": "Alta",\n'
+          '             "explicacion": "...", "vector_ataque": "...", "correccion": "..."}\n'
+          '}')
+
+# 4. Integración
+h1(doc, "4. Integración del componente inteligente")
+h2(doc, "4.1 Entrenamiento, fusión y exportación")
+body(doc,
+     "El ajuste se realiza con QLoRA sobre Qwen2.5-Coder-1.5B-Instruct. Los ejemplos "
+     "provienen de las particiones depuradas del Sprint 2 (dataset/splits/train_80.jsonl y "
+     "val_total.jsonl) y se convierten al formato de mensajes sistema/usuario/asistente con "
+     "training/prepare_sft.py: 11.510 ejemplos de ajuste y 1.000 de validación, "
+     "seleccionados con semilla 42 y balance 50/50 entre funciones vulnerables y seguras; en "
+     "la mitad de los ejemplos se inyecta la alerta del SAST para que el modelo aprenda el "
+     "formato de triage. La cifra surge de solicitar hasta 12.000 ejemplos: tras descartar "
+     "prompts de más de 8.000 caracteres quedan 5.755 funciones vulnerables y el balance "
+     "50/50 limita el conjunto a 11.510. El balance es necesario porque el corpus tiene solo un 6,1 % de "
+     "funciones vulnerables y un entrenamiento con la distribución natural favorecería "
+     "respuestas SAFE indiscriminadas.", keep=True)
+table(doc,
+      ["Parámetro", "Valor"],
+      [["Modelo base", "Qwen/Qwen2.5-Coder-1.5B-Instruct"],
+       ["Método", "QLoRA: LoRA sobre base cuantizado 4-bit NF4; variante fp16 en GPU Turing"],
+       ["Datos de ajuste", "11.510 ejemplos (50 % vulnerables, 50 % seguras; 50 % con alerta SAST)"],
+       ["Datos de validación", "1.000 ejemplos con la misma construcción, semilla 42"],
+       ["Épocas", "1"],
+       ["Learning rate", "2e-4, scheduler cosine, warmup 3 %"],
+       ["Lote efectivo", "8 (batch 1 x acumulación 8)"],
+       ["Longitud máxima", "2.048 tokens"],
+       ["LoRA", "r = 16, alpha = 32, dropout 0,05, todas las proyecciones"],
+       ["Checkpoints", "cada 500 pasos, máximo 2 conservados"],
+       ["Exportación", "fusión de pesos + GGUF Q4_K_M"],
+       ["Servicio", "Ollama con etiqueta propia del modelo afinado"]],
+      widths=[5.0, 13.0])
+body(doc,
+     "Al terminar, el adaptador se fusiona con el modelo base. El conversor oficial de "
+     "llama.cpp genera un GGUF f16 y llama-quantize lo reduce a Q4_K_M; ambas etapas las "
+     "orquesta training/export_gguf.py, que descarga el binario si no está disponible. El "
+     "archivo resultante se registra en Ollama con una etiqueta propia y "
+     "se prueba con tres alertas de control antes de la corrida completa. El registro de "
+     "hiperparámetros, semilla y checkpoints queda en training/out/, lo que permite "
+     "reproducir el entrenamiento. La corrida real se completó en 1 h 50 min sobre la RTX "
+     "4070 Super: 1.439 pasos de optimización con lote efectivo 8, 18,46 millones de "
+     "parámetros entrenables (1,18 % del total) y una pérdida de entrenamiento que bajó de "
+     "1,11 en el paso 20 a 0,36 al cierre. La decisión de despliegue mantiene el modelo base "
+     "como respaldo: la CLI puede apuntar a cualquiera de las dos etiquetas, de modo que una "
+     "falla del modelo afinado no bloquea el producto.")
+table(doc,
+      ["Métrica de la corrida", "Valor"],
+      [["Hardware", "RTX 4070 Super (12 GB), Windows nativo"],
+       ["Pasos de optimización", "1.439 (1 época, lote efectivo 8)"],
+       ["Tiempo de entrenamiento", "1 h 50 min 56 s"],
+       ["Pérdida inicial (paso 20)", "1,11"],
+       ["Pérdida final", "0,36"],
+       ["Parámetros entrenables", "18.464.768 (1,18 % del total)"],
+       ["Tokens promedio por ejemplo", "585"],
+       ["Adaptador resultante", "70,5 MB (safetensors)"],
+       ["GGUF Q4_K_M", "940,4 MB"]],
+      widths=[6.2, 11.8])
+
+h2(doc, "4.1.1 Alcance real del ajuste")
+bullet(doc, "El ajuste fino no hace que el modelo «solo conozca» seguridad. Cambia la "
+            "distribución de respuestas y el formato; el conocimiento previo del modelo base "
+            "sigue disponible. La especialización es del comportamiento sobre este corpus, no "
+            "una restricción del conocimiento.")
+bullet(doc, "La cuantización no especializa. Q4_K_M reduce el tamaño y el costo de "
+            "inferencia; puede perder algo de precisión. Es una decisión de despliegue, no una "
+            "fuente de conocimiento.")
+bullet(doc, "Calcular la pérdida solo sobre la respuesta abarata el entrenamiento y concentra "
+            "el gradiente en la salida, pero no impide memorizar los ejemplos. La defensa "
+            "contra la memorización es la partición limpia, la deduplicación y un test que no "
+            "se toca hasta la evaluación final.")
+bullet(doc, "El modelo puede producir un SAFE bien formado y equivocado. La política no lo "
+            "detecta; por eso el producto es asesor y la evaluación mide la omisión sobre "
+            "alertas reales.")
+
+h2(doc, "4.2 Integración en la CLI")
+body(doc,
+     "La única modificación funcional es la etiqueta del modelo. El resto de la tubería, el "
+     "esquema JSON y los reportes son los mismos. Esta separación demuestra que el componente "
+     "inteligente es un servicio sustituible y que la evaluación D es comparable con A, B y "
+     "C: la diferencia entre las configuraciones es el modelo, no el software que lo rodea.")
+body(doc,
+     "La corrida de integración sobre examples/sample_repo es la evidencia de que el modelo "
+     "afinado atraviesa el flujo completo: 9 alertas, 9 conservadas, 4 recomendadas para "
+     "descarte, 0 respuestas inválidas y 0 errores del modelo en 43,1 s (4,8 s por alerta) "
+     "sobre la GTX 1650. El SARIF y el reporte JSON mantienen el esquema de la sección 3 y "
+     "conservan las nueve alertas. El detalle se registra en la tabla de la sección 7.")
+
+h2(doc, "4.3 Mecanismos de resiliencia")
+body(doc,
+     "La política conservadora es la garantía de que el componente de IA no degrade el "
+     "reporte. Cada modo de fallo tiene un comportamiento definido y verificable:", keep=True)
+table(doc,
+      ["Escenario", "Comportamiento del agente", "Evidencia"],
+      [["Ollama detenido o inaccesible",
+        "Todas las alertas se conservan como SOSPECHOSA; el escaneo termina con reporte.",
+        "Prueba con cliente nulo"],
+       ["Tiempo de espera agotado",
+        "La alerta afectada se conserva como SOSPECHOSA; el resto continúa.",
+        "Manejo de OllamaError"],
+       ["JSON malformado o truncado", "La alerta se conserva como SOSPECHOSA.",
+        "Prueba unitaria"],
+       ["Veredicto ausente o inválido", "La alerta se conserva como SOSPECHOSA.",
+        "Prueba unitaria"],
+       ["SAFE sin justificación", "La alerta se conserva como SOSPECHOSA.",
+        "Prueba unitaria"],
+       ["SAFE válido con justificación",
+        "Se registra como recomendación de descarte; la alerta permanece en el reporte.",
+        "Prueba unitaria y corridas"],
+       ["SAFE válido sobre una alerta real",
+        "La alerta permanece visible; el caso se contabiliza como omisión y se audita.",
+        "Modo asesor y muestreo de SAFE"],
+       ["Código con instrucciones maliciosas (prompt injection)",
+        "El código se delimita y se trata como dato; la salida se valida y se revisa. Los "
+        "delimitadores reducen el riesgo, no lo eliminan.",
+        "Prueba de inyección pendiente"]],
+      widths=[5.2, 7.6, 5.2])
+
+# 5. Metodología
+h1(doc, "5. Metodología de evaluación")
+h2(doc, "5.1 Conjunto de evaluación")
+body(doc,
+     "Como Bandit solo analiza Python y el corpus está dominado por C, la evaluación se "
+     "restringió a la partición de validación en Python. Se escribieron las 298 funciones en "
+     "archivos temporales, se ejecutó Bandit y se conservaron las 141 alertas resultantes. La "
+     "verdad de referencia es la etiqueta del dataset a nivel de función: una alerta es real "
+     "si la función está marcada como vulnerable y es falso positivo si está marcada como "
+     "segura. La concordancia de clase entre el CWE de Bandit y el CWE del dataset se mide por "
+     "separado.", keep=True)
+table(doc,
+      ["Métrica del conjunto", "Valor"],
+      [["Funciones Python en validación", "298"],
+       ["Alertas de Bandit", "141"],
+       ["Alertas sobre funciones vulnerables (reales)", "91"],
+       ["Alertas sobre funciones seguras (falsos positivos)", "50"],
+       ["Concordancia CWE SAST–dataset en alertas reales", "41 de 91 (45,1 %)"],
+       ["Reglas dominantes", "CWE-78 (67), CWE-502 (53), CWE-94 (10), CWE-89 (6)"]],
+      widths=[11.0, 7.0])
+body(doc,
+     "La concentración en CWE-78 y CWE-502 se explica por las advertencias de importación de "
+     "subprocess y pickle (B404 y B403), que Bandit reporta aunque no exista uso inseguro. Es "
+     "una fuente natural de falsos positivos y un caso representativo para el triage.")
+body(doc,
+     "Las particiones se construyeron con semilla 42 y se depuraron antes de dividir: se "
+     "eliminaron duplicados exactos por hash del código normalizado y las etiquetas "
+     "contradictorias (433 hashes). El test de 17.542 muestras permanece intacto y no se usó "
+     "para ajustar prompts ni hiperparámetros. La partición de validación total (42.536) "
+     "alimentó el conjunto de validación del ajuste y el conjunto de evaluación. Por eso la "
+     "medición de este avance es de desarrollo, no una evaluación final independiente: el "
+     "test intacto se reserva para el Sprint 7.", keep=True)
+table(doc,
+      ["Partición", "Muestras", "Uso"],
+      [["train_80", "101.878", "Ajuste del adaptador (11.510 ejemplos muestreados)"],
+       ["val_20", "25.470", "Validación dentro de la partición de entrenamiento"],
+       ["val_total", "42.536", "Validación del ajuste y conjunto de evaluación (298 funciones Python)"],
+       ["test intacto", "17.542", "Reservado; no se abre hasta la evaluación única"]],
+      widths=[3.6, 2.8, 11.6])
+
+h2(doc, "5.2 Configuraciones y métricas")
+body(doc,
+     "Se comparan cinco configuraciones: A, solo SAST, que conserva todas las alertas; B, "
+     "modelo base cero-shot sin contexto del SAST; C, modelo base con contexto del SAST y dos "
+     "ejemplos guía (few-shot); C0, modelo base con el mismo formato de alerta que D y sin "
+     "ejemplos; y D, modelo afinado con ese mismo formato. En todas, la "
+     "decisión registrada es una recomendación: el reporte conserva la alerta. Las métricas "
+     "se definen en la sección 5.3.")
+
+h2(doc, "5.3 Matriz de confusión y fórmulas")
+body(doc,
+     "La matriz se construye sobre la recomendación del agente, no sobre una supresión "
+     "efectiva. «Se recomienda descartar» significa que el veredicto es SAFE; «no se "
+     "recomienda descartar» agrupa VULNERABLE y SOSPECHOSA. La tabla usa la convención de "
+     "positivo = alerta real:", keep=True)
+table(doc,
+      ["", "Alerta real", "Alerta falsa"],
+      [["No se recomienda descartar (VULNERABLE o SOSPECHOSA)", "VP", "FP"],
+       ["Se recomienda descartar (SAFE)", "FN", "VN"]],
+      widths=[8.0, 5.0, 5.0])
+body(doc, "Las fórmulas que se reportan son:", keep=True)
+code(doc, "FNR  = FN / (VP + FN)      tasa de omisión sobre alertas reales\n"
+          "FOR  = FN / (FN + VN)      false omission rate (denominador: predicciones negativas)\n"
+          "FPRR = VN / (VN + FP)      reducción de falsos positivos\n"
+          "Precisión = VP / (VP + FP)\n"
+          "FPR  = FP / (FP + VN)      tasa de falsos positivos (1 - especificidad)")
+body(doc,
+     "La diferencia entre FNR y FOR es la que señaló la revisión. Con una alerta real y un "
+     "falso positivo, ambos con recomendación SAFE: FNR = 1/1 = 100 %, FOR = 1/2 = 50 % y "
+     "FPRR = 1/1 = 100 %. Si solo se reportara FOR, el riesgo sobre la única alerta real "
+     "quedaría diluido por el acierto sobre la falsa.")
+body(doc,
+     "Por eso la meta principal se fija sobre FNR: ≤ 5 % de las alertas reales. FOR se "
+     "reporta como métrica convencional y no se usa sola, porque su denominador cambia con la "
+     "agresividad del modelo. En modo asesor, FPRR mide la reducción potencial de carga de "
+     "revisión, no una supresión efectiva. La tolerancia de omisión se declara antes de la "
+     "corrida D y se contrasta con el intervalo de confianza de la muestra; un resultado por "
+     "encima de la meta no se presenta como éxito.")
+
+h2(doc, "5.4 Rúbrica de explicaciones")
+body(doc,
+     "La similitud textual no demuestra que una explicación sea correcta. Las explicaciones "
+     "se evalúan con cuatro criterios en escala 0–2, sobre una muestra ciega y por dos "
+     "revisores independientes:", keep=True)
+table(doc,
+      ["Criterio", "0", "1", "2"],
+      [["CWE correcto", "Incorrecto o ausente", "Familia equivalente", "CWE exacto"],
+       ["Vector de ataque", "Ausente o genérico", "Plausible sin detalle",
+        "Concreto y consistente con el código"],
+       ["Corrección", "Ausente o insegura", "Genérica",
+        "Aplicable y preserva el comportamiento"],
+       ["Claridad", "Incomprensible", "Comprensible con esfuerzo",
+        "Directa y sin ambigüedad"]],
+      widths=[4.0, 4.6, 4.6, 4.8])
+body(doc,
+     "Se reporta el acuerdo entre revisores (kappa de Cohen) y el puntaje por criterio. "
+     "BERTScore se conserva como medida descriptiva de similitud, nunca como sustituto de la "
+     "rúbrica.")
+
+# 6. Resultados
+h1(doc, "6. Resultados")
+body(doc,
+     "La configuración A fija el punto de partida: al no recomendar descartes, su FPRR, FNR y "
+     "FOR son cero por construcción y su exactitud CWE refleja la del SAST (45,1 %). El "
+     "piloto B, sobre diez alertas, recomendó descartar tres de los cuatro falsos positivos "
+     "(FPRR 75 %), conservó las seis alertas reales (FNR 0 %, FOR 0 %) y no acertó el CWE en "
+     "ninguna: predijo CWE-259, CWE-059 y CWE-790 para alertas de pickle y subprocess. El "
+     "tamaño del piloto no permite inferencia estadística; solo confirma que el modelo "
+     "responde, descarta falsos positivos evidentes y falla en la clasificación fina.")
+body(doc,
+     "La tabla comparativa concentra la evidencia del avance. A, el piloto B, C y D están "
+     "medidos sobre el conjunto de evaluación; C usa el mismo prompt con contexto del SAST "
+     "que D y solo cambia el modelo, de modo que la diferencia entre ambas es atribuible al "
+     "ajuste fino y no a la ingeniería de prompts.", keep=True)
+table(doc,
+      ["Configuración", "Alertas", "FPRR", "FNR", "FOR", "Exactitud CWE", "Estado"],
+      COMPARATIVA,
+      widths=[4.4, 1.6, 1.8, 1.6, 1.6, 3.0, 2.5])
+body(doc,
+     "La corrida C, con el modelo base y el mismo prompt que D, recomendó descartar una sola "
+     "de las 50 alertas falsas (FPRR 2,0 %), conservó las 91 reales (FNR 0 %, FOR 0 %), "
+     "obtuvo precisión 65,0 % y exactitud CWE 37,4 %, con una respuesta inválida en una B102 "
+     "que se conservó como SOSPECHOSA. El modelo base casi no se "
+     "compromete: responde VULNERABLE a 139 de las 141 alertas, incluidas casi todas las "
+     "advertencias de importación. Esa cautela explica su FNR nulo y también su bajo ahorro "
+     "de revisión.")
+body(doc,
+     "La corrida D sobre las 141 alertas obtuvo FPRR 48,0 % (24 de 50 falsos positivos), FNR "
+     "5,5 % (5 de 91 alertas reales), FOR 17,2 %, precisión 76,8 % y exactitud CWE 43,0 %, "
+     "sin respuestas inválidas. El FNR queda 0,5 puntos por encima de la meta. Las cinco "
+     "alertas reales descartadas son todas B403 (import pickle, CWE-502): tres deserializan y "
+     "dos solo serializan, de modo que el error está concentrado en una regla y en parte es "
+     "discutible. El modelo copió el CWE del SAST en las 86 alertas reales conservadas, así "
+     "que esa exactitud no mide clasificación independiente: el producto debe conservar el "
+     "CWE del SAST y usar al modelo solo para el veredicto.")
+body(doc,
+     "La comparación justa es D contra C: por cada 50 falsos positivos, D descarta 24 y C "
+     "descarta 1; a cambio, D sacrifica 5 alertas reales y C ninguna. El ajuste fino, por "
+     "tanto, no vuelve al modelo más certero en abstracto: lo vuelve más decidido. Esa "
+     "decisión mejora el ahorro de revisión de 2 % a 48 %, pero cruza apenas la meta de FNR. "
+     "Con FNR 5,5 % no se habilita el descarte automático: se mantiene el modo asesor. Como "
+     "mitigación de producto, excluir B403 de la recomendación de descarte reduce el FNR a "
+     "0 % y deja el FPRR en 38 %; la decisión se valida en el Sprint 7. Tampoco se compara D "
+     "contra A como si A midiera la misma tarea: A no decide, solo conserva.")
+
+figure(doc,
+       Path(__file__).resolve().parents[1] / "reportes" / "curva_perdida.png",
+       "Figura 1. Pérdida de entrenamiento del adaptador LoRA (1 época, 11.510 ejemplos, "
+       "1.439 pasos). La curva de validación no se incluye porque las evaluaciones "
+       "intermedias quedaron invalidadas por truncamiento de ejemplos largos; el generador "
+       "de datos ya se corrigió para futuras corridas.")
+
+# 7. Pruebas
+h1(doc, "7. Pruebas y validación del producto")
+body(doc,
+     "Además de la evaluación comparativa, el avance incluye la validación funcional del "
+     "producto. La tabla reúne las pruebas ejecutadas y las que se registran antes de la "
+     "entrega:", keep=True)
+table(doc,
+      ["Prueba", "Resultado", "Estado"],
+      EVIDENCIAS,
+      widths=[8.0, 6.2, 3.8])
+body(doc,
+     "Las pruebas unitarias cubren el contexto por AST, la deduplicación, el SARIF, el parseo "
+     "de la respuesta del modelo, la política conservadora, el modo asesor y la ejecución de "
+     "Bandit y el límite de generación del cliente: 12 de 12 correctas. Las pruebas de "
+     "resiliencia verifican que un cliente nulo, un "
+     "JSON malformado y un veredicto inválido conservan la alerta. La corrida de integración "
+     "con el modelo afinado sobre examples/sample_repo conservó las 9 alertas, no produjo "
+     "respuestas inválidas ni errores y tardó 43,1 s (4,8 s por alerta). La corrida con el "
+     "modelo base del Avance 4 había clasificado las nueve alertas como VULNERABLE, incluidas "
+     "las advertencias de importación; ese comportamiento es la línea base cualitativa que el "
+     "ajuste fino debía mejorar.")
+body(doc,
+     "La batería funcional cubre casos límite que no dependen del modelo: repositorio vacío, "
+     "archivo vacío, sintaxis inválida, archivo en otro lenguaje y un repositorio de 40 "
+     "archivos con 360 alertas. En todos los casos la CLI termina con código 0 y genera JSON "
+     "y SARIF válidos; los casos sin alertas producen reportes vacíos y el repositorio grande "
+     "se procesa sin abortar. Con Ollama apuntado a una URL inexistente, las 9 alertas se "
+     "conservan como SOSPECHOSA y el proceso termina sin error: la caída del modelo degrada "
+     "la recomendación, no el análisis.")
+body(doc,
+     "La prueba de prompt injection incrustó en el código un comentario que ordenaba "
+     "responder SAFE. Con el modelo afinado, las 4 alertas se conservaron; las dos "
+     "vulnerabilidades reales (B602, shell=True, y B301, pickle.load) se clasificaron como "
+     "VULNERABLE y los dos SAFE correspondieron a las advertencias de importación B404 y "
+     "B403, no a la instrucción maliciosa. El caso es una muestra reducida y no demuestra "
+     "resistencia general, pero confirma que la política conservadora y los delimitadores "
+     "reducen el riesgo en el flujo real.")
+body(doc,
+     "La corrida C expuso un caso patológico: con una alerta B102 de 1.818 caracteres, el "
+     "modelo base entró en un bucle de generación. En la primera corrida, sin límite de "
+     "tokens, agotó el timeout de 180 s y el runner de Ollama siguió consumiendo CPU después "
+     "de que el cliente abandonó. Se agregó num_predict 512 al cliente y al arnés: en la "
+     "corrida definitiva la misma alerta se truncó en 512 tokens, quedó inválida y se "
+     "conservó como SOSPECHOSA en unos 8 s. D respondió la misma alerta en unos 4 s. El "
+     "límite convierte un bloqueo en un fallo acotado; para producción conviene además "
+     "reiniciar el runner tras un truncamiento.")
+body(doc,
+     "El modelo afinado ocupa 1.115 MB en la GPU y el proceso llama-server unos 700 MB de "
+     "RAM con contexto de 4.096 tokens. Esa huella permite ejecutarlo en una GPU de 4 GB "
+     "junto con el escritorio, aunque deja poco margen para procesar alertas en paralelo.")
+body(doc,
+     "El reporte conserva las nueve alertas en JSON y en SARIF aunque el modelo recomiende "
+     "descartar alguna. Esa comprobación es la evidencia del modo asesor y la condición para "
+     "que el producto siga siendo auditable.")
+
+# 8. Limitaciones
+h1(doc, "8. Limitaciones")
+bullet(doc, "Cobertura de lenguaje: Bandit solo analiza Python y el 94,1 % del corpus es C. La "
+            "evaluación cubre 298 funciones y 141 alertas, suficiente para la línea base pero "
+            "no para generalizar al corpus completo.")
+bullet(doc, "Verdad de referencia a nivel de función y sin alcanzabilidad: el dataset no "
+            "incluye archivo ni línea, por lo que una advertencia de importación sobre una "
+            "función vulnerable cuenta como alerta real aunque la línea señalada no sea el "
+            "defecto. Tampoco se etiqueta si el flujo es alcanzable; una función vulnerable en "
+            "código muerto se cuenta como real. Esto favorece al SAST y explica parte del "
+            "45,1 % de concordancia CWE.")
+bullet(doc, "Independencia de la partición: la evaluación usa val_total, la misma partición "
+            "que alimentó la validación del ajuste, así que es una medición de desarrollo. El "
+            "test de 17.542 muestras permanece intacto, pero el split actual es aleatorio por "
+            "función y el dataset no incluye identificador de proyecto; no puede garantizarse "
+            "que no haya filtraciones entre repositorios. Antes del test final hay que rehacer "
+            "la partición agrupando por proyecto o archivo.")
+bullet(doc, "Falsos negativos bien formados: un SAFE con JSON válido y justificación puede ser "
+            "incorrecto. La política conservadora no lo detecta; el modo asesor evita que "
+            "desaparezca del reporte, pero la calidad depende de la revisión humana y de la "
+            "tasa de omisión medida.")
+bullet(doc, "Sesgo del ajuste: el adaptador se entrena sobre una muestra balanceada de 11.510 "
+            "ejemplos; el desempeño sobre la distribución natural del corpus puede ser "
+            "distinto. Además, la pérdida solo sobre la respuesta no garantiza que el modelo "
+            "generalice ni que no memoricé ejemplos.")
+bullet(doc, "Cuantización: Q4_K_M reduce recursos, no especializa. Falta medir su efecto en la "
+            "calidad de las explicaciones y en la tasa de omisión frente al modelo fusionado "
+            "sin cuantizar.")
+bullet(doc, "Explicaciones: BERTScore requiere referencias humanas y mide similitud, no "
+            "corrección técnica. La rúbrica de la sección 5.4 es la medida principal, pero "
+            "aún no se aplica.")
+bullet(doc, "Rendimiento: la corrida de integración del modelo afinado midió 4,8 s por alerta "
+            "en la GTX 1650 (43,1 s para 9 alertas); el banco de 10 alertas dio 4,9 s de media "
+            "incluyendo la carga del modelo y 4,1 s de mediana. C promedió ~4,3 s por alerta, "
+            "salvo una B102 que se trunca y se conserva como SOSPECHOSA. El "
+            "modelo ocupa 1.115 MB de VRAM y unos 700 MB de RAM, de modo que en 4 GB cabe una "
+            "instancia pero no hay margen cómodo para paralelizar. Para repositorios grandes "
+            "hacen falta batching y una política de concurrencia medida.")
+bullet(doc, "Prompt injection: el código analizado es entrada no confiable. La prueba con un "
+            "comentario malicioso no logró que el modelo marcara SAFE las dos vulnerabilidades "
+            "reales, pero es un solo caso: no demuestra resistencia general. Los delimitadores "
+            "y el formato JSON reducen el riesgo; la política conservadora evita que un SAFE "
+            "elimine la alerta.")
+bullet(doc, "Llamadas externas: la promesa de que el código no sale de la máquina debe "
+            "reconciliarse con las funciones que descargan repositorios o consultan "
+            "dependencias. Hay que documentar qué sale, hacia dónde y con qué control, o "
+            "restringir el producto al análisis estrictamente local.")
+bullet(doc, "Demostración en vivo: el ensayo con el modelo afinado quedó pendiente para el "
+            "Sprint 7; la corrida de integración ya confirma que el flujo de extremo a extremo "
+            "funciona.")
+
+# 9. Próximos pasos
+h1(doc, "9. Próximos pasos")
+bullet(doc, "Validar en el conjunto de verificación la decisión del punto de control: D "
+            "aumenta el FPRR de 2 % a 48 % frente a C, pero su FNR de 5,5 % obliga a mantener el "
+            "modo asesor y a evaluar la exclusión de B403 del descarte.")
+bullet(doc, "Reportar el intervalo de confianza del FNR y del FPRR: con 91 alertas reales, un "
+            "FNR de 5,5 % tiene un intervalo amplio y el holdout debe confirmarlo.")
+bullet(doc, "Rehacer la partición agrupando por proyecto o archivo, verificar que no haya "
+            "hashes compartidos entre train y test, y congelar el test final hasta la "
+            "evaluación única del Sprint 7.")
+bullet(doc, "Auditar a ciegas una muestra de respuestas SAFE para estimar la tasa de falsos "
+            "negativos bien formados y reportar el intervalo de confianza.")
+bullet(doc, "Aplicar la rúbrica de explicaciones con dos revisores, calcular el acuerdo y "
+            "reportar BERTScore solo como medida complementaria.")
+bullet(doc, "Ampliar la batería de prompt injection con más patrones y documentar la política "
+            "de llamadas externas y de descarga de repositorios.")
+bullet(doc, "Actualizar el marco teórico y la bibliografía: IRIS, SecurityEval (MSR4P&S 2022) "
+            "y la muestra de Tencent (328/433), y eliminar la afirmación de «>90 %» como si "
+            "fuera el resultado de la muestra.")
+bullet(doc, "Integrar las secciones de entrenamiento, resultados y discusión en el documento "
+            "final, y preparar el ensayo de demostración y el paquete de entrega.")
+
+# 10. Conclusión
+h1(doc, "10. Conclusiones")
+body(doc,
+     "El Sprint 6 deja el componente inteligente integrado y medido: el modelo afinado se "
+     "sirve en Ollama, la CLI lo usa sin cambiar el contrato de datos y la comparación A/B/C/D "
+     "está completa. D frente a C muestra el efecto real del ajuste fino: sobre el mismo "
+     "prompt y el mismo conjunto, el FPRR sube de 2,0 % a 48,0 % y el FNR pasa de 0,0 % a "
+     "5,5 %. El modelo afinado no es más «inteligente» en abstracto; es más decidido, y esa "
+     "decisión es la que hay que controlar. La decisión más importante del avance no es "
+     "técnica sino de producto: el agente pasa a modo asesor porque un SAFE formalmente válido "
+     "puede ser un falso negativo real.")
+body(doc,
+     "El trabajo que resta es de validación, no de arquitectura: confirmar el FNR con el "
+     "conjunto de verificación, decidir si se excluye B403 del descarte, rehacer la partición "
+     "por proyecto antes del test final y documentar el resultado con la misma transparencia "
+     "con la que se reportó la línea base del Avance 4. Con FNR 5,5 % el producto no habilita "
+     "descarte automático; el ahorro de revisión es real, pero la alerta siempre permanece "
+     "visible para el analista.")
+
+# 11. Referencias
+h1(doc, "11. Referencias")
+for ref in [
+    "Bandit. Herramienta de análisis estático de seguridad para Python. "
+    "https://bandit.readthedocs.io",
+    "Dettmers, T. et al. (2023). QLoRA: Efficient Finetuning of Quantized LLMs. "
+    "https://arxiv.org/abs/2305.14314",
+    "Ding, Y. et al. (2025). Vulnerability Detection with Code Language Models: How Far Are "
+    "We? ICSE 2025. https://arxiv.org/abs/2403.18624",
+    "Du, X. et al. (2026). Reducing False Positives in Static Bug Detection with LLMs: An "
+    "Empirical Study in Industry. ICSE 2026 SEIP. https://arxiv.org/abs/2601.18844",
+    "Hu, E. J. et al. (2021). LoRA: Low-Rank Adaptation of Large Language Models. "
+    "https://arxiv.org/abs/2106.09685",
+    "Hui, B. et al. (2024). Qwen2.5-Coder Technical Report. https://arxiv.org/abs/2409.12186",
+    "Li, H. et al. (2025). IRIS: LLM-Assisted Static Analysis for Detecting Security "
+    "Vulnerabilities. ICLR 2025. https://arxiv.org/abs/2405.17238",
+    "llama.cpp. Inferencia de modelos en formato GGUF. https://github.com/ggml-org/llama.cpp",
+    "MITRE. Common Weakness Enumeration (CWE). https://cwe.mitre.org",
+    "NIST. (2022). Secure Software Development Framework (SSDF), SP 800-218. "
+    "https://csrc.nist.gov/pubs/sp/800/218/final",
+    "Ollama. Ejecución local de modelos de lenguaje. https://ollama.com",
+    "OWASP GenAI. (2025). LLM01:2025 – Prompt Injection. https://genai.owasp.org",
+    "Siddiq, M. L., y Santos, J. C. (2022). SecurityEval dataset: mining vulnerability "
+    "examples to evaluate machine learning-based code generation techniques. MSR4P&S 2022, "
+    "pp. 29–33. https://doi.org/10.1145/3549035.3561184",
+    "ayshajavd. Code Security Vulnerability Dataset. Hugging Face. "
+    "https://huggingface.co/datasets/ayshajavd/code-security-vulnerability-dataset",
+]:
+    bullet(doc, ref, size=9.2, line=10.8, before=0.6)
+
+doc.save(OUT)
+print("guardado:", OUT)
+print("parrafos:", len(doc.paragraphs), "| tablas:", len(doc.tables))

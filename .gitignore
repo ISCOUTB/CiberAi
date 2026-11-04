@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Entornos virtuales
+.venv/
+env/
+venv/
+ENV/
+
+# Modelos y pesos pesados de entrenamiento
+*.gguf
+training/out/*.gguf
+training/out/gguf/
+training/out/qwen-coder-1.5b-lora/
+training/out/qwen-coder-1.5b-merged/
+training/out/checkpoint-*/
+llama.cpp/
+
+# Carpetas temporales de evaluacion
+eval/tmp_py/
+eval/tmp_py_holdout/
+eval/pruebas/out_*/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE y Sistema Operativo
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+Thumbs.db
+Desktop.ini
+.DS_Store

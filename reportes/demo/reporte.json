@@ -1,0 +1,272 @@
+{
+  "scan": {
+    "scan_id": "ca8b5f29b22c",
+    "target": "C:\\Games\\u\\proyecto ing\\agente\\examples\\sample_repo",
+    "created": "2026-10-30T02:34:52.881080+00:00",
+    "tool_runs": [
+      {
+        "tool": "bandit",
+        "version": "1.8.6",
+        "started": "2026-10-30T02:34:52.881080+00:00",
+        "finished": "2026-10-30T02:34:54.413059+00:00",
+        "findings": [
+          {
+            "finding_id": "e9bd0abcaa5dc335",
+            "rule_id": "B403",
+            "cwe": "CWE-502",
+            "severity": "baja",
+            "confidence": "HIGH",
+            "message": "Consider possible security implications associated with pickle module.",
+            "file": "vuln.py",
+            "line": 2,
+            "end_line": 13,
+            "code": "1 import hashlib\n2 import pickle\n3 import subprocess\n",
+            "function": "<modulo>",
+            "fingerprint": "e9bd0abcaa5dc3358f8a89a576905da28d80817ebd13703539e51bfe721f7417",
+            "context": "import hashlib\nimport pickle\nimport subprocess\n\nDB_PASSWORD = \"SuperSecreto123\"\n\n\ndef login(usuario, password):\n    if password == \"admin123\":\n        return True\n    return usuario == \"admin\"\n\n\ndef buscar(conn, nombre):\n    query = \"SELECT * FROM usuarios WHERE nombre = '%s'\" % nombre\n    return conn.execute(query).fetchall()\n\n\ndef buscar_seguro(conn, nombre):\n    return conn.execute(\"SELECT * FROM usuarios WHERE nombre = ?\", (nombre,)).fetchall()\n\n",
+            "triage": {
+              "finding_id": "e9bd0abcaa5dc335",
+              "veredicto": "SOSPECHOSA",
+              "cwe": "CWE-502",
+              "severidad": "Baja",
+              "explicacion": "No se pudo validar la respuesta del modelo: modelo no disponible. La alerta se conserva.",
+              "vector_ataque": "N/A",
+              "correccion": "Revisar manualmente.",
+              "origen": "respaldo",
+              "valido": false
+            }
+          },
+          {
+            "finding_id": "847bfc6c094ae7e1",
+            "rule_id": "B404",
+            "cwe": "CWE-78",
+            "severity": "baja",
+            "confidence": "HIGH",
+            "message": "Consider possible security implications associated with the subprocess module.",
+            "file": "vuln.py",
+            "line": 3,
+            "end_line": 17,
+            "code": "2 import pickle\n3 import subprocess\n4 \n",
+            "function": "<modulo>",
+            "fingerprint": "847bfc6c094ae7e1f5b979e00cab3f2ff0ead172ecfae78f457d0af92501b07c",
+            "context": "import hashlib\nimport pickle\nimport subprocess\n\nDB_PASSWORD = \"SuperSecreto123\"\n\n\ndef login(usuario, password):\n    if password == \"admin123\":\n        return True\n    return usuario == \"admin\"\n\n\ndef buscar(conn, nombre):\n    query = \"SELECT * FROM usuarios WHERE nombre = '%s'\" % nombre\n    return conn.execute(query).fetchall()\n\n\ndef buscar_seguro(conn, nombre):\n    return conn.execute(\"SELECT * FROM usuarios WHERE nombre = ?\", (nombre,)).fetchall()\n\n\ndef hash_password(pw):",
+            "triage": {
+              "finding_id": "847bfc6c094ae7e1",
+              "veredicto": "SOSPECHOSA",
+              "cwe": "CWE-78",
+              "severidad": "Baja",
+              "explicacion": "No se pudo validar la respuesta del modelo: modelo no disponible. La alerta se conserva.",
+              "vector_ataque": "N/A",
+              "correccion": "Revisar manualmente.",
+              "origen": "respaldo",
+              "valido": false
+            }
+          },
+          {
+            "finding_id": "2e9256ff913498af",
+            "rule_id": "B105",
+            "cwe": "CWE-259",
+            "severity": "baja",
+            "confidence": "MEDIUM",
+            "message": "Possible hardcoded password: 'SuperSecreto123'",
+            "file": "vuln.py",
+            "line": 5,
+            "end_line": 31,
+            "code": "4 \n5 DB_PASSWORD = \"SuperSecreto123\"\n6 \n",
+            "function": "<modulo>",
+            "fingerprint": "2e9256ff913498afb2f6a8d87656657d06dc70a2b8d125650b78fd773ace799d",
+            "context": "import hashlib\nimport pickle\nimport subprocess\n\nDB_PASSWORD = \"SuperSecreto123\"\n\n\ndef login(usuario, password):\n    if password == \"admin123\":\n        return True\n    return usuario == \"admin\"\n\n\ndef buscar(conn, nombre):\n    query = \"SELECT * FROM usuarios WHERE nombre = '%s'\" % nombre\n    return conn.execute(query).fetchall()\n\n\ndef buscar_seguro(conn, nombre):\n    return conn.execute(\"SELECT * FROM usuarios WHERE nombre = ?\", (nombre,)).fetchall()\n\n\ndef hash_password(pw):\n    return hashlib.md5(pw.encode()).hexdigest()\n",
+            "triage": {
+              "finding_id": "2e9256ff913498af",
+              "veredicto": "SOSPECHOSA",
+              "cwe": "CWE-259",
+              "severidad": "Baja",
+              "explicacion": "No se pudo validar la respuesta del modelo: modelo no disponible. La alerta se conserva.",
+              "vector_ataque": "N/A",
+              "correccion": "Revisar manualmente.",
+              "origen": "respaldo",
+              "valido": false
+            }
+          },
+          {
+            "finding_id": "d88e5d813102cedd",
+            "rule_id": "B105",
+            "cwe": "CWE-259",
+            "severity": "baja",
+            "confidence": "MEDIUM",
+            "message": "Possible hardcoded password: 'admin123'",
+            "file": "vuln.py",
+            "line": 9,
+            "end_line": 29,
+            "code": "8 def login(usuario, password):\n9     if password == \"admin123\":\n10         return True\n",
+            "function": "login",
+            "fingerprint": "d88e5d813102cedd3b41c0b11b85f0e7bd03d6cf10606291b10ab6286e44f7ea",
+            "context": "def login(usuario, password):\n    if password == \"admin123\":\n        return True\n    return usuario == \"admin\"",
+            "triage": {
+              "finding_id": "d88e5d813102cedd",
+              "veredicto": "SOSPECHOSA",
+              "cwe": "CWE-259",
+              "severidad": "Baja",
+              "explicacion": "No se pudo validar la respuesta del modelo: modelo no disponible. La alerta se conserva.",
+              "vector_ataque": "N/A",
+              "correccion": "Revisar manualmente.",
+              "origen": "respaldo",
+              "valido": false
+            }
+          },
+          {
+            "finding_id": "7be2ec4686d0006f",
+            "rule_id": "B608",
+            "cwe": "CWE-89",
+            "severity": "media",
+            "confidence": "LOW",
+            "message": "Possible SQL injection vector through string-based query construction.",
+            "file": "vuln.py",
+            "line": 15,
+            "end_line": 56,
+            "code": "14 def buscar(conn, nombre):\n15     query = \"SELECT * FROM usuarios WHERE nombre = '%s'\" % nombre\n16     return conn.execute(query).fetchall()\n",
+            "function": "buscar",
+            "fingerprint": "7be2ec4686d0006fb7b17a658bae06bec75da1ff5db1c3b433247898b7cfa738",
+            "context": "def buscar(conn, nombre):\n    query = \"SELECT * FROM usuarios WHERE nombre = '%s'\" % nombre\n    return conn.execute(query).fetchall()",
+            "triage": {
+              "finding_id": "7be2ec4686d0006f",
+              "veredicto": "SOSPECHOSA",
+              "cwe": "CWE-89",
+              "severidad": "Media",
+              "explicacion": "No se pudo validar la respuesta del modelo: modelo no disponible. La alerta se conserva.",
+              "vector_ataque": "N/A",
+              "correccion": "Revisar manualmente.",
+              "origen": "respaldo",
+              "valido": false
+            }
+          },
+          {
+            "finding_id": "73056c107b6a172a",
+            "rule_id": "B324",
+            "cwe": "CWE-327",
+            "severity": "alta",
+            "confidence": "HIGH",
+            "message": "Use of weak MD5 hash for security. Consider usedforsecurity=False",
+            "file": "vuln.py",
+            "line": 24,
+            "end_line": 35,
+            "code": "23 def hash_password(pw):\n24     return hashlib.md5(pw.encode()).hexdigest()\n25 \n",
+            "function": "hash_password",
+            "fingerprint": "73056c107b6a172af94f458f6d5e9a140a49bd5efa1d798548a9d8825b1cffc0",
+            "context": "def hash_password(pw):\n    return hashlib.md5(pw.encode()).hexdigest()",
+            "triage": {
+              "finding_id": "73056c107b6a172a",
+              "veredicto": "SOSPECHOSA",
+              "cwe": "CWE-327",
+              "severidad": "Alta",
+              "explicacion": "No se pudo validar la respuesta del modelo: modelo no disponible. La alerta se conserva.",
+              "vector_ataque": "N/A",
+              "correccion": "Revisar manualmente.",
+              "origen": "respaldo",
+              "valido": false
+            }
+          },
+          {
+            "finding_id": "ac4e4b80b4b7c51f",
+            "rule_id": "B301",
+            "cwe": "CWE-502",
+            "severity": "media",
+            "confidence": "HIGH",
+            "message": "Pickle and modules that wrap it can be unsafe when used to deserialize untrusted data, possible security issue.",
+            "file": "vuln.py",
+            "line": 28,
+            "end_line": 29,
+            "code": "27 def cargar(data):\n28     return pickle.loads(data)\n29 \n",
+            "function": "cargar",
+            "fingerprint": "ac4e4b80b4b7c51f3868b16efe3a1e94bd5ebc3d9068cbeddc5cc00f0ca8fa1f",
+            "context": "def cargar(data):\n    return pickle.loads(data)",
+            "triage": {
+              "finding_id": "ac4e4b80b4b7c51f",
+              "veredicto": "SOSPECHOSA",
+              "cwe": "CWE-502",
+              "severidad": "Media",
+              "explicacion": "No se pudo validar la respuesta del modelo: modelo no disponible. La alerta se conserva.",
+              "vector_ataque": "N/A",
+              "correccion": "Revisar manualmente.",
+              "origen": "respaldo",
+              "valido": false
+            }
+          },
+          {
+            "finding_id": "f09d315bba2253c5",
+            "rule_id": "B602",
+            "cwe": "CWE-78",
+            "severity": "alta",
+            "confidence": "HIGH",
+            "message": "subprocess call with shell=True identified, security issue.",
+            "file": "vuln.py",
+            "line": 32,
+            "end_line": 43,
+            "code": "31 def ejecutar(cmd):\n32     return subprocess.call(cmd, shell=True)\n33 \n",
+            "function": "ejecutar",
+            "fingerprint": "f09d315bba2253c50f055d8a744e8a41cc75dfc3376cd3574a4c36d06bc99799",
+            "context": "def ejecutar(cmd):\n    return subprocess.call(cmd, shell=True)",
+            "triage": {
+              "finding_id": "f09d315bba2253c5",
+              "veredicto": "SOSPECHOSA",
+              "cwe": "CWE-78",
+              "severidad": "Alta",
+              "explicacion": "No se pudo validar la respuesta del modelo: modelo no disponible. La alerta se conserva.",
+              "vector_ataque": "N/A",
+              "correccion": "Revisar manualmente.",
+              "origen": "respaldo",
+              "valido": false
+            }
+          },
+          {
+            "finding_id": "01636bec2cc79881",
+            "rule_id": "B101",
+            "cwe": "CWE-703",
+            "severity": "baja",
+            "confidence": "HIGH",
+            "message": "Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.",
+            "file": "vuln.py",
+            "line": 36,
+            "end_line": 20,
+            "code": "35 def verificar(valor):\n36     assert valor > 0\n37     return valor\n",
+            "function": "verificar",
+            "fingerprint": "01636bec2cc798812bab35a3261f35903f0d3ac3af6f0778a6bad2c9d9bb6106",
+            "context": "def verificar(valor):\n    assert valor > 0\n    return valor",
+            "triage": {
+              "finding_id": "01636bec2cc79881",
+              "veredicto": "SOSPECHOSA",
+              "cwe": "CWE-703",
+              "severidad": "Baja",
+              "explicacion": "No se pudo validar la respuesta del modelo: modelo no disponible. La alerta se conserva.",
+              "vector_ataque": "N/A",
+              "correccion": "Revisar manualmente.",
+              "origen": "respaldo",
+              "valido": false
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "resumen": {
+    "total": 9,
+    "conservadas": 9,
+    "descartadas": 0,
+    "sospechosas": 9,
+    "errores_modelo": 9,
+    "archivos": 1,
+    "por_cwe": {
+      "CWE-259": 2,
+      "CWE-502": 2,
+      "CWE-78": 2,
+      "CWE-327": 1,
+      "CWE-703": 1,
+      "CWE-89": 1
+    },
+    "por_severidad": {
+      "baja": 5,
+      "alta": 2,
+      "media": 2
+    }
+  }
+}

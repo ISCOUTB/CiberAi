@@ -1,0 +1,354 @@
+﻿id,rule_id,cwe_sast,cwe_pred,veredicto_modelo,explicacion,vector_ataque,correccion,codigo_fuente,cwe_score,vector_score,correccion_score,claridad_score,observaciones
+f5316.py:21,B201,CWE-94,CWE-94,VULNERABLE,Se detecta un patrón asociado a CWE-94 en código Python.,Explotación mediante vectores propios de CWE-94.,Aplicar validación de entradas y sanitización.,"# Importing necessary modules
+from flask import Flask, request, abort
+
+app = Flask(__name__)
+
+@app.route('/execute', methods=['POST'])
+def execute_code():
+    code = request.form.get('code')
+    if code:
+        # Check if the code contains any restricted keywords
+        restricted_keywords = ['eval', 'exec', 'import', 'open', 'os', 'read', 'write', 'system', 'subprocess']
+        if any(keyword in code for keyword in restricted_keywords):
+            abort(400, 'Restricted keywords found in the code')
+        else:
+            exec(code)
+            return 'Code executed'
+    else:
+        abort(400, 'No code provided')
+
+if __name__ == ""__main__"":
+    app.run(debug=True)",,,,,
+f11699.py:5,B603,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"import subprocess
+
+def execute_command(user_input):
+    command = ['bash', '-c', f""echo -n {user_input} | wc -c""]
+    result = subprocess.run(command, capture_output=True, text=True)
+    print(result.stdout.strip())
+
+while True:
+    user_input = input(""Enter your string: "")
+    execute_command(user_input)",,,,,
+f10471.py:7,B608,CWE-89,CWE-89,VULNERABLE,Se detecta un patrón asociado a CWE-89 en código SQL.,Explotación mediante vectores propios de CWE-89.,Aplicar validación de entradas y sanitización.,"import sqlite3
+
+def get_user_info(username):
+    conn = sqlite3.connect('mydatabase.db')
+    cursor = conn.cursor()
+    
+    query = ""SELECT * FROM users WHERE username='"" + username + ""'""
+    cursor.execute(query)
+    
+    results = cursor.fetchall()
+    
+    return results
+
+print(get_user_info(""test')) OR '1'='1""))",,,,,
+f6931.py:4,B307,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"import os
+
+def run_code(user_input):
+    eval(user_input)
+
+if __name__ == ""__main__"":
+    user_input = input(""Enter some Python code: "")
+    run_code(user_input)",,,,,
+f15025.py:8,B307,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"import os
+class UserInput:
+    def __init__(self):
+        self.user_input = input(""Enter your command: "")
+
+class CommandExecutor:
+    def execute(self, user_input):
+        eval(user_input)
+
+def main():
+    user_input = UserInput().user_input
+    CommandExecutor().execute(user_input)
+
+if __name__ == ""__main__"":
+    main()",,,,,
+f14836.py:7,B307,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"from flask import Flask, request
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    command = request.args.get('command', '')
+    eval(command)
+
+if __name__ == '__main__':
+    app.run(debug=True)",,,,,
+f14357.py:10,B102,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código fuente.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"import re
+from flask import Flask, request
+
+app = Flask(__name__)
+
+@app.route('/execute', methods=['POST'])
+def execute_code():
+    code = request.form.get('code')
+    sanitized_code = re.sub(r'\b(os|sys|eval)\b', '', code)
+    exec(sanitized_code)
+    return 'Code executed successfully!'
+
+if __name__ == '__main__':
+    app.run(debug=True)",,,,,
+f12628.py:1,B403,CWE-502,Ninguno,SAFE,El fragmento de código no presenta el patrón vulnerable indicado.,N/A,N/A,"import pickle
+import subprocess
+
+class SafePickle(object):
+    def __reduce__(self):
+        return (subprocess.run, (['echo', 'You have been hacked'],))
+
+data = pickle.dumps(SafePickle())
+pickle.loads(data)",,,,,
+f9450.py:14,B307,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"import ast
+import os
+
+class RestrictedUnsafeEval(ast.NodeVisitor):
+    def visit_Call(self, node):
+        if isinstance(node.func, ast.Name) and node.func.id == ""__import__"":
+            raise ValueError(""__import__ is not allowed"")
+        self.generic_visit(node)
+
+def safe_eval(user_input):
+    tree = ast.parse(user_input, mode='single')
+    RestrictedUnsafeEval().visit(tree)
+    # If no exception was raised, we can safely evaluate the expression
+    return eval(user_input)
+
+# Testing the function
+try:
+    print(safe_eval(""__import__('os').system('rm -rf *')""))
+except Exception as e:
+    print(f""An error occurred: {e}"")",,,,,
+f11699.py:1,B404,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"import subprocess
+
+def execute_command(user_input):
+    command = ['bash', '-c', f""echo -n {user_input} | wc -c""]
+    result = subprocess.run(command, capture_output=True, text=True)
+    print(result.stdout.strip())
+
+while True:
+    user_input = input(""Enter your string: "")
+    execute_command(user_input)",,,,,
+f5750.py:4,B307,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"import os
+def execute_user_input():
+    user_input = input(""Enter your command: "")
+    eval(user_input)
+
+execute_user_input()",,,,,
+f9036.py:13,B301,CWE-502,CWE-502,VULNERABLE,Se detecta un patrón asociado a CWE-502 en código Python.,Explotación mediante vectores propios de CWE-502.,Aplicar validación de entradas y sanitización.,"import pickle
+import subprocess
+
+class SafeClass:
+    def __init__(self):
+        self.data = ""You have been hacked""
+
+    def __getstate__(self):
+        raise TypeError(""Serialization of this class is not allowed"")
+
+def serialize_and_deserialize(obj):
+    serialized = pickle.dumps(obj)
+    deserialized = pickle.loads(serialized)
+    return deserialized
+
+safe_object = SafeClass()
+try:
+    serialize_and_deserialize(safe_object)
+except TypeError as e:
+    print(e)",,,,,
+f335.py:5,B602,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"import subprocess
+
+def execute_command(user_input):
+    try:
+        result = subprocess.run(user_input, shell=True, check=True, capture_output=True, text=True)
+        print(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print(f""Command execution failed with error: {e}"")
+
+execute_command(input(""Enter your command: ""))",,,,,
+f11535.py:8,B307,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"import os
+
+def run_command(user_input):
+    command = 'ls ' + user_input
+    os.system(command)
+
+def evaluate_input(user_input):
+    eval(user_input)
+
+while True:
+    user_input = input(""Enter your command: "")
+    if ""__import__"" in user_input:
+        print(""Sorry, you cannot use import statement."")
+    elif ""exec"" in user_input:
+        print(""Sorry, you cannot use exec statement."")
+    elif ""eval"" in user_input:
+        print(""Sorry, you cannot use eval statement."")
+    else:
+        run_command(user_input)
+        evaluate_input(user_input)",,,,,
+f4697.py:5,B605,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"import os
+
+def run_command(user_input):
+    command = ""ls "" + user_input
+    os.system(command)
+
+def run_command_with_eval(user_input):
+    eval(user_input)
+
+user_input = input(""Enter your command: "")
+run_command(user_input)
+run_command_with_eval(user_input)",,,,,
+f1878.py:14,B301,CWE-502,CWE-502,VULNERABLE,Se detecta un patrón asociado a CWE-502 en código Python.,Explotación mediante vectores propios de CWE-502.,Aplicar validación de entradas y sanitización.,"import pickle
+import os
+
+class EvilPickle(object):
+    def __reduce__(self):
+        return (os.system, ('echo ""You have been hacked!""',))
+
+def serialize_exploit():
+    with open('evil.pickle', 'wb') as f:
+        pickle.dump(EvilPickle(), f)
+
+def deserialize_exploit():
+    with open('evil.pickle', 'rb') as f:
+        pickle.load(f)
+
+serialize_exploit()
+deserialize_exploit()",,,,,
+f10594.py:8,B608,CWE-89,CWE-89,VULNERABLE,Se detecta un patrón asociado a CWE-89 en código SQL.,Explotación mediante vectores propios de CWE-89.,Aplicar validación de entradas y sanitización.,"import sqlite3
+
+def fetch_user_data(username):
+    conn = sqlite3.connect('my_database.db')
+    cursor = conn.cursor()
+
+    # User input is directly used to construct SQL queries
+    query = ""SELECT * FROM users WHERE username='{}'"".format(username)
+
+    cursor.execute(query)
+    rows = cursor.fetchall()
+
+    for row in rows:
+        print(row)
+
+# Vulnerable call
+fetch_user_data(""admin' OR '1'='1"")",,,,,
+f981.py:14,B608,CWE-89,CWE-89,VULNERABLE,Se detecta un patrón asociado a CWE-89 en código Python.,Explotación mediante vectores propios de CWE-89.,Aplicar validación de entradas y sanitización.,"import sqlite3
+from flask import Flask, request
+
+app = Flask(__name__)
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form['username']
+    password = request.form['password']
+
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+
+    query = ""SELECT * FROM users WHERE username='{}' AND password='{}'"".format(username, password)
+    result = c.execute(query)
+
+    if result.fetchone():
+        return 'Login successful!'
+    else:
+        return 'Invalid credentials!'
+
+if __name__ == '__main__':
+    app.run(debug=True)",,,,,
+f7329.py:10,B307,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"class UserInput:
+    def __init__(self):
+        self.user_input = input(""Enter your command: "")
+
+class VulnerableCode:
+    def __init__(self, user_input):
+        self.user_input = user_input
+
+    def execute(self):
+        eval(self.user_input)
+
+def main():
+    user_input = UserInput()
+    vulnerable_code = VulnerableCode(user_input.user_input)
+    vulnerable_code.execute()
+
+if __name__ == ""__main__"":
+    main()",,,,,
+f14299.py:23,B201,CWE-94,CWE-94,VULNERABLE,Se detecta un patrón asociado a CWE-94 en código Python.,Explotación mediante vectores propios de CWE-94.,Aplicar validación de entradas y sanitización.,"import sqlite3
+from flask import Flask, request
+
+app = Flask(__name__)
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form['username']
+    password = request.form['password']
+    
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    
+    query = ""SELECT * FROM users WHERE username='{}' AND password='{}'"".format(username, password)
+    cursor.execute(query)
+    
+    if cursor.fetchone():
+        return 'Login successful!'
+    else:
+        return 'Invalid credentials!'
+
+if __name__ == '__main__':
+    app.run(debug=True)",,,,,
+f14357.py:14,B201,CWE-94,CWE-94,VULNERABLE,Se detecta un patrón asociado a CWE-94 en código Python.,Explotación mediante vectores propios de CWE-94.,Aplicar validación de entradas y sanitización.,"import re
+from flask import Flask, request
+
+app = Flask(__name__)
+
+@app.route('/execute', methods=['POST'])
+def execute_code():
+    code = request.form.get('code')
+    sanitized_code = re.sub(r'\b(os|sys|eval)\b', '', code)
+    exec(sanitized_code)
+    return 'Code executed successfully!'
+
+if __name__ == '__main__':
+    app.run(debug=True)",,,,,
+f2752.py:4,B605,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"import os
+def execute_command(user_input):
+    command = 'echo -n ' + user_input + ' | wc -c'
+    os.system(command)
+
+while True:
+    user_input = input(""Enter your string: "")
+    execute_command(user_input)",,,,,
+f488.py:1,B404,CWE-78,Ninguno,SAFE,El fragmento de código no presenta el patrón vulnerable indicado.,N/A,N/A,"import subprocess
+
+def run_command(user_input):
+    try:
+        command = user_input.split()
+        subprocess.run(command, check=True)
+    except Exception as e:
+        print(f""An error occurred: {e}"")
+
+run_command(input(""Enter your command: ""))",,,,,
+f6713.py:6,B110,CWE-703,CWE-703,VULNERABLE,Se detecta un patrón asociado a CWE-703 en código Python.,Explotación mediante vectores propios de CWE-703.,Aplicar validación de entradas y sanitización.,"import random
+
+def foo():
+    try:
+        return random.choice([1, 2, 3])
+    except Exception as e:
+        pass
+
+for _ in range(10):
+    print(foo())",,,,,
+f4127.py:6,B307,CWE-78,CWE-78,VULNERABLE,Se detecta un patrón asociado a CWE-78 en código Python.,Explotación mediante vectores propios de CWE-78.,Aplicar validación de entradas y sanitización.,"import os
+
+def evaluate_input(user_input):
+    # This function uses eval() to evaluate the user input as Python code.
+    # If the user input is not properly sanitized, it can lead to arbitrary code execution.
+    return eval(user_input)
+
+def main():
+    user_input = input(""Enter some Python code to execute: "")
+    result = evaluate_input(user_input)
+    print(""Result:"", result)
+
+if __name__ == ""__main__"":
+    main()",,,,,
