@@ -53,7 +53,7 @@ COMPARATIVA = [
 # con los resultados reales antes de la entrega.
 EVIDENCIAS = [
     ["Pruebas unitarias (contexto, dedup, SARIF, parseo, política, Bandit)",
-     "12 de 12 correctas", "Completa (Avance 5)"],
+     "13 de 13 correctas", "Completa (Sprint 7)"],
     ["Corrida sin modelo (--no-llm) sobre examples/sample_repo",
      "9 alertas, 9 conservadas, 9 SOSPECHOSA", "Completa (Avance 4)"],
     ["Corrida con modelo base sobre examples/sample_repo",
@@ -81,6 +81,12 @@ EVIDENCIAS = [
     ["Recomendación SAFE con justificación",
      "Se marca para descarte; la alerta permanece en el reporte", "Prueba unitaria"],
     ["Salida SARIF", "Versión 2.1.0, 9 resultados, 8 reglas", "Completa (Avance 4)"],
+    ["Holdout del Sprint 7",
+     "111 alertas; A, C0 y D medidos; 0 respuestas inválidas en D; política B403 probada",
+     "Completa (Sprint 7)"],
+    ["Rúbrica de explicaciones con dos revisores",
+     "Pendiente de calificación; D produjo 11 explicaciones únicas para 111 alertas",
+     "Pendiente"],
     ["Latencia con el modelo afinado", "43,1 s para 9 alertas (4,8 s por alerta)", "Completa (Sprint 6)"],
     ["Memoria con el modelo afinado", "1.115 MB en VRAM (Q4_K_M) y ~700 MB de RAM del proceso llama-server",
      "Medida (Sprint 6)"],
@@ -353,10 +359,10 @@ para(doc, "Terminación, pruebas y validación del agente", size=29, bold=True,
      font=HEAD_FONT, align=WD_ALIGN_PARAGRAPH.CENTER, before=11, line=31, color=NAVY)
 para(doc, "Agente inteligente para la revisión de seguridad de código fuente", size=14,
      bold=True, before=12, color=BLUE)
-para(doc, "Modelo afinado · Modo asesor · Evaluación comparativa A/B/C/C0/D", size=10,
+para(doc, "Modelo afinado · Modo asesor · Evaluación A/B/C/C0/D y holdout", size=10,
      align=WD_ALIGN_PARAGRAPH.CENTER, before=30, color=MUTED)
-para(doc, "Periodo: 30 de octubre – 2 de noviembre de 2026  |  "
-          "Actualización: 2 de noviembre de 2026 (Sprint 6)",
+para(doc, "Periodo: 30 de octubre – 3 de noviembre de 2026  |  "
+          "Actualización: 3 de noviembre de 2026 (Sprint 7)",
      size=9.5, align=WD_ALIGN_PARAGRAPH.CENTER, before=28, color=DARK)
 para(doc, "Integrantes: Santiago Reyes, Marien Daniela, Luis Patron, William Cuello  |  "
           "Asignatura: Proyecto de Ingeniería",
@@ -371,8 +377,9 @@ body(doc,
      "definido y conectado a la CLI; la tubería conserva las etapas del Avance 4 (Bandit, "
      "normalización, deduplicación, contexto por AST, prompt, validación y política "
      "conservadora) y solo cambia la etiqueta del modelo mediante la opción --model. El "
-     "entrenamiento del adaptador, la exportación y la corrida D se registran como las "
-     "tareas de ejecución que cierran el Sprint 6.")
+     "entrenamiento del adaptador, la exportación y la corrida D cierran el Sprint 6; la "
+     "evaluación única del test reservado y la validación de la política de descarte cierran "
+     "el Sprint 7.")
 body(doc,
      "La decisión de diseño cambió tras la revisión del avance anterior: el agente opera en "
      "modo asesor y no suprime hallazgos. Cada alerta recibe un veredicto y una "
@@ -389,14 +396,23 @@ callout(doc, "Hallazgo principal",
         "asesor y la evaluación incorpora la tasa de omisión sobre alertas reales, además de "
         "la reducción de falsos positivos.")
 body(doc,
-     "La evaluación usa el mismo conjunto y el mismo protocolo del Avance 4: 141 alertas de "
-     "Bandit sobre la partición de validación en Python (91 reales y 50 falsos positivos), "
-     "temperatura 0, mismo orden y métricas explícitas. La configuración A está medida sobre "
-     "las 141 alertas; el piloto B se amplió de cinco a diez alertas respecto del Avance 4, "
-     "con el mismo protocolo y sin cambiar el orden. D y C quedaron medidas sobre las 141 "
-     "alertas con el mismo prompt con contexto del SAST; solo cambia el modelo (afinado en D, "
-     "base en C). Esa simetría es la condición para atribuir la diferencia al entrenamiento y "
-     "no únicamente a la ingeniería de prompts.")
+     "La evaluación de desarrollo usa el mismo conjunto y el mismo protocolo del Avance 4: "
+     "141 alertas de Bandit sobre la partición de validación en Python (91 reales y 50 falsos "
+     "positivos), temperatura 0, mismo orden y métricas explícitas. A, B, C, C0 y D están "
+     "medidas sobre ese conjunto. C y D no comparten prompt: C antepone dos ejemplos "
+     "resueltos y D no; para aislar el efecto del ajuste se agregó C0, que usa el mismo formato "
+     "de alerta que D con el modelo base. La comparación rigurosa es D contra C0; D contra C "
+     "describe el resultado práctico frente a un prompt cuidado, pero mezcla modelo y prompt.")
+body(doc,
+     "El Sprint 7 ejecutó una sola vez el conjunto de verificación reservado: 111 alertas "
+     "(65 reales y 46 falsos positivos) extraídas de 300 funciones Python del test. Se midieron "
+     "A, C0 y D, sin reentrenar y sin cambiar el prompt. El holdout cambió la conclusión del "
+     "avance: D crudo obtuvo FPRR 30,4 % y FNR 9,2 % (6 de 65); con la política B403 el FNR baja "
+     "a 3,1 % (IC95 0,8–10,5 %) y el FPRR a 19,6 %. El valor puntual cumple la meta, pero el "
+     "intervalo no permite demostrarla. Además, D produjo solo 11 explicaciones únicas para 111 "
+     "alertas: el modelo sirve para triage, no para explicar. La decisión se mantiene: modo "
+     "asesor, B403 obligatoria y B311 reportada como riesgo nuevo, sin agregarla después de ver "
+     "el holdout.")
 
 h2(doc, "1.1 Ajustes derivados de la revisión")
 bullet(doc, "Modo asesor: el agente no suprime hallazgos; el veredicto SAFE queda como "
@@ -431,7 +447,8 @@ table(doc,
         "Sección 4.1"],
        ["Calcular la pérdida solo sobre la respuesta impide memorizar los ejemplos.",
         "Reduce el costo y enfoca el aprendizaje en la respuesta, pero no garantiza "
-        "generalización. La memorización se controla con particiones limpias y un test intacto.",
+        "generalización. La memorización se controla con particiones limpias y un test reservado "
+        "que no se use para ajustar.",
         "Sección 4.1 y limitaciones"],
        ["IRIS es únicamente un filtro posterior sobre alertas.",
         "IRIS combina el LLM con el análisis estático y usa modelos para inferir "
@@ -625,8 +642,9 @@ h2(doc, "4.2 Integración en la CLI")
 body(doc,
      "La única modificación funcional es la etiqueta del modelo. El resto de la tubería, el "
      "esquema JSON y los reportes son los mismos. Esta separación demuestra que el componente "
-     "inteligente es un servicio sustituible y que la evaluación D es comparable con A, B y "
-     "C: la diferencia entre las configuraciones es el modelo, no el software que lo rodea.")
+     "inteligente es un servicio sustituible y que la evaluación D es comparable con A, B, C y "
+     "C0: la diferencia entre las configuraciones es el modelo y, en C, el prompt, no el "
+     "software que lo rodea.")
 body(doc,
      "La corrida de integración sobre examples/sample_repo es la evidencia de que el modelo "
      "afinado atraviesa el flujo completo: 9 alertas, 9 conservadas, 4 recomendadas para "
@@ -661,7 +679,7 @@ table(doc,
        ["Código con instrucciones maliciosas (prompt injection)",
         "El código se delimita y se trata como dato; la salida se valida y se revisa. Los "
         "delimitadores reducen el riesgo, no lo eliminan.",
-        "Prueba de inyección pendiente"]],
+        "Completa (Sprint 6)"]],
       widths=[5.2, 7.6, 5.2])
 
 # 5. Metodología
@@ -691,27 +709,28 @@ body(doc,
 body(doc,
      "Las particiones se construyeron con semilla 42 y se depuraron antes de dividir: se "
      "eliminaron duplicados exactos por hash del código normalizado y las etiquetas "
-     "contradictorias (433 hashes). El test de 17.542 muestras permanece intacto y no se usó "
-     "para ajustar prompts ni hiperparámetros. La partición de validación total (42.536) "
-     "alimentó el conjunto de validación del ajuste y el conjunto de evaluación. Por eso la "
-     "medición de este avance es de desarrollo, no una evaluación final independiente: el "
-     "test intacto se reserva para el Sprint 7.", keep=True)
+     "contradictorias (433 hashes). El test de 17.542 muestras se reservó para el Sprint 7 y se "
+     "evaluó una sola vez. La partición de validación total (42.536) alimentó el conjunto de "
+     "validación del ajuste y el conjunto de evaluación de desarrollo. Por eso la medición de "
+     "desarrollo no es una evaluación final independiente; el holdout del Sprint 7 es la "
+     "medición no contaminada, aunque también es aleatoria por función.", keep=True)
 table(doc,
       ["Partición", "Muestras", "Uso"],
       [["train_80", "101.878", "Ajuste del adaptador (11.510 ejemplos muestreados)"],
        ["val_20", "25.470", "Validación dentro de la partición de entrenamiento"],
-       ["val_total", "42.536", "Validación del ajuste y conjunto de evaluación (298 funciones Python)"],
-       ["test intacto", "17.542", "Reservado; no se abre hasta la evaluación única"]],
+       ["val_total", "42.536", "Validación del ajuste y evaluación de desarrollo (298 funciones Python)"],
+       ["test (holdout)", "17.542", "Evaluado una sola vez en el Sprint 7 (300 funciones Python, 111 alertas)"]],
       widths=[3.6, 2.8, 11.6])
 
 h2(doc, "5.2 Configuraciones y métricas")
 body(doc,
-     "Se comparan cinco configuraciones: A, solo SAST, que conserva todas las alertas; B, "
-     "modelo base cero-shot sin contexto del SAST; C, modelo base con contexto del SAST y dos "
-     "ejemplos guía (few-shot); C0, modelo base con el mismo formato de alerta que D y sin "
-     "ejemplos; y D, modelo afinado con ese mismo formato. En todas, la "
-     "decisión registrada es una recomendación: el reporte conserva la alerta. Las métricas "
-     "se definen en la sección 5.3.")
+     "En desarrollo se comparan cinco configuraciones: A, solo SAST, que conserva todas las "
+     "alertas; B, modelo base cero-shot sin contexto del SAST; C, modelo base con contexto del "
+     "SAST y dos ejemplos guía (few-shot); C0, modelo base con el mismo formato de alerta que D "
+     "y sin ejemplos; y D, modelo afinado con ese mismo formato. En el holdout se midieron A, "
+     "C0 y D, porque C agrega few-shot y no es el control que aísla el ajuste. En todas, la "
+     "decisión registrada es una recomendación: el reporte conserva la alerta. Las métricas se "
+     "definen en la sección 5.3.")
 
 h2(doc, "5.3 Matriz de confusión y fórmulas")
 body(doc,
@@ -774,16 +793,17 @@ body(doc,
      "tamaño del piloto no permite inferencia estadística; solo confirma que el modelo "
      "responde, descarta falsos positivos evidentes y falla en la clasificación fina.")
 body(doc,
-     "La tabla comparativa concentra la evidencia del avance. A, el piloto B, C y D están "
-     "medidos sobre el conjunto de evaluación; C usa el mismo prompt con contexto del SAST "
-     "que D y solo cambia el modelo, de modo que la diferencia entre ambas es atribuible al "
-     "ajuste fino y no a la ingeniería de prompts.", keep=True)
+     "La tabla comparativa concentra la evidencia de desarrollo. A, el piloto B, C, C0 y D "
+     "están medidos sobre el conjunto de evaluación. C y D no comparten prompt: C antepone dos "
+     "ejemplos resueltos y D no. La comparación que aísla el ajuste es D contra C0, que usa el "
+     "mismo formato de alerta con el modelo base; D contra C mide el resultado práctico frente "
+     "a un prompt cuidado, pero mezcla modelo y prompt.", keep=True)
 table(doc,
       ["Configuración", "Alertas", "FPRR", "FNR", "FOR", "Exactitud CWE", "Estado"],
       COMPARATIVA,
       widths=[4.4, 1.6, 1.8, 1.6, 1.6, 3.0, 2.5])
 body(doc,
-     "La corrida C, con el modelo base y el mismo prompt que D, recomendó descartar una sola "
+     "La corrida C, con el modelo base y dos ejemplos resueltos, recomendó descartar una sola "
      "de las 50 alertas falsas (FPRR 2,0 %), conservó las 91 reales (FNR 0 %, FOR 0 %), "
      "obtuvo precisión 65,0 % y exactitud CWE 37,4 %, con una respuesta inválida en una B102 "
      "que se conservó como SOSPECHOSA. El modelo base casi no se "
@@ -800,14 +820,15 @@ body(doc,
      "que esa exactitud no mide clasificación independiente: el producto debe conservar el "
      "CWE del SAST y usar al modelo solo para el veredicto.")
 body(doc,
-     "La comparación justa es D contra C: por cada 50 falsos positivos, D descarta 24 y C "
-     "descarta 1; a cambio, D sacrifica 5 alertas reales y C ninguna. El ajuste fino, por "
-     "tanto, no vuelve al modelo más certero en abstracto: lo vuelve más decidido. Esa "
-     "decisión mejora el ahorro de revisión de 2 % a 48 %, pero cruza apenas la meta de FNR. "
-     "Con FNR 5,5 % no se habilita el descarte automático: se mantiene el modo asesor. Como "
-     "mitigación de producto, excluir B403 de la recomendación de descarte reduce el FNR a "
-     "0 % y deja el FPRR en 38 %; la decisión se valida en el Sprint 7. Tampoco se compara D "
-     "contra A como si A midiera la misma tarea: A no decide, solo conserva.")
+     "La comparación que aísla el ajuste es D contra C0: por cada 50 falsos positivos, D "
+     "descarta 24 y C0 descarta 11; a cambio, D sacrifica 5 alertas reales y C0 una. Frente a "
+     "C, que conserva casi todo, el contraste es mayor, pero no es atribuible solo al "
+     "entrenamiento. El ajuste fino no vuelve al modelo más certero en abstracto: lo vuelve más "
+     "decidido. Esa decisión mejora el ahorro de revisión de 22 % a 48 %, pero cruza la meta de "
+     "FNR. Con FNR 5,5 % no se habilita el descarte automático: se mantiene el modo asesor. La "
+     "política B403 reduce el FNR a 0 % y deja el FPRR en 38 % en desarrollo; el holdout no "
+     "confirma ese 0 %: deja 2 B311 y un FNR de 3,1 % con IC95 hasta 10,5 %. Tampoco se compara "
+     "D contra A como si A midiera la misma tarea: A no decide, solo conserva.")
 
 figure(doc,
        Path(__file__).resolve().parents[1] / "reportes" / "curva_perdida.png",
@@ -815,6 +836,62 @@ figure(doc,
        "1.439 pasos). La curva de validación no se incluye porque las evaluaciones "
        "intermedias quedaron invalidadas por truncamiento de ejemplos largos; el generador "
        "de datos ya se corrigió para futuras corridas.")
+
+h2(doc, "6.1 Holdout del Sprint 7")
+body(doc,
+     "El conjunto de verificación se generó con eval/build_eval_set.py --split test "
+     "--confirm-holdout y se evaluó una sola vez. De las 17.542 muestras del test, 300 son "
+     "funciones Python; Bandit produjo 111 alertas (65 reales y 46 falsos positivos) sobre 71 "
+     "archivos y 98 funciones. Se midieron A, C0 y D; C0 y D compartieron el formato de alerta, temperatura 0 y "
+     "num_predict 512. No hubo reentrenamiento ni cambios de reglas durante la corrida. El "
+     "conjunto tiene 71 códigos únicos y 40 filas que repiten código, así que además de los "
+     "intervalos de Wilson se calculó un bootstrap agrupado por archivo.", keep=True)
+table(doc,
+      ["Configuración", "Alertas", "FPRR", "FNR", "FOR", "Precisión", "CWE"],
+      [["A. Solo SAST", "111", "0,0 %", "0,0 %", "0,0 %", "58,6 %", "35,4 %"],
+       ["C0. Base sin few-shot", "111", "10,9 %", "0,0 %", "0,0 %", "61,3 %", "33,8 %"],
+       ["D. Afinado (crudo)", "111", "30,4 %", "9,2 %", "30,0 %", "64,8 %", "32,2 %"],
+       ["D + política B403", "111", "19,6 %", "3,1 %", "18,2 %", "63,0 %", "30,2 %"],
+       ["D + B403 y B311", "111", "19,6 %", "0,0 %", "0,0 %", "63,7 %", "29,2 %"]],
+      widths=[4.5, 1.5, 1.8, 1.6, 1.6, 2.2, 1.8])
+body(doc,
+     "D crudo descarta 14 de 46 falsos positivos y 6 de 65 alertas reales. Frente a C0, que "
+     "descarta 5 falsos positivos y ninguna real, D suma 9 descartes correctos y 6 errores. El "
+     "ahorro real sobre C0 es +19,5 puntos de FPRR crudo, no +46; con la política B403 queda en "
+     "+8,7 puntos. La dirección se mantiene, pero la magnitud es mucho menor que en desarrollo.")
+body(doc,
+     "Los 6 falsos negativos son 4 B403 y 2 B311. Dos B403 deserializan un objeto explotable "
+     "(f11445.py y f1878.py) y son omisiones genuinas; los otros dos solo serializan "
+     "(f15804.py y f2231.py), un caso discutible porque el payload no se ejecuta. Los dos B311 "
+     "son líneas del mismo ejemplo con random.randint, etiquetadas CWE-94 en el dataset aunque "
+     "Bandit reporta CWE-330; la etiqueta es ruidosa, pero el modelo no debería descartarlas. "
+     "Una auditoría de sensibilidad que solo cuente las omisiones claras daría 3,1 %, pero no "
+     "se reetiqueta el holdout después de verlo: la métrica principal es la cruda.")
+body(doc,
+     "La política B403 estaba definida antes de la corrida y es obligatoria si se usa D. "
+     "Rescata 4 de los 6 falsos negativos y baja el FNR a 3,1 % (IC95 0,8–10,5 %; bootstrap "
+     "0,0–10,2 %), pero deja 2 B311 y conserva 5 falsos positivos B403, por lo que el FPRR cae "
+     "a 19,6 %. Proteger también B311 llevaría el FNR a 0 %, pero sería una decisión post hoc: "
+     "no se adopta. Se reporta como riesgo nuevo y como trabajo futuro para un conjunto "
+     "independiente.")
+body(doc,
+     "La limitación estadística es decisiva: con 65 alertas reales, incluso 0 falsos negativos "
+     "deja el límite superior del IC95 en 5,6 %. El holdout no alcanza para demostrar que el "
+     "FNR sea ≤ 5 %; solo permite descartar tasas mucho peores. El valor puntual de 3,1 % con "
+     "B403 no reemplaza al intervalo. La conclusión es mantener el modo asesor y no presentar "
+     "la meta como cumplida.")
+body(doc,
+     "El holdout también mostró un problema de calidad de las explicaciones. D produjo 11 "
+     "explicaciones, 8 vectores de ataque y 2 correcciones únicas para 111 alertas; C0 produjo "
+     "109, 103 y 106. Además, 91 de 91 respuestas VULNERABLE comparten la misma corrección y 47 "
+     "comparten la misma explicación de CWE-78. La causa está en el entrenamiento: 5.489 de "
+     "5.755 respuestas SAFE tienen la misma explicación. D sirve como clasificador de triage, "
+     "no como generador de explicaciones técnicas; la rúbrica pendiente debe reportar la "
+     "diversidad, no solo el kappa.")
+body(doc,
+     "El detalle completo, los intervalos, la tabla por regla y los comandos de reproducción "
+     "están en docs/ANALISIS_HOLDOUT.md y docs/PROTOCOLO_HOLDOUT.md. El resumen se regenera con "
+     "python eval/analisis_holdout.py.")
 
 # 7. Pruebas
 h1(doc, "7. Pruebas y validación del producto")
@@ -829,7 +906,7 @@ table(doc,
 body(doc,
      "Las pruebas unitarias cubren el contexto por AST, la deduplicación, el SARIF, el parseo "
      "de la respuesta del modelo, la política conservadora, el modo asesor y la ejecución de "
-     "Bandit y el límite de generación del cliente: 12 de 12 correctas. Las pruebas de "
+     "Bandit y el límite de generación del cliente: 13 de 13 correctas. Las pruebas de "
      "resiliencia verifican que un cliente nulo, un "
      "JSON malformado y un veredicto inválido conservan la alerta. La corrida de integración "
      "con el modelo afinado sobre examples/sample_repo conservó las 9 alertas, no produjo "
@@ -874,41 +951,49 @@ body(doc,
 # 8. Limitaciones
 h1(doc, "8. Limitaciones")
 bullet(doc, "Cobertura de lenguaje: Bandit solo analiza Python y el 94,1 % del corpus es C. La "
-            "evaluación cubre 298 funciones y 141 alertas, suficiente para la línea base pero "
-            "no para generalizar al corpus completo.")
+            "evaluación de desarrollo cubre 298 funciones y 141 alertas; el holdout, 300 "
+            "funciones y 111 alertas. Es suficiente para una línea base, no para generalizar al "
+            "corpus completo ni a otros SAST.")
 bullet(doc, "Verdad de referencia a nivel de función y sin alcanzabilidad: el dataset no "
             "incluye archivo ni línea, por lo que una advertencia de importación sobre una "
             "función vulnerable cuenta como alerta real aunque la línea señalada no sea el "
             "defecto. Tampoco se etiqueta si el flujo es alcanzable; una función vulnerable en "
-            "código muerto se cuenta como real. Esto favorece al SAST y explica parte del "
-            "45,1 % de concordancia CWE.")
-bullet(doc, "Independencia de la partición: la evaluación usa val_total, la misma partición "
-            "que alimentó la validación del ajuste, así que es una medición de desarrollo. El "
-            "test de 17.542 muestras permanece intacto, pero el split actual es aleatorio por "
-            "función y el dataset no incluye identificador de proyecto; no puede garantizarse "
-            "que no haya filtraciones entre repositorios. Antes del test final hay que rehacer "
-            "la partición agrupando por proyecto o archivo.")
+            "código muerto se cuenta como real. Esto favorece al SAST y explica parte del 45,1 % "
+            "de concordancia CWE en desarrollo y del 35,4 % en el holdout.")
+bullet(doc, "Independencia de la partición: la evaluación de desarrollo usa val_total, la misma "
+            "partición que alimentó la validación del ajuste. El holdout usa el test y se "
+            "ejecutó una sola vez, pero el split sigue siendo aleatorio por función y el "
+            "dataset no incluye identificador de proyecto. La comparación exacta de hashes "
+            "normalizados contra train y validación dio 0 coincidencias; los casi-duplicados "
+            "quedan pendientes y la partición agrupada no es posible con los metadatos "
+            "actuales.")
 bullet(doc, "Falsos negativos bien formados: un SAFE con JSON válido y justificación puede ser "
-            "incorrecto. La política conservadora no lo detecta; el modo asesor evita que "
-            "desaparezca del reporte, pero la calidad depende de la revisión humana y de la "
-            "tasa de omisión medida.")
+            "incorrecto. En el holdout D descartó 6 de 65 alertas reales (9,2 %); la política "
+            "B403 rescata 4 y deja 2 B311. El modo asesor evita que desaparezcan del reporte, "
+            "pero la calidad depende de la revisión humana y de la tasa de omisión medida.")
+bullet(doc, "Potencia del holdout: con 65 alertas reales, incluso 0 falsos negativos deja el "
+            "límite superior del IC95 en 5,6 %. No se puede demostrar estadísticamente un FNR "
+            "≤ 5 % con este tamaño. El bootstrap agrupado por archivo es más conservador que "
+            "Wilson y también debe citarse.")
 bullet(doc, "Sesgo del ajuste: el adaptador se entrena sobre una muestra balanceada de 11.510 "
             "ejemplos; el desempeño sobre la distribución natural del corpus puede ser "
             "distinto. Además, la pérdida solo sobre la respuesta no garantiza que el modelo "
-            "generalice ni que no memoricé ejemplos.")
+            "generalice ni que no memorice ejemplos.")
 bullet(doc, "Cuantización: Q4_K_M reduce recursos, no especializa. Falta medir su efecto en la "
             "calidad de las explicaciones y en la tasa de omisión frente al modelo fusionado "
             "sin cuantizar.")
 bullet(doc, "Explicaciones: BERTScore requiere referencias humanas y mide similitud, no "
-            "corrección técnica. La rúbrica de la sección 5.4 es la medida principal, pero "
-            "aún no se aplica.")
+            "corrección técnica. La rúbrica de la sección 5.4 es la medida principal y aún no "
+            "se aplica. El holdout ya mostró que D produce 11 explicaciones y 2 correcciones "
+            "únicas para 111 alertas; 91 de 91 VULNERABLE comparten la misma corrección. La "
+            "falta de diversidad es un resultado, no un detalle pendiente.")
 bullet(doc, "Rendimiento: la corrida de integración del modelo afinado midió 4,8 s por alerta "
             "en la GTX 1650 (43,1 s para 9 alertas); el banco de 10 alertas dio 4,9 s de media "
             "incluyendo la carga del modelo y 4,1 s de mediana. C promedió ~4,3 s por alerta, "
-            "salvo una B102 que se trunca y se conserva como SOSPECHOSA. El "
-            "modelo ocupa 1.115 MB de VRAM y unos 700 MB de RAM, de modo que en 4 GB cabe una "
-            "instancia pero no hay margen cómodo para paralelizar. Para repositorios grandes "
-            "hacen falta batching y una política de concurrencia medida.")
+            "salvo una B102 que se trunca y se conserva como SOSPECHOSA. El modelo ocupa 1.115 "
+            "MB de VRAM y unos 700 MB de RAM, de modo que en 4 GB cabe una instancia pero no "
+            "hay margen cómodo para paralelizar. Para repositorios grandes hacen falta "
+            "batching y una política de concurrencia medida.")
 bullet(doc, "Prompt injection: el código analizado es entrada no confiable. La prueba con un "
             "comentario malicioso no logró que el modelo marcara SAFE las dos vulnerabilidades "
             "reales, pero es un solo caso: no demuestra resistencia general. Los delimitadores "
@@ -918,49 +1003,48 @@ bullet(doc, "Llamadas externas: la promesa de que el código no sale de la máqu
             "reconciliarse con las funciones que descargan repositorios o consultan "
             "dependencias. Hay que documentar qué sale, hacia dónde y con qué control, o "
             "restringir el producto al análisis estrictamente local.")
-bullet(doc, "Demostración en vivo: el ensayo con el modelo afinado quedó pendiente para el "
-            "Sprint 7; la corrida de integración ya confirma que el flujo de extremo a extremo "
-            "funciona.")
 
 # 9. Próximos pasos
 h1(doc, "9. Próximos pasos")
-bullet(doc, "Validar en el conjunto de verificación la decisión del punto de control: D "
-            "aumenta el FPRR de 2 % a 48 % frente a C, pero su FNR de 5,5 % obliga a mantener el "
-            "modo asesor y a evaluar la exclusión de B403 del descarte.")
-bullet(doc, "Reportar el intervalo de confianza del FNR y del FPRR: con 91 alertas reales, un "
-            "FNR de 5,5 % tiene un intervalo amplio y el holdout debe confirmarlo.")
-bullet(doc, "Rehacer la partición agrupando por proyecto o archivo, verificar que no haya "
-            "hashes compartidos entre train y test, y congelar el test final hasta la "
-            "evaluación única del Sprint 7.")
-bullet(doc, "Auditar a ciegas una muestra de respuestas SAFE para estimar la tasa de falsos "
-            "negativos bien formados y reportar el intervalo de confianza.")
-bullet(doc, "Aplicar la rúbrica de explicaciones con dos revisores, calcular el acuerdo y "
-            "reportar BERTScore solo como medida complementaria.")
+bullet(doc, "Cerrar la rúbrica de explicaciones con dos revisores y reportar el kappa junto con "
+            "la diversidad de salidas. El holdout ya mostró que D produce 11 explicaciones "
+            "únicas para 111 alertas; la rúbrica debe interpretarse a la luz de ese resultado.")
+bullet(doc, "Medir casi-duplicados entre entrenamiento y holdout con similitud difusa, porque "
+            "la comparación exacta de hashes dio 0 coincidencias pero no descarta variantes. "
+            "Documentar la limitación si no se consiguen metadatos de repositorio.")
+bullet(doc, "Mantener el holdout cerrado: no se reutiliza para ajustar prompts, hiperparámetros "
+            "ni reglas. Cualquier cambio posterior exige un conjunto nuevo, no otra corrida "
+            "sobre estas 111 alertas.")
+bullet(doc, "Reportar B403 como política obligatoria y B311 como riesgo nuevo. No agregar B311 "
+            "con los mismos datos que la sugirieron; validarla en un conjunto independiente.")
+bullet(doc, "Explorar una regla B403 basada en el punto de uso —no descartar por el import, "
+            "sino por la ausencia de un pickle.load alcanzable—, que requiere análisis de flujo.")
+bullet(doc, "Medir el efecto de la cuantización comparando Q4_K_M contra el modelo fusionado en "
+            "f16, para separar el efecto del ajuste del de la exportación.")
 bullet(doc, "Ampliar la batería de prompt injection con más patrones y documentar la política "
             "de llamadas externas y de descarga de repositorios.")
-bullet(doc, "Actualizar el marco teórico y la bibliografía: IRIS, SecurityEval (MSR4P&S 2022) "
-            "y la muestra de Tencent (328/433), y eliminar la afirmación de «>90 %» como si "
-            "fuera el resultado de la muestra.")
-bullet(doc, "Integrar las secciones de entrenamiento, resultados y discusión en el documento "
-            "final, y preparar el ensayo de demostración y el paquete de entrega.")
+bullet(doc, "Integrar las secciones de entrenamiento, resultados, discusión y conclusiones en "
+            "la memoria final; unificar referencias y preparar el ensayo de demostración y el "
+            "paquete de entrega.")
 
 # 10. Conclusión
 h1(doc, "10. Conclusiones")
 body(doc,
-     "El Sprint 6 deja el componente inteligente integrado y medido: el modelo afinado se "
-     "sirve en Ollama, la CLI lo usa sin cambiar el contrato de datos y la comparación A/B/C/D "
-     "está completa. D frente a C muestra el efecto real del ajuste fino: sobre el mismo "
-     "prompt y el mismo conjunto, el FPRR sube de 2,0 % a 48,0 % y el FNR pasa de 0,0 % a "
-     "5,5 %. El modelo afinado no es más «inteligente» en abstracto; es más decidido, y esa "
-     "decisión es la que hay que controlar. La decisión más importante del avance no es "
-     "técnica sino de producto: el agente pasa a modo asesor porque un SAFE formalmente válido "
-     "puede ser un falso negativo real.")
+     "El Sprint 7 deja el componente inteligente integrado y medido en dos conjuntos. En "
+     "desarrollo, D frente a C0 sube el FPRR de 22,0 % a 48,0 % y el FNR de 2,2 % a 5,5 %. En "
+     "el holdout, D crudo obtiene FPRR 30,4 % y FNR 9,2 %; con la política B403, FPRR 19,6 % y "
+     "FNR 3,1 % (IC95 0,8–10,5 %). El modelo afinado no es más «inteligente» en abstracto: es "
+     "más decidido, y esa decisión es la que hay que controlar. La conclusión más importante no "
+     "es técnica sino de producto: el agente se mantiene en modo asesor porque un SAFE "
+     "formalmente válido puede ser un falso negativo real, y el holdout no permite demostrar "
+     "que el FNR sea ≤ 5 %.")
 body(doc,
-     "El trabajo que resta es de validación, no de arquitectura: confirmar el FNR con el "
-     "conjunto de verificación, decidir si se excluye B403 del descarte, rehacer la partición "
-     "por proyecto antes del test final y documentar el resultado con la misma transparencia "
-     "con la que se reportó la línea base del Avance 4. Con FNR 5,5 % el producto no habilita "
-     "descarte automático; el ahorro de revisión es real, pero la alerta siempre permanece "
+     "El trabajo que resta es de validación y documentación, no de arquitectura: cerrar la "
+     "rúbrica de explicaciones —condicionada por el colapso de D a 11 plantillas—, medir "
+     "casi-duplicados, integrar la memoria con las cifras del holdout y preparar la defensa. "
+     "B403 queda como política obligatoria; B311 se reporta como riesgo nuevo y no se agrega "
+     "después de ver el holdout. Con FNR crudo 9,2 % el producto no habilita descarte "
+     "automático: el ahorro de revisión es real pero modesto, y la alerta siempre permanece "
      "visible para el analista.")
 
 # 11. Referencias

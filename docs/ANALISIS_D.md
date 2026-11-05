@@ -1,8 +1,15 @@
 # Análisis de la corrida D (modelo afinado)
 
-Corrida sobre las 141 alertas del conjunto de evaluación (91 reales, 50 falsos
-positivos) con `qwen2.5-coder-triage`, temperatura 0 y modo asesor. Datos
-completos en `eval/resultados_D.json`.
+Corrida sobre las 141 alertas del conjunto de evaluación de desarrollo (91
+reales, 50 falsos positivos) con `qwen2.5-coder-triage`, temperatura 0 y modo
+asesor. Datos completos en `eval/resultados_D.json`.
+
+> **Actualización del Sprint 7.** Este documento describe la corrida de
+> desarrollo. El holdout de 111 alertas (65 reales, 46 falsos positivos) se
+> ejecutó después y cambió la conclusión: D crudo obtuvo FPRR 30,4 % y FNR 9,2 %
+> (4 B403 y 2 B311); con la política B403, FNR 3,1 % (IC95 0,8–10,5 %) y FPRR
+> 19,6 %. El detalle está en `docs/ANALISIS_HOLDOUT.md`. Las cifras de este
+> archivo no deben citarse como resultado final.
 
 ## Matriz de confusión
 
@@ -72,7 +79,8 @@ del modelo.
 ## Mitigación de producto: excluir B403 del descarte
 
 Si se mantiene el modo asesor y se agrega una regla de negocio que **nunca
-recomienda descarte para B403**, el resultado sobre el mismo conjunto es:
+recomienda descarte para B403**, el resultado sobre el mismo conjunto de
+desarrollo es:
 
 - FPRR = 19 / 50 = **38,0 %**
 - FNR = 0 / 91 = **0,0 %**
@@ -81,12 +89,19 @@ recomienda descarte para B403**, el resultado sobre el mismo conjunto es:
 
 Es una política defendible porque la alerta B403 apunta al `import` y no al
 punto de uso; el modelo no siempre puede distinguir una importación inofensiva
-de una deserialización explotable. La regla se valida en el Sprint 7 con el
-conjunto de verificación.
+de una deserialización explotable. La regla se implementó en el producto
+(`DEFAULT_NEVER_DISCARD = {"B403"}`).
+
+**El holdout no confirmó el FNR 0 %:** con la política, D deja 2 falsos
+negativos B311 y obtiene FNR 3,1 % (IC95 0,8–10,5 %). B403 sigue siendo
+obligatoria, pero no suficiente. Para B311 no se agrega una regla post hoc; se
+reporta como riesgo nuevo en `docs/ANALISIS_HOLDOUT.md`.
 
 ## Conclusión
 
-D reduce el ruido de forma real (48 % de los falsos positivos) sin romper el
-formato, pero no cumple la meta estricta de FNR ≤ 5 % (5,5 %) y no aporta
-clasificación CWE. El error está concentrado en una sola regla y es mitigable
-sin reentrenar. El producto debe mantenerse en modo asesor.
+En desarrollo, D reduce el ruido de forma real (48 % de los falsos positivos) sin
+romper el formato, pero no cumple la meta estricta de FNR ≤ 5 % (5,5 %) y no
+aporta clasificación CWE. El holdout confirma la dirección y empeora el
+resultado: FPRR 30,4 % y FNR 9,2 % crudos; con B403, FPRR 19,6 % y FNR 3,1 %
+(IC95 0,8–10,5 %). El producto debe mantenerse en modo asesor, con B403
+obligatoria y sin agregar B311 después de ver el holdout.

@@ -67,9 +67,12 @@ no prueba capacidad de detección. Por eso este proyecto separa la partición de
 desarrollo del test reservado y reporta el FNR junto con el FPRR: sin la tasa de
 omisión, el ahorro de revisión es una métrica incompleta.
 
-La consecuencia para el proyecto es que el resultado de D (FPRR 48 %, FNR 5,5 %)
-debe leerse como una medición de desarrollo, no como una promesa de producción.
-El holdout del Sprint 7 existe precisamente para contrastar esa cifra.
+La consecuencia para el proyecto es que el resultado de D en desarrollo
+(FPRR 48 %, FNR 5,5 %) debía leerse como una medición de desarrollo, no como una
+promesa de producción. El holdout del Sprint 7 lo confirmó: el FPRR bajó a
+30,4 % y el FNR subió a 9,2 %. La lección es la misma que documentan Ding et al.:
+un número alto en un conjunto de desarrollo no se generaliza sin una medición
+independiente.
 
 ## 2.3 Datos y verdad de referencia
 
@@ -89,10 +92,11 @@ flujo es alcanzable y no incluye identificador de repositorio. Eso tiene dos
 efectos concretos en nuestros números. Primero, una advertencia de importación
 sobre una función vulnerable cuenta como alerta real aunque la línea señalada no
 sea el defecto; eso favorece al SAST y explica parte de su 45,1 % de
-concordancia CWE. Segundo, la partición aleatoria por función no garantiza
-independencia entre repositorios: dos funciones del mismo proyecto pueden caer
-en train y en test. El Sprint 7 debe rehacer la partición agrupando por proyecto
-o archivo antes de abrir el holdout.
+concordancia CWE en desarrollo. Segundo, la partición aleatoria por función no
+garantiza independencia entre repositorios: dos funciones del mismo proyecto
+pueden caer en train y en test. El Sprint 7 evaluó el test sin reagrupar porque
+el dataset no tiene identificador de repositorio; la comparación exacta de
+hashes dio 0 coincidencias, pero los casi-duplicados quedan como limitación.
 
 La consecuencia para el proyecto es que la verdad de referencia se trata como
 aproximada. No se afirma que el modelo "detecta vulnerabilidades"; se afirma que

@@ -96,27 +96,34 @@ completa contra prompt injection: reduce el riesgo de que el modelo confunda
 datos con órdenes, pero la validación de la salida y la política conservadora son
 las que impiden que una inyección convierta una alerta en un descarte silencioso.
 
-## Anexo D. Conjunto de evaluación
+## Anexo D. Conjuntos de evaluación
 
 `eval/eval_set.jsonl` contiene 141 alertas de Bandit sobre funciones Python de
 `val_total`: 91 reales y 50 falsos positivos. Cada línea incluye `id`, `rule_id`,
 `cwe_sast`, `cwe_dataset`, `truth`, `severity`, `confidence`, `function`,
-`message` y `code`. El conjunto se regenera con `eval/build_eval_set.py`; el test
-reservado exige `--confirm-holdout` y se escribe en `eval/holdout_set.jsonl` sin
-pisar el conjunto de desarrollo.
+`message` y `code`. El conjunto se regenera con `eval/build_eval_set.py`.
+
+`eval/holdout_set.jsonl` contiene las 111 alertas del test reservado (65 reales,
+46 falsos positivos) sobre 300 funciones Python. Se generó una sola vez con
+`--split test --confirm-holdout`, se evaluó con A, C0 y D, y no se reutiliza para
+ajustar nada. Su SHA256 es
+`D9A91DC4B41170E0E2427D202E05F44E777A61C2F9DD4D4196D7EC752EAB1E81`; los hashes
+de los resultados y las reglas de lectura están en `docs/ANALISIS_HOLDOUT.md` y
+`docs/PROTOCOLO_HOLDOUT.md`.
 
 ## Anexo E. Pruebas
 
 `agente/tests/test_agente.py` cubre contexto por AST, deduplicación, SARIF,
 parseo de la respuesta, política conservadora, modo asesor, ejecución de Bandit
-y el límite de generación del cliente. La batería funcional y de robustez está
-en `eval/pruebas/LEEME.md`: repositorio vacío, archivo vacío, sintaxis inválida,
-otro lenguaje, repositorio grande, Ollama caído, JSON inválido y prompt
-injection.
+y el límite de generación del cliente: 13 pruebas, todas correctas. La batería
+funcional y de robustez está en `eval/pruebas/LEEME.md`: repositorio vacío,
+archivo vacío, sintaxis inválida, otro lenguaje, repositorio grande, Ollama
+caído, JSON inválido y prompt injection.
 
 ## Anexo F. Tablas por regla
 
-Las tablas de resultados por regla de Bandit viven en `docs/ANALISIS_C.md` y
-`docs/ANALISIS_D.md`. La tabla comparativa del documento se genera desde
-`scripts/build_avance5.py` y se valida contra los JSON con
-`scripts/check_consistencia.py`.
+Las tablas de resultados por regla de Bandit viven en `docs/ANALISIS_C.md`,
+`docs/ANALISIS_D.md` y `docs/ANALISIS_HOLDOUT.md`. La tabla comparativa del
+documento se genera desde `scripts/build_avance5.py` y se valida contra los JSON
+con `scripts/check_consistencia.py`. El análisis del holdout se reproduce con
+`python eval/analisis_holdout.py`.

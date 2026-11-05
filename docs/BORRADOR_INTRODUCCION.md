@@ -121,11 +121,11 @@ local, con cuatro contribuciones concretas:
 **Incluido:**
 
 - Python y Bandit como único SAST.
-- Funciones del split de validación de un dataset público, con etiquetas a nivel
-  de función.
+- Funciones del split de validación y del test reservado de un dataset público,
+  con etiquetas a nivel de función.
 - Un modelo Qwen2.5-Coder-1.5B-Instruct, adaptador LoRA, fusión, GGUF Q4_K_M y
   Ollama.
-- Evaluación de desarrollo (A/B/C/C0/D) y batería funcional.
+- Evaluación de desarrollo (A/B/C/C0/D), holdout (A/C0/D) y batería funcional.
 - Reporte JSON y SARIF en modo asesor.
 
 **Excluido:**
@@ -136,12 +136,13 @@ local, con cuatro contribuciones concretas:
 - Despliegue en producción, autenticación, multiusuario y integración CI/CD.
 - Evaluación de explicaciones con referencias humanas (la rúbrica queda
   diseñada, pero no aplicada).
-- Entrenamiento con el split de test: permanece reservado para una evaluación
-  única.
+- Entrenamiento con el split de test: se reservó y se usó una sola vez para la
+  evaluación del Sprint 7.
 
 La exclusión del descarte automático no es una limitación técnica sino una
-decisión basada en la evidencia: con FNR 5,5 % en D, el producto no cumple la
-meta de omisión y no puede eliminar alertas sin supervisión.
+decisión basada en la evidencia: con FNR 9,2 % en el holdout (3,1 % con la
+política B403, pero IC95 hasta 10,5 %), el producto no cumple la meta de omisión
+y no puede eliminar alertas sin supervisión.
 
 ## 1.7 Estructura de la memoria
 
@@ -150,10 +151,11 @@ arte en SAST, LLM para seguridad, datos y ajuste eficiente. El capítulo 3 fija
 requisitos y alcance. El capítulo 4 describe la arquitectura y el contrato de
 datos. El capítulo 5 detalla la metodología: dataset, particiones,
 entrenamiento, exportación y métricas. El capítulo 6 presenta los experimentos y
-resultados (entrenamiento, A/B/C/C0/D, latencia, pruebas). El capítulo 7 discute el
-intercambio entre ahorro y omisión, el CWE copiado, el sesgo de B403 y las
-amenazas a la validez. El capítulo 8 responde a la hipótesis y enumera el trabajo
-futuro. El capítulo 9 reúne las referencias y los anexos de reproducción.
+resultados (entrenamiento, A/B/C/C0/D, holdout, latencia, pruebas). El capítulo 7
+discute el intercambio entre ahorro y omisión, el CWE copiado, el sesgo de B403 y
+B311, el colapso de las explicaciones y las amenazas a la validez. El capítulo 8
+responde a la hipótesis y enumera el trabajo futuro. El capítulo 9 reúne las
+referencias y los anexos de reproducción.
 
 El hilo argumental es único: un modelo pequeño, entrenado de forma eficiente y
 ejecutado localmente, puede ahorrar revisión en un conjunto acotado, pero no

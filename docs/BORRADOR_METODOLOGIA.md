@@ -23,11 +23,14 @@ se hizo con semilla 42 y produjo tres particiones:
 | Validación total (`val_total`) | 42.536 | Validación del ajuste y conjunto de evaluación |
 | Test reservado | 17.542 | Evaluación única del Sprint 7 |
 
-El test nunca se usó para ajustar prompts ni hiperparámetros. La partición es
-aleatoria por función y el dataset no incluye identificador de proyecto, de modo
-que dos funciones del mismo repositorio pueden caer en particiones distintas.
-Esa limitación se declara como amenaza a la validez y se corrige en el Sprint 7
-agrupando por proyecto o archivo antes de abrir el holdout.
+El test se usó **una sola vez**, en el Sprint 7, y no se empleó para ajustar
+prompts ni hiperparámetros. La partición es aleatoria por función y el dataset no
+incluye identificador de proyecto, de modo que dos funciones del mismo
+repositorio pueden caer en particiones distintas. Esa limitación se declara como
+amenaza a la validez. No se rehizo la partición agrupada porque el dataset no
+tiene metadatos de repositorio; la comparación exacta de hashes normalizados
+contra `train_80` y `val_total` dio 0 coincidencias, pero los casi-duplicados
+quedan pendientes.
 
 ## 5.2 Construcción de los ejemplos de ajuste
 
@@ -123,6 +126,22 @@ La respuesta se parsea como JSON. Si el JSON es inválido, el veredicto no es
 `SOSPECHOSA` y se cuenta como respuesta inválida. Un `SAFE` se interpreta como
 **recomendación de descarte**, nunca como eliminación.
 
+### 5.5.1 Holdout
+
+El Sprint 7 generó un conjunto independiente con
+`python eval/build_eval_set.py --split test --confirm-holdout`. El test tiene
+17.542 muestras, de las cuales 300 son funciones Python; Bandit produjo **111
+alertas** (65 reales, 46 falsos positivos) sobre 71 archivos y 98 funciones. Se
+evaluaron A, C0 y D con el mismo protocolo. D y C0 comparten el formato de
+alerta; C no se corrió en el holdout porque agrega few-shot y no es el control
+que aísla el ajuste.
+
+El conjunto tiene 71 códigos únicos y 40 filas que repiten código, así que las
+observaciones no son independientes. Por eso, además de los intervalos de Wilson,
+el análisis reporta un bootstrap agrupado por archivo. El holdout se ejecutó una
+sola vez y no se reutiliza para ajustar prompts, hiperparámetros ni reglas. Las
+reglas y los comandos quedan registrados en `docs/PROTOCOLO_HOLDOUT.md`.
+
 ## 5.6 Métricas
 
 - **FPRR** (*false positive reduction rate*): falsos positivos recomendados para
@@ -138,10 +157,14 @@ La respuesta se parsea como JSON. Si el JSON es inválido, el veredicto no es
 - **Respuestas inválidas**: JSON inválido, veredicto fuera del contrato o error
   de la petición.
 
-Los intervalos de confianza se calculan con el método de Wilson. Para las
-explicaciones se diseñó una rúbrica de cuatro criterios (CWE, vector de ataque,
-corrección y claridad) en escala 0–2, con dos revisores ciegos y kappa de Cohen;
-la rúbrica queda diseñada pero no aplicada en este avance.
+Los intervalos de confianza se calculan con el método de Wilson. Cuando las
+observaciones se agrupan por archivo, se agrega un bootstrap agrupado (5.000
+remuestreos) porque las alertas de un mismo archivo no son independientes. Para
+las explicaciones se diseñó una rúbrica de cuatro criterios (CWE, vector de
+ataque, corrección y claridad) en escala 0–2, con dos revisores ciegos y kappa de
+Cohen; la rúbrica queda diseñada pero no aplicada. El holdout agregó una medida
+descriptiva previa: la cantidad de explicaciones, vectores y correcciones únicos,
+porque D colapsó a plantillas.
 
 ## 5.7 Pruebas funcionales y de robustez
 

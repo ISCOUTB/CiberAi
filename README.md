@@ -2,8 +2,9 @@
 
 Herramienta local que combina un analizador estático (Bandit) con un modelo de
 lenguaje afinado (Qwen2.5-Coder-1.5B + QLoRA) para hacer *triage* de alertas:
-decide si una alerta es una vulnerabilidad real o un falso positivo, explica el
-riesgo y propone una corrección.
+decide si una alerta es una vulnerabilidad real o un falso positivo. El CWE y el
+contexto provienen del SAST; el modelo aporta el veredicto y una justificación
+breve, que en esta versión es genérica y no reemplaza la revisión humana.
 
 Todo corre en la máquina del usuario: no se envía código a ninguna API externa.
 
@@ -13,8 +14,10 @@ Todo corre en la máquina del usuario: no se envía código a ninguna API extern
 - Sprint 6: modelo fusionado, exportado a GGUF Q4_K_M (940 MB) y registrado en
   Ollama como `qwen2.5-coder-triage`; evaluaciones C y D sobre 141 alertas,
   integración con la CLI y batería funcional completadas.
-- Sprint 7: evaluación única sobre el conjunto de verificación reservado y
-  validación de la política de descarte (pendiente).
+- Sprint 7: evaluación única sobre el conjunto de verificación reservado
+  completada (111 alertas, 65 reales); política B403 implementada y validada
+  parcialmente. El holdout confirmó que el FNR de D supera la meta y que el modo
+  asesor debe mantenerse.
 
 El producto funciona en **modo asesor**: una recomendación `SAFE` marca la
 alerta para descarte, pero **nunca la elimina** del reporte. Ante una respuesta
@@ -116,10 +119,12 @@ entrenamiento y 1.000 de validación. Instrucciones detalladas en
 
 ## Evaluación
 
-Conjunto de evaluación: 141 alertas de Bandit sobre funciones Python del split
+Conjunto de desarrollo: 141 alertas de Bandit sobre funciones Python del split
 de validación (91 reales, 50 falsos positivos). El split de test (17.542
-muestras, 300 de ellas Python) está reservado para el Sprint 7 y se evalúa una
-sola vez.
+muestras, 300 de ellas Python) se evaluó **una sola vez** en el Sprint 7; produjo
+111 alertas (65 reales, 46 falsos positivos). Los resultados completos y las
+limitaciones están en `docs/ANALISIS_HOLDOUT.md` y el registro en
+`docs/PROTOCOLO_HOLDOUT.md`.
 
 ```powershell
 python eval\run_eval.py --config A
@@ -146,10 +151,30 @@ Resultados sobre las 141 alertas:
 
 C y D **no** comparten prompt: C antepone dos ejemplos resueltos y D no. Para
 aislar el efecto del ajuste se agregó C0 (modelo base con el mismo formato de
-alerta que D, sin few-shot). D frente a C0 sube el FPRR de 22,0 % a 48,0 %, pero
-también el FNR de 2,2 % a 5,5 %. Frente a C, la diferencia es mayor, pero mezcla
-modelo y prompt. Como el FNR de D supera la meta de 5 %, el producto se queda en
-modo asesor.
+alerta que D, sin few-shot). En desarrollo, D frente a C0 sube el FPRR de 22,0 %
+a 48,0 %, pero también el FNR de 2,2 % a 5,5 %. Frente a C, la diferencia es
+mayor, pero mezcla modelo y prompt. Como el FNR de D supera la meta de 5 %, el
+producto se queda en modo asesor.
+
+### Holdout (Sprint 7)
+
+Resultados sobre las 111 alertas del test, con el mismo protocolo:
+
+| Configuración | FPRR | FNR | FOR | Precisión | CWE |
+|---|---:|---:|---:|---:|---:|
+| A. Solo SAST | 0,0 % | 0,0 % | 0,0 % | 58,6 % | 35,4 % |
+| C0. Base sin few-shot | 10,9 % | 0,0 % | 0,0 % | 61,3 % | 33,8 % |
+| D. Afinado (crudo) | 30,4 % | **9,2 %** | 30,0 % | 64,8 % | 32,2 % |
+| D + política B403 | 19,6 % | 3,1 % | 18,2 % | 63,0 % | 30,2 % |
+
+El holdout **no confirma** la meta de FNR: D omite 6 de 65 alertas reales
+(9,2 %, IC95 4,3–18,7 %; bootstrap por archivo 1,9–17,9 %). La política B403
+rescata 4 casos, pero deja 2 B311 y el IC95 sigue por encima del 5 %. El FPRR
+también baja respecto de desarrollo (30,4 % crudo, 19,6 % con la política). Con
+65 alertas reales, incluso 0 fallos deja el límite superior del IC95 en 5,6 %:
+el diseño no alcanza para demostrar la meta. La conclusión es mantener el modo
+asesor, hacer obligatoria la política B403 y **no** agregar B311 después de ver
+el holdout. El detalle está en `docs/ANALISIS_HOLDOUT.md`.
 
 ## Estructura del proyecto
 
@@ -174,15 +199,22 @@ prompt injection).
 
 ## Limitaciones conocidas
 
-- La partición actual es aleatoria por función, no por repositorio; puede haber
-  filtración entre repositorios. El Sprint 7 debe rehacer la partición agrupada
-  antes de la evaluación final.
-- El CWE que devuelve el modelo copia el CWE reportado por el SAST en la
-  mayoría de los casos: no se debe usar como clasificador independiente. El
-  producto conserva el CWE del SAST.
-- El FNR de D (5,5 %) supera apenas la meta de 5 %. Las 5 alertas reales
-  descartadas son todas B403 (`import pickle`); se recomienda no habilitar
-  descarte automático para esa regla.
+- La partición es aleatoria por función, no por repositorio; el dataset no tiene
+  identificador de proyecto. El holdout se evaluó sin reagrupar. La comparación
+  exacta de hashes normalizados contra train y validación dio 0 coincidencias,
+  pero no se midieron casi-duplicados.
+- El CWE que devuelve el modelo copia el CWE reportado por el SAST: 59 de 59
+  alertas reales conservadas en el holdout. No se debe usar como clasificador
+  independiente; el producto conserva el CWE del SAST.
+- El FNR de D en desarrollo fue 5,5 % (5/91, todas B403). En el holdout subió a
+  **9,2 % (6/65)**: 4 B403 y 2 B311. La política B403 lo baja a 3,1 % (IC95
+  0,8–10,5 %), pero no alcanza para afirmar ≤ 5 %. El modo asesor se mantiene y
+  no se agrega B311 después de ver el holdout.
+- Con 65 alertas reales, el holdout no tiene potencia para demostrar un FNR
+  ≤ 5 %: incluso 0 fallos deja el IC95 en 5,6 %.
+- Las explicaciones de D colapsaron a plantillas: 11 explicaciones, 8 vectores y
+  2 correcciones para 111 alertas; 91 de 91 `VULNERABLE` comparten la misma
+  corrección. D sirve para triage, no como generador de explicaciones técnicas.
 - La pérdida de validación de la corrida original quedó en `nan` por
   truncamiento de ejemplos largos; ya corregido en `training/train_qlora.py`.
 - Una alerta B102 de 1.818 caracteres hizo entrar en bucle al modelo base y
@@ -199,7 +231,11 @@ prompt injection).
 - `docs/BORRADOR_DISCUSION.md`: discusión de resultados y amenazas a la validez.
 - `docs/BORRADOR_CONCLUSIONES.md`: respuesta a la hipótesis, aportes y trabajo futuro.
 - `docs/BORRADOR_ANEXOS.md`: reproducción, artefactos, hashes y prompts.
-- `docs/ANALISIS_C.md` y `docs/ANALISIS_D.md`: lectura detallada de cada corrida.
+- `docs/ANALISIS_C.md`, `docs/ANALISIS_C0.md` y `docs/ANALISIS_D.md`: lectura
+  detallada de las corridas de desarrollo.
+- `docs/ANALISIS_HOLDOUT.md`: resultados, intervalos, falsos negativos y límites
+  de la evaluación única.
+- `docs/PROTOCOLO_HOLDOUT.md`: reglas, comandos y checklist de la evaluación.
 - `AVANCE5_PENDIENTES.md`: estado del Sprint 6 y pendientes del Sprint 7.
 
 ## Licencia

@@ -1,11 +1,13 @@
 # Avance 5 — estado y pendientes
 
-Estado: Sprint 6 cerrado. `Avance 5.docx` regenerado con
-`scripts/build_avance5.py` (131 párrafos, 14 tablas, ~5.850 palabras) con las
-corridas A/B/C/D, la batería funcional, la prueba de prompt injection, la
-simulación de Ollama caído y la memoria del modelo. Lo que resta para el
-Sprint 7 es la evaluación única del holdout, la rúbrica de explicaciones y la
-partición por proyecto.
+Estado: Sprint 6 cerrado. El Sprint 7 se ejecutó el 3 de noviembre de 2026:
+holdout medido una sola vez, política B403 implementada y frontend conectado a
+reportes reales. `Avance 5.docx` se regeneró con A/B/C/C0/D y una sección de
+holdout (142 párrafos, 15 tablas). El holdout cambió la conclusión: D no cumple
+la meta de FNR y el modo asesor se mantiene. Resultados en
+`docs/ANALISIS_HOLDOUT.md`; protocolo y comandos en `docs/PROTOCOLO_HOLDOUT.md`.
+Lo que resta es la rúbrica de explicaciones, el análisis de casi-duplicados y la
+integración final de la memoria.
 
 ## 1. Ya resuelto en esta revisión
 
@@ -44,7 +46,7 @@ partición por proyecto.
   decisión `recomendada_descarte`.
 - `training/export_gguf.py`: docstring corregido (`Modelfile` +
   `ollama create qwen2.5-coder-triage -f Modelfile`).
-- `agente/tests/test_agente.py`: **12 de 12 pruebas OK**, incluida
+- `agente/tests/test_agente.py`: **13 de 13 pruebas OK**, incluida
   `test_safe_is_kept_and_only_recommended` (modo asesor). Requiere
   `bandit` instalado.
 - `python -m py_compile` pasa en `run_eval.py`, `report.py`, `dedup.py` y
@@ -101,7 +103,14 @@ partición por proyecto.
   (48,0 % vs. 2,0 %) a costa de 5 falsos negativos (FNR 5,5 % vs. 0,0 %). Como
   el FNR de D supera la meta de 5 %, **no se habilita el descarte automático**:
   se mantiene el modo asesor y se propone excluir B403 del descarte (FNR 0 %,
-  FPRR 38 %). La decisión se valida con el holdout en el Sprint 7.
+  FPRR 38 % en desarrollo).
+
+  **Actualización del 3 de noviembre (holdout):** la propuesta no se confirma
+  tal cual. D obtiene FNR 9,2 % (6/65; 4 B403 y 2 B311) y FPRR 30,4 %. Con la
+  política B403 queda FNR 3,1 % (IC95 0,8–10,5 %) y FPRR 19,6 %. B403 es
+  obligatoria si se usa D, pero no alcanza para afirmar ≤ 5 %; B311 se reporta
+  como riesgo nuevo y no se agrega post hoc. Detalle en
+  `docs/ANALISIS_HOLDOUT.md`.
 
 - [x] **Resiliencia en vivo.** Las pruebas unitarias cubren cliente nulo, JSON
   malformado, veredicto inválido y SAFE sin justificación. Batería funcional
@@ -131,24 +140,32 @@ partición por proyecto.
   inválidas, 23,6 s.
 
 - [ ] **Rúbrica de explicaciones** con dos revisores y kappa; BERTScore solo
-  como medida descriptiva (requiere referencias humanas).
+  como medida descriptiva (requiere referencias humanas). Las planillas de 25
+  alertas por revisor están generadas en `eval/rubrica/evaluador_1.csv` y
+  `evaluador_2.csv`, pero **sin calificar**. El holdout mostró un problema
+  previo: D produce 11 explicaciones, 8 vectores y 2 correcciones únicas en 111
+  alertas. La rúbrica debe reportar también esa diversidad, no solo el kappa.
 
-- [ ] **Partición por proyecto/archivo** antes del test final. El dataset no
-  tiene identificador de proyecto; la partición actual es aleatoria por
-  función y no garantiza ausencia de filtraciones entre repositorios.
+- [ ] **Partición por proyecto/archivo.** El dataset no tiene identificador de
+  proyecto; la partición es aleatoria por función. El holdout se evaluó sin
+  reagrupar. La comparación exacta de hashes normalizados contra train y
+  validación dio 0 coincidencias, pero falta medir casi-duplicados. Se declara
+  como amenaza a la validez; no se rehace el split.
 
-- [x] **Generador del holdout preparado, sin ejecutar.** `eval/build_eval_set.py`
-  ahora acepta `--split validation|test`; el split test exige
-  `--confirm-holdout` y escribe `eval/holdout_set.jsonl` en un directorio
-  temporal distinto, sin pisar el conjunto de desarrollo. El test sigue
-  intacto.
+- [x] **Holdout ejecutado una sola vez.** `eval/build_eval_set.py --split test
+  --confirm-holdout` generó 111 alertas (65 reales, 46 falsos positivos) a
+  partir de 300 funciones Python del test de 17.542 filas. Se evaluaron A, C0 y
+  D. Resultados en `eval/resultados_holdout_*.json`, análisis en
+  `docs/ANALISIS_HOLDOUT.md` y registro en `docs/PROTOCOLO_HOLDOUT.md`. El set
+  no se vuelve a usar para ajustar prompts, hiperparámetros ni reglas.
 
 ## 3. Pendientes del documento
 
 - [x] `COMPARATIVA` y `EVIDENCIAS` actualizadas en
-  `scripts/build_avance5.py` con A/B/C/D, latencia, memoria, batería funcional,
-  prompt injection y Ollama caído. Documento regenerado con
-  `python scripts/build_avance5.py`. Análisis de C en `docs/ANALISIS_C.md`.
+  `scripts/build_avance5.py` con A/B/C/C0/D, holdout, latencia, memoria, batería
+  funcional, prompt injection y Ollama caído. Documento regenerado con
+  `python scripts/build_avance5.py`. Análisis de C en `docs/ANALISIS_C.md` y del
+  holdout en `docs/ANALISIS_HOLDOUT.md`.
 - [x] Figura de pérdida de entrenamiento agregada con `scripts/plot_loss.py`
   (`reportes/curva_perdida.png`) e insertada en la sección 6. La curva de
   validación queda pendiente de una corrida futura: las evaluaciones
@@ -161,9 +178,9 @@ partición por proyecto.
 - [ ] Integrar estas secciones en `Documento_Proyecto_Seguridad_Ia.docx`.
 - [ ] Borrador completo (requisito del Avance 5): Introducción, Estado del
   Arte, Requisitos, Arquitectura, Entrenamiento, Experimentos, Resultados,
-  Conclusiones y Referencias. Avance parcial: `docs/BORRADOR_ESTADO_ARTE.md`
-  (sección 2) y `docs/BORRADOR_DISCUSION.md` (sección 7); el resto se reutiliza
-  del Avance 5 según `docs/PLAN_DOCUMENTO_FINAL.md`.
+  Conclusiones y Referencias. Hay borradores de introducción, estado del arte,
+  metodología, discusión, conclusiones y anexos; faltan requisitos, arquitectura
+  y la integración en `Documento_Proyecto_Seguridad_Ia.docx`.
 
 ## 4. Criterios de la entrega
 
@@ -172,13 +189,21 @@ partición por proyecto.
 - Evaluación del componente inteligente con D medida.
 - Borrador completo del documento del proyecto.
 
-## 5. Después del Avance 5 (Sprint 7, 3–9 nov)
+## 5. Sprint 7 (3–9 nov): estado
 
-- Evaluación única sobre el test intacto (17.542 muestras), sin reutilizarlo.
-- Auditoría manual cruzada de explicaciones generadas (rúbrica + kappa).
-- Partición agrupada por proyecto/archivo antes de abrir el holdout.
-- Contraste con las metas: FNR ≤ 5 %, FPRR ≥ +15 puntos sobre C, exactitud
-  CWE ≥ C. D ya cumple la mejora de FPRR (+46 puntos) pero no la meta de FNR
-  (5,5 %); el holdout debe confirmar si el exceso se mantiene.
-- Validar la política de exclusión de B403 y medir el timeout real de Ollama.
-- Preparar insumos del Avance 6: congelamiento de código y borrador integral.
+- [x] Evaluación única sobre el split test: 111 alertas, 65 reales, 46 falsos
+  positivos. A, C0 y D medidos; resultados crudos y con política B403.
+- [x] Política B403 implementada y probada. El holdout la confirma como
+  necesaria, pero no suficiente: FNR 3,1 % (IC95 0,8–10,5 %) y FPRR 19,6 %.
+- [x] Frontend conectado a reportes reales; `npm run build` pasa.
+- [x] Planillas de rúbrica generadas (25 alertas × 2 revisores), sin calificar.
+- [ ] Rúbrica aplicada y kappa calculado.
+- [ ] Análisis de casi-duplicados train/holdout.
+- [ ] Integración final de la memoria y ensayo de demostración.
+
+**Contraste con las metas:** D no cumple FNR ≤ 5 % en el holdout (9,2 % crudo;
+3,1 % con B403, pero IC95 hasta 10,5 %). El ahorro real con política es +8,7
+puntos sobre C0, no +46. La exactitud CWE de D (32,2 %) es menor que A (35,4 %)
+y C0 (33,8 %), aunque el modelo copia el CWE del SAST en 59/59: la diferencia es
+de denominador, no de clasificación. La conclusión es mantener el modo asesor,
+hacer obligatoria B403 y no agregar B311 después de ver el holdout.

@@ -1,0 +1,365 @@
+{
+  "set": {
+    "archivo": "eval/holdout_set.jsonl",
+    "sha256": "D9A91DC4B41170E0E2427D202E05F44E777A61C2F9DD4D4196D7EC752EAB1E81",
+    "alertas": 111,
+    "codigos_unicos": 71,
+    "filas_duplicadas": 40,
+    "archivos": 71,
+    "funciones": 98,
+    "reales": 65,
+    "falsos_positivos": 46
+  },
+  "resultados_sha256": {
+    "A": "26C6B4F752BF7EAA328239D487100B8BF40344CC967D943BA49FD799EB711D5F",
+    "C0": "5DEC71D371D202A543AD9B8D36C94BE788C899D23506ED5D33D38D6C4529698E",
+    "D": "9FDAA511C0E7A48E19D4E047E2EE78C5FFD5BB84872D0FCBA2A7E63C9DC84C0F"
+  },
+  "configuraciones": {
+    "A": {
+      "alertas": 111,
+      "reales": 65,
+      "falsos_positivos": 46,
+      "recomendadas_descarte": 0,
+      "conservadas": 111,
+      "FN": 0,
+      "FP_descartados": 0,
+      "FPRR": 0.0,
+      "FNR": 0.0,
+      "FOR": 0.0,
+      "precision": 58.6,
+      "exactitud_cwe": 35.4,
+      "respuestas_invalidas": 0,
+      "IC95_FPRR_wilson": [
+        0.0,
+        7.7
+      ],
+      "IC95_FNR_wilson": [
+        0.0,
+        5.6
+      ]
+    },
+    "C0": {
+      "alertas": 111,
+      "reales": 65,
+      "falsos_positivos": 46,
+      "recomendadas_descarte": 5,
+      "conservadas": 106,
+      "FN": 0,
+      "FP_descartados": 5,
+      "FPRR": 10.9,
+      "FNR": 0.0,
+      "FOR": 0.0,
+      "precision": 61.3,
+      "exactitud_cwe": 33.8,
+      "respuestas_invalidas": 1,
+      "IC95_FPRR_wilson": [
+        4.7,
+        23.0
+      ],
+      "IC95_FNR_wilson": [
+        0.0,
+        5.6
+      ]
+    },
+    "D": {
+      "alertas": 111,
+      "reales": 65,
+      "falsos_positivos": 46,
+      "recomendadas_descarte": 20,
+      "conservadas": 91,
+      "FN": 6,
+      "FP_descartados": 14,
+      "FPRR": 30.4,
+      "FNR": 9.2,
+      "FOR": 30.0,
+      "precision": 64.8,
+      "exactitud_cwe": 32.2,
+      "respuestas_invalidas": 0,
+      "IC95_FPRR_wilson": [
+        19.1,
+        44.8
+      ],
+      "IC95_FNR_wilson": [
+        4.3,
+        18.7
+      ]
+    }
+  },
+  "politica": {
+    "ninguna": {
+      "alertas": 111,
+      "reales": 65,
+      "falsos_positivos": 46,
+      "recomendadas_descarte": 20,
+      "conservadas": 91,
+      "FN": 6,
+      "FP_descartados": 14,
+      "FPRR": 30.4,
+      "FNR": 9.2,
+      "FOR": 30.0,
+      "precision": 64.8,
+      "exactitud_cwe": 32.2,
+      "respuestas_invalidas": 0,
+      "IC95_FPRR_wilson": [
+        19.1,
+        44.8
+      ],
+      "IC95_FNR_wilson": [
+        4.3,
+        18.7
+      ]
+    },
+    "B403": {
+      "alertas": 111,
+      "reales": 65,
+      "falsos_positivos": 46,
+      "recomendadas_descarte": 11,
+      "conservadas": 100,
+      "FN": 2,
+      "FP_descartados": 9,
+      "FPRR": 19.6,
+      "FNR": 3.1,
+      "FOR": 18.2,
+      "precision": 63.0,
+      "exactitud_cwe": 30.2,
+      "respuestas_invalidas": 0,
+      "IC95_FPRR_wilson": [
+        10.7,
+        33.2
+      ],
+      "IC95_FNR_wilson": [
+        0.8,
+        10.5
+      ]
+    },
+    "B403+B311": {
+      "alertas": 111,
+      "reales": 65,
+      "falsos_positivos": 46,
+      "recomendadas_descarte": 9,
+      "conservadas": 102,
+      "FN": 0,
+      "FP_descartados": 9,
+      "FPRR": 19.6,
+      "FNR": 0.0,
+      "FOR": 0.0,
+      "precision": 63.7,
+      "exactitud_cwe": 29.2,
+      "respuestas_invalidas": 0,
+      "IC95_FPRR_wilson": [
+        10.7,
+        33.2
+      ],
+      "IC95_FNR_wilson": [
+        0.0,
+        5.6
+      ]
+    }
+  },
+  "bootstrap": {
+    "D_crudo": {
+      "repeticiones": 5000,
+      "archivos": 71,
+      "IC95_FNR": [
+        1.9,
+        17.9
+      ],
+      "IC95_FPRR": [
+        15.2,
+        45.7
+      ]
+    },
+    "D_B403": {
+      "repeticiones": 5000,
+      "archivos": 71,
+      "IC95_FNR": [
+        0.0,
+        10.2
+      ],
+      "IC95_FPRR": [
+        9.4,
+        31.2
+      ]
+    }
+  },
+  "por_regla_D": {
+    "B403": {
+      "alertas": 15,
+      "reales": 8,
+      "FN": 4,
+      "falsos_positivos": 7,
+      "FP_descartados": 5
+    },
+    "B404": {
+      "alertas": 11,
+      "reales": 1,
+      "FN": 0,
+      "falsos_positivos": 10,
+      "FP_descartados": 5
+    },
+    "B307": {
+      "alertas": 27,
+      "reales": 22,
+      "FN": 0,
+      "falsos_positivos": 5,
+      "FP_descartados": 3
+    },
+    "B311": {
+      "alertas": 3,
+      "reales": 3,
+      "FN": 2,
+      "falsos_positivos": 0,
+      "FP_descartados": 0
+    },
+    "B201": {
+      "alertas": 9,
+      "reales": 5,
+      "FN": 0,
+      "falsos_positivos": 4,
+      "FP_descartados": 1
+    },
+    "B102": {
+      "alertas": 7,
+      "reales": 1,
+      "FN": 0,
+      "falsos_positivos": 6,
+      "FP_descartados": 0
+    },
+    "B108": {
+      "alertas": 1,
+      "reales": 0,
+      "FN": 0,
+      "falsos_positivos": 1,
+      "FP_descartados": 0
+    },
+    "B110": {
+      "alertas": 1,
+      "reales": 1,
+      "FN": 0,
+      "falsos_positivos": 0,
+      "FP_descartados": 0
+    },
+    "B301": {
+      "alertas": 15,
+      "reales": 8,
+      "FN": 0,
+      "falsos_positivos": 7,
+      "FP_descartados": 0
+    },
+    "B602": {
+      "alertas": 2,
+      "reales": 1,
+      "FN": 0,
+      "falsos_positivos": 1,
+      "FP_descartados": 0
+    },
+    "B603": {
+      "alertas": 3,
+      "reales": 0,
+      "FN": 0,
+      "falsos_positivos": 3,
+      "FP_descartados": 0
+    },
+    "B605": {
+      "alertas": 9,
+      "reales": 7,
+      "FN": 0,
+      "falsos_positivos": 2,
+      "FP_descartados": 0
+    },
+    "B608": {
+      "alertas": 8,
+      "reales": 8,
+      "FN": 0,
+      "falsos_positivos": 0,
+      "FP_descartados": 0
+    }
+  },
+  "falsos_negativos_D": [
+    {
+      "id": "f11445.py:1",
+      "rule_id": "B403",
+      "cwe_sast": "CWE-502",
+      "cwe_dataset": "CWE-502",
+      "mensaje": "Consider possible security implications associated with pickle module."
+    },
+    {
+      "id": "f15804.py:1",
+      "rule_id": "B403",
+      "cwe_sast": "CWE-502",
+      "cwe_dataset": "CWE-502",
+      "mensaje": "Consider possible security implications associated with pickle module."
+    },
+    {
+      "id": "f16317.py:7",
+      "rule_id": "B311",
+      "cwe_sast": "CWE-330",
+      "cwe_dataset": "CWE-94",
+      "mensaje": "Standard pseudo-random generators are not suitable for security/cryptographic purposes."
+    },
+    {
+      "id": "f16317.py:8",
+      "rule_id": "B311",
+      "cwe_sast": "CWE-330",
+      "cwe_dataset": "CWE-94",
+      "mensaje": "Standard pseudo-random generators are not suitable for security/cryptographic purposes."
+    },
+    {
+      "id": "f1878.py:1",
+      "rule_id": "B403",
+      "cwe_sast": "CWE-502",
+      "cwe_dataset": "CWE-502",
+      "mensaje": "Consider possible security implications associated with pickle module."
+    },
+    {
+      "id": "f2231.py:1",
+      "rule_id": "B403",
+      "cwe_sast": "CWE-502",
+      "cwe_dataset": "CWE-502",
+      "mensaje": "Consider possible security implications associated with pickle module."
+    }
+  ],
+  "diversidad": {
+    "C0": {
+      "explicacion": {
+        "unicos": 109,
+        "moda": 2
+      },
+      "vector_ataque": {
+        "unicos": 103,
+        "moda": 2
+      },
+      "correccion": {
+        "unicos": 106,
+        "moda": 3
+      }
+    },
+    "D": {
+      "explicacion": {
+        "unicos": 11,
+        "moda": 47
+      },
+      "vector_ataque": {
+        "unicos": 8,
+        "moda": 51
+      },
+      "correccion": {
+        "unicos": 2,
+        "moda": 91
+      }
+    }
+  },
+  "desacuerdos_D_vs_C0": {
+    "solo_D": {
+      "total": 18,
+      "reales": 6,
+      "falsos_positivos": 12
+    },
+    "solo_C0": {
+      "total": 3,
+      "reales": 0,
+      "falsos_positivos": 3
+    }
+  }
+}

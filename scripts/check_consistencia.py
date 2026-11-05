@@ -2,6 +2,7 @@
 
 Comprueba:
 - la tabla comparativa de `Avance 5.docx` contra `eval/resultados_*.json`;
+- la tabla del holdout de `Avance 5.docx` contra `eval/analisis_holdout.json`;
 - la tabla comparativa de `README.md`;
 - que no queden marcadores de trabajo sin completar;
 - que no reaparezcan cifras obsoletas de la corrida C anterior.
@@ -110,6 +111,73 @@ def revisar_docx(filas, errores):
         errores.append("Avance 5.docx: faltan configuraciones {}".format(sorted(faltan)))
 
 
+def revisar_docx_holdout(errores):
+    """Compara la tabla del holdout con el resumen derivado de los JSON crudos."""
+    ruta_resumen = ROOT / "eval" / "analisis_holdout.json"
+    ruta_docx = ROOT / "Avance 5.docx"
+    if not ruta_resumen.exists():
+        errores.append("Falta eval/analisis_holdout.json")
+        return
+    if not ruta_docx.exists():
+        return
+    resumen = json.loads(ruta_resumen.read_text(encoding="utf-8"))
+    esperadas = {
+        "A": resumen["configuraciones"]["A"],
+        "C0": resumen["configuraciones"]["C0"],
+        "D": resumen["configuraciones"]["D"],
+        "D + política B403": resumen["politica"]["B403"],
+        "D + B403 y B311": resumen["politica"]["B403+B311"],
+    }
+
+    def resolver(etiqueta):
+        if etiqueta in esperadas:
+            return etiqueta
+        for clave in ("A", "C0", "D"):
+            if etiqueta.startswith(clave + "."):
+                return clave
+        return None
+
+    doc = docx.Document(str(ruta_docx))
+    tabla = None
+    for t in doc.tables:
+        cabecera = [c.text.strip() for c in t.rows[0].cells]
+        if cabecera == ["Configuración", "Alertas", "FPRR", "FNR", "FOR", "Precisión", "CWE"]:
+            tabla = t
+            break
+    if tabla is None:
+        errores.append("Avance 5.docx: no se encontro la tabla del holdout")
+        return
+
+    for fila in tabla.rows[1:]:
+        celdas = [c.text.strip() for c in fila.cells]
+        etiqueta = celdas[0]
+        clave = resolver(etiqueta)
+        if clave is None:
+            errores.append("Avance 5.docx: fila de holdout desconocida '{}'".format(etiqueta))
+            continue
+        m = esperadas[clave]
+        esperado = [
+            str(m["alertas"]),
+            fmt(m["FPRR"]),
+            fmt(m["FNR"]),
+            fmt(m["FOR"]),
+            fmt(m["precision"]),
+            fmt(m["exactitud_cwe"]),
+        ]
+        if celdas[1:7] != esperado:
+            errores.append(
+                "Avance 5.docx holdout {}: esperado {} | documento {}".format(
+                    etiqueta, esperado, celdas[1:7]
+                )
+            )
+    if len(tabla.rows) - 1 != len(esperadas):
+        errores.append(
+            "Avance 5.docx holdout: {} filas (esperadas {})".format(
+                len(tabla.rows) - 1, len(esperadas)
+            )
+        )
+
+
 def revisar_readme(filas, errores):
     ruta = ROOT / "README.md"
     texto = ruta.read_text(encoding="utf-8")
@@ -149,6 +217,7 @@ def main():
     filas = fila_esperada(metricas)
     errores = []
     revisar_docx(filas, errores)
+    revisar_docx_holdout(errores)
     revisar_readme(filas, errores)
     revisar_marcadores(errores)
     revisar_obsoletas(errores)
