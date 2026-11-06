@@ -3,6 +3,12 @@
 Comprueba:
 - la tabla comparativa de `Avance 5.docx` contra `eval/resultados_*.json`;
 - la tabla del holdout de `Avance 5.docx` contra `eval/analisis_holdout.json`;
+- las tablas C0/D de `Avance 5.docx` y `docs/ANALISIS_C0_VS_D.md`
+  contra `eval/analisis_c0_vs_d.json`;
+- la tabla de cobertura de `Avance 5.docx`, `docs/OWASP.md` y
+  `docs/BORRADOR_ANEXOS.md` contra `eval/cobertura_owasp.json`;
+- las tablas del smoke test de `Avance 5.docx` y `docs/SMOKE_REPOS.md`
+  contra `eval/auditoria_smoke_repos.json`;
 - la tabla comparativa de `README.md`;
 - que no queden marcadores de trabajo sin completar;
 - que no reaparezcan cifras obsoletas de la corrida C anterior.
@@ -38,6 +44,84 @@ OBSOLETAS = [
 
 def fmt(valor):
     return ("{:.1f} %".format(valor)).replace(".", ",")
+
+
+def fmt_p(valor):
+    return ("{:.4f}".format(valor)).replace(".", ",")
+
+
+def normalizar(texto):
+    return texto.replace("\u2212", "-").replace("\u2013", "-").strip()
+
+
+def fmt_pts(valor):
+    signo = "+" if valor > 0 else ("-" if valor < 0 else "")
+    return ("{}{:.1f} pts".format(signo, abs(valor))).replace(".", ",")
+
+
+def fmt_ic(intervalo):
+    return ("{:.1f} a {:.1f}".format(intervalo[0], intervalo[1])).replace(".", ",")
+
+
+def cargar_json(relativa):
+    ruta = ROOT / relativa
+    if not ruta.exists():
+        raise SystemExit("Falta {}".format(ruta))
+    return json.loads(ruta.read_text(encoding="utf-8"))
+
+
+def celdas(fila):
+    return [normalizar(c.text) for c in fila.cells]
+
+
+def tabla_docx(doc, cabecera):
+    esperada = [normalizar(c) for c in cabecera]
+    for tabla in doc.tables:
+        if celdas(tabla.rows[0]) == esperada:
+            return tabla
+    return None
+
+
+def _separador(fila):
+    return all(re.fullmatch(r":?-{2,}:?", c) for c in fila)
+
+
+def filas_md(texto):
+    tablas = []
+    actual = []
+    for linea in texto.splitlines():
+        linea = linea.strip()
+        if linea.startswith("|") and linea.endswith("|"):
+            fila = [normalizar(c) for c in linea.strip("|").split("|")]
+            if _separador(fila):
+                continue
+            actual.append(fila)
+        elif actual:
+            tablas.append(actual)
+            actual = []
+    if actual:
+        tablas.append(actual)
+    return tablas
+
+
+def tabla_md(texto, cabecera):
+    esperada = [normalizar(c) for c in cabecera]
+    for tabla in filas_md(texto):
+        if tabla and tabla[0] == esperada:
+            return tabla[1:]
+    return None
+
+
+def comparar_filas(origen, filas_doc, esperadas, errores):
+    for obtenido, esperado in zip(filas_doc, esperadas):
+        if obtenido != esperado:
+            errores.append(
+                "{}: esperado {} | documento {}".format(origen, esperado, obtenido)
+            )
+    if len(filas_doc) != len(esperadas):
+        errores.append(
+            "{}: {} filas (esperadas {})".format(origen, len(filas_doc), len(esperadas))
+        )
 
 
 def cargar_metricas():
@@ -178,6 +262,411 @@ def revisar_docx_holdout(errores):
         )
 
 
+def revisar_docx_c0_vs_d(errores):
+    """Compara las dos tablas C0/D del docx con el analisis pareado."""
+    ruta = ROOT / "Avance 5.docx"
+    if not ruta.exists():
+        return
+    datos = cargar_json("eval/analisis_c0_vs_d.json")["conjuntos"]
+    doc = docx.Document(str(ruta))
+
+    tabla = tabla_docx(doc, ["Conjunto", "FPRR C0", "FPRR D", "FNR C0", "FNR D", "McNemar p"])
+    if tabla is None:
+        errores.append("Avance 5.docx: no se encontro la tabla C0 vs D")
+    else:
+        filas = 0
+        for fila in tabla.rows[1:]:
+            c = celdas(fila)
+            clave = _clave_conjunto(c[0])
+            if clave is None:
+                errores.append("Avance 5.docx C0/D: conjunto desconocido '{}'".format(c[0]))
+                continue
+            filas += 1
+            esperado = _fila_c0_d(datos[clave])
+            if c[1:] != esperado:
+                errores.append(
+                    "Avance 5.docx C0/D {}: esperado {} | documento {}".format(
+                        clave, esperado, c[1:]
+                    )
+                )
+        if filas != 2:
+            errores.append("Avance 5.docx C0/D: {} filas (esperadas 2)".format(filas))
+
+    cabecera = ["Conjunto", "Δ FPRR (D−C0)", "IC95", "Δ FNR (D−C0)", "IC95"]
+    tabla = tabla_docx(doc, cabecera)
+    if tabla is None:
+        errores.append("Avance 5.docx: no se encontro la tabla de diferencias C0/D")
+        return
+    filas = 0
+    for fila in tabla.rows[1:]:
+        c = celdas(fila)
+        clave = _clave_conjunto(c[0])
+        if clave is None:
+            errores.append("Avance 5.docx ΔC0/D: conjunto desconocido '{}'".format(c[0]))
+            continue
+        filas += 1
+        esperado = _fila_dif(datos[clave])
+        if c[1:] != esperado:
+            errores.append(
+                "Avance 5.docx ΔC0/D {}: esperado {} | documento {}".format(
+                    clave, esperado, c[1:]
+                )
+            )
+    if filas != 2:
+        errores.append("Avance 5.docx ΔC0/D: {} filas (esperadas 2)".format(filas))
+
+
+def revisar_md_c0_vs_d(errores):
+    """Compara las tablas del analisis C0/D en Markdown."""
+    ruta = ROOT / "docs" / "ANALISIS_C0_VS_D.md"
+    if not ruta.exists():
+        errores.append("Falta docs/ANALISIS_C0_VS_D.md")
+        return
+    texto = ruta.read_text(encoding="utf-8")
+    datos = cargar_json("eval/analisis_c0_vs_d.json")["conjuntos"]
+
+    cabecera = ["Conjunto", "Configuración", "Alertas", "FPRR", "FNR",
+                "Exactitud de la decisión"]
+    filas = tabla_md(texto, cabecera)
+    if filas is None:
+        errores.append("docs/ANALISIS_C0_VS_D.md: falta la tabla global")
+    else:
+        esperadas = []
+        for nombre in ("Desarrollo", "Holdout"):
+            clave = _clave_conjunto(nombre)
+            for cfg in ("C0", "D"):
+                m = datos[clave][cfg]
+                esperadas.append([
+                    nombre, cfg, str(datos[clave]["alertas"]), fmt(m["FPRR"]), fmt(m["FNR"]),
+                    fmt(m["exactitud_decision"]),
+                ])
+        comparar_filas("docs/ANALISIS_C0_VS_D.md global", filas, esperadas, errores)
+
+    cabecera = ["Conjunto", "Ambos conservan", "Ambos descartan", "Solo D descarta",
+                "Solo C0 descarta"]
+    filas = tabla_md(texto, cabecera)
+    if filas is None:
+        errores.append("docs/ANALISIS_C0_VS_D.md: falta la tabla de acuerdo")
+    else:
+        esperadas = []
+        for nombre in ("Desarrollo", "Holdout"):
+            esperadas.append([nombre] + _fila_acuerdo(datos[_clave_conjunto(nombre)]))
+        comparar_filas("docs/ANALISIS_C0_VS_D.md acuerdo", filas, esperadas, errores)
+
+    cabecera = ["Conjunto", "Δ FPRR (D − C0)", "IC95", "Δ FNR (D − C0)", "IC95"]
+    filas = tabla_md(texto, cabecera)
+    if filas is None:
+        errores.append("docs/ANALISIS_C0_VS_D.md: falta la tabla de diferencias")
+    else:
+        esperadas = []
+        for nombre in ("Desarrollo", "Holdout"):
+            esperadas.append([nombre] + _fila_dif(datos[_clave_conjunto(nombre)]))
+        comparar_filas("docs/ANALISIS_C0_VS_D.md diferencias", filas, esperadas, errores)
+
+    holdout = datos["holdout"]
+    cabecera = ["Configuración", "Explicaciones únicas", "Moda", "Vectores únicos",
+                "Correcciones únicas"]
+    filas = tabla_md(texto, cabecera)
+    if filas is None:
+        errores.append("docs/ANALISIS_C0_VS_D.md: falta la tabla de diversidad")
+    else:
+        esperadas = []
+        for cfg in ("C0", "D"):
+            d = holdout["diversidad"][cfg]
+            esperadas.append([
+                cfg,
+                str(d["explicacion"]["unicos"]),
+                str(d["explicacion"]["moda"]),
+                str(d["vector_ataque"]["unicos"]),
+                str(d["correccion"]["unicos"]),
+            ])
+        comparar_filas("docs/ANALISIS_C0_VS_D.md diversidad", filas, esperadas, errores)
+
+    cabecera = ["Conjunto", "C0 copia el CWE del SAST", "D copia el CWE del SAST",
+                "Exactitud CWE C0", "Exactitud CWE D"]
+    filas = tabla_md(texto, cabecera)
+    if filas is None:
+        errores.append("docs/ANALISIS_C0_VS_D.md: falta la tabla de CWE")
+    else:
+        esperadas = []
+        for nombre in ("Desarrollo", "Holdout"):
+            r = datos[_clave_conjunto(nombre)]
+            n = r["alertas"]
+            esperadas.append([
+                nombre,
+                "{} de {}".format(r["cwe_copiado_del_sast"]["C0"], n),
+                "{} de {}".format(r["cwe_copiado_del_sast"]["D"], n),
+                fmt(r["C0"]["exactitud_cwe"]),
+                fmt(r["D"]["exactitud_cwe"]),
+            ])
+        comparar_filas("docs/ANALISIS_C0_VS_D.md CWE", filas, esperadas, errores)
+
+
+def _fila_c0_d(r):
+    return [
+        fmt(r["C0"]["FPRR"]),
+        fmt(r["D"]["FPRR"]),
+        fmt(r["C0"]["FNR"]),
+        fmt(r["D"]["FNR"]),
+        fmt_p(r["mcnemar"]["p_exacto_bilateral"]),
+    ]
+
+
+def _fila_dif(r):
+    d = r["diferencias"]
+    return [
+        fmt_pts(d["FPRR"]["puntual_D_menos_C0"]),
+        fmt_ic(d["FPRR"]["IC95"]),
+        fmt_pts(d["FNR"]["puntual_D_menos_C0"]),
+        fmt_ic(d["FNR"]["IC95"]),
+    ]
+
+
+def _fila_acuerdo(r):
+    def cuenta(x):
+        reales = "{} real".format(x["reales"]) if x["reales"] == 1 else \
+            "{} reales".format(x["reales"])
+        return "{} ({}, {} FP)".format(x["total"], reales, x["falsos_positivos"])
+
+    return [cuenta(r["acuerdo"][k]) for k in
+            ("ambos_conservan", "ambos_descartan", "solo_D_descarta", "solo_C0_descarta")]
+
+
+def _clave_conjunto(texto):
+    t = texto.lower()
+    if t.startswith("desarrollo"):
+        return "desarrollo"
+    if t.startswith("holdout"):
+        return "holdout"
+    return None
+
+
+CATEGORIAS_OWASP = ["A01", "A02", "A03", "A04", "A05",
+                    "A06", "A07", "A08", "A09", "A10"]
+
+
+def _fila_owasp(datos, clave):
+    por = datos["conjuntos"][clave]["por_categoria"]
+    return [str(por.get(cat, 0)) for cat in CATEGORIAS_OWASP] + [
+        str(por.get("sin_categoria", 0))]
+
+
+def _esperado_owasp(datos):
+    etiquetas = CATEGORIAS_OWASP + ["—"]
+    desarrollo = _fila_owasp(datos, "desarrollo")
+    holdout = _fila_owasp(datos, "holdout")
+    filas = []
+    for i, etiqueta in enumerate(etiquetas):
+        nombre = datos["categorias"].get(etiqueta, "Fuera del Top 10 2021")
+        filas.append([etiqueta, nombre, desarrollo[i], holdout[i]])
+    return filas
+
+
+def revisar_owasp(errores):
+    """Compara la matriz de cobertura del docx y de los borradores."""
+    datos = cargar_json("eval/cobertura_owasp.json")
+    esperadas = _esperado_owasp(datos)
+    vistos = 0
+
+    ruta_docx = ROOT / "Avance 5.docx"
+    if ruta_docx.exists():
+        doc = docx.Document(str(ruta_docx))
+        tabla = tabla_docx(doc, ["Categoría", "Nombre", "Desarrollo (141)",
+                                 "Holdout (111)"])
+        if tabla is None:
+            errores.append("Avance 5.docx: no se encontro la tabla OWASP")
+        else:
+            filas = [celdas(f) for f in tabla.rows[1:]]
+            comparar_filas("Avance 5.docx OWASP", filas, esperadas, errores)
+            vistos += 1
+
+    for nombre in ("OWASP.md", "BORRADOR_ANEXOS.md"):
+        ruta = ROOT / "docs" / nombre
+        if not ruta.exists():
+            errores.append("Falta docs/{}".format(nombre))
+            continue
+        texto = ruta.read_text(encoding="utf-8")
+        filas = tabla_md(texto, ["Categoría", "Nombre", "Desarrollo (141)",
+                                 "Holdout (111)"])
+        if filas is None:
+            errores.append("docs/{}: no se encontro la tabla OWASP".format(nombre))
+            continue
+        comparar_filas("docs/{} OWASP".format(nombre), filas, esperadas, errores)
+        vistos += 1
+
+    if vistos != 3:
+        errores.append("OWASP: se validaron {} de 3 tablas".format(vistos))
+
+    # Tabla por regla de docs/OWASP.md.
+    ruta = ROOT / "docs" / "OWASP.md"
+    if not ruta.exists():
+        return
+    reglas_d = datos["conjuntos"]["desarrollo"]["por_regla"]
+    reglas_h = datos["conjuntos"]["holdout"]["por_regla"]
+    filas = tabla_md(ruta.read_text(encoding="utf-8"),
+                     ["Regla", "CWE del SAST", "Categoría", "Desarrollo", "Holdout"])
+    if filas is None:
+        errores.append("docs/OWASP.md: no se encontro la tabla por regla")
+        return
+    for c in filas:
+        regla = c[0]
+        claves = set(reglas_d.get(regla, {})) | set(reglas_h.get(regla, {}))
+        if len(claves) != 1:
+            errores.append("docs/OWASP.md: regla '{}' sin categoria unica".format(regla))
+            continue
+        categoria = claves.pop()
+        categoria_doc = "sin categoría" if categoria == "sin_categoria" else categoria
+        esperado = [
+            regla, c[1], categoria_doc,
+            str(reglas_d.get(regla, {}).get(categoria, 0)),
+            str(reglas_h.get(regla, {}).get(categoria, 0)),
+        ]
+        if c != esperado:
+            errores.append(
+                "docs/OWASP.md regla {}: esperado {} | documento {}".format(
+                    regla, esperado, c))
+
+
+def _totales_smoke(datos, modelo):
+    totales = {"total": 0, "conservadas": 0, "recomendadas_descarte": 0,
+               "sospechosas": 0, "errores_modelo": 0}
+    for repo in datos["repos"].values():
+        for clave in totales:
+            totales[clave] += repo[modelo][clave]
+    return totales
+
+
+def _conteo_safe(datos, modelo):
+    from collections import Counter
+
+    return Counter(s["regla"] for s in datos["safe"] if s["modelo"] == modelo)
+
+
+def revisar_smoke(errores):
+    """Compara las tablas del smoke test del docx y de docs/SMOKE_REPOS.md."""
+    datos = cargar_json("eval/auditoria_smoke_repos.json")
+    docx_ruta = ROOT / "Avance 5.docx"
+    doc = docx.Document(str(docx_ruta)) if docx_ruta.exists() else None
+
+    # Repositorios y numero de alertas.
+    cabecera = ["Repositorio", "Etiqueta", "Commit", "Subdirectorio", "Alertas"]
+    filas_docx = []
+    if doc is not None:
+        tabla = tabla_docx(doc, cabecera)
+        if tabla is None:
+            errores.append("Avance 5.docx: no se encontro la tabla de repositorios")
+        else:
+            filas_docx = [celdas(f) for f in tabla.rows[1:]]
+    ruta_md = ROOT / "docs" / "SMOKE_REPOS.md"
+    filas_md_repos = []
+    if not ruta_md.exists():
+        errores.append("Falta docs/SMOKE_REPOS.md")
+    else:
+        filas_md_repos = tabla_md(ruta_md.read_text(encoding="utf-8"), cabecera) or []
+
+    for origen, filas in (("Avance 5.docx", filas_docx),
+                          ("docs/SMOKE_REPOS.md", filas_md_repos)):
+        if not filas:
+            continue
+        for c in filas:
+            repo = next((k for k in datos["repos"] if k in c[0].lower()), None)
+            if repo is None:
+                errores.append("{}: repositorio desconocido '{}'".format(origen, c[0]))
+                continue
+            esperado = str(datos["repos"][repo]["base"]["total"])
+            if c[4] != esperado:
+                errores.append(
+                    "{} {}: alertas {} (esperadas {})".format(origen, c[0], c[4], esperado))
+
+    # Totales por modelo.
+    cabecera = ["Modelo", "Alertas", "Conservadas", "SAFE", "SOSPECHOSA", "Errores"]
+    esperadas = []
+    for modelo, etiqueta in (("base", "Base (qwen2.5-coder:1.5b)"),
+                             ("d", "D (qwen2.5-coder-triage)")):
+        r = _totales_smoke(datos, modelo)
+        esperadas.append([
+            etiqueta, str(r["total"]), str(r["conservadas"]),
+            str(r["recomendadas_descarte"]), str(r["sospechosas"]),
+            str(r["errores_modelo"]),
+        ])
+    if doc is not None:
+        tabla = tabla_docx(doc, cabecera)
+        if tabla is None:
+            errores.append("Avance 5.docx: no se encontro la tabla de totales del smoke")
+        else:
+            comparar_filas("Avance 5.docx smoke totales",
+                           [celdas(f) for f in tabla.rows[1:]], esperadas, errores)
+
+    # Resultados por repositorio en Markdown.
+    cabecera = ["Repo", "Modelo", "Alertas", "Conservadas", "SAFE", "SOSPECHOSA",
+                "Errores"]
+    filas = tabla_md(ruta_md.read_text(encoding="utf-8"), cabecera) if ruta_md.exists() else None
+    if not filas:
+        errores.append("docs/SMOKE_REPOS.md: no se encontro la tabla de resultados")
+    else:
+        for c in filas:
+            if c[0] not in datos["repos"]:
+                errores.append("docs/SMOKE_REPOS.md: repo desconocido '{}'".format(c[0]))
+                continue
+            modelo = "base" if c[1] == "base" else ("d" if c[1] == "D" else None)
+            if modelo is None:
+                errores.append("docs/SMOKE_REPOS.md: modelo desconocido '{}'".format(c[1]))
+                continue
+            r = datos["repos"][c[0]][modelo]
+            esperado = [
+                c[0], c[1], str(r["total"]), str(r["conservadas"]),
+                str(r["recomendadas_descarte"]), str(r["sospechosas"]),
+                str(r["errores_modelo"]),
+            ]
+            if c != esperado:
+                errores.append(
+                    "docs/SMOKE_REPOS.md resultado {} {}: esperado {} | documento {}".format(
+                        c[0], c[1], esperado, c))
+
+    # Auditoria manual: SAFE de D por regla.
+    conteo = _conteo_safe(datos, "d")
+    cabecera = ["Regla", "SAFE de D", "Qué es", "Veredicto"]
+    if doc is not None:
+        tabla = tabla_docx(doc, cabecera)
+        if tabla is None:
+            errores.append("Avance 5.docx: no se encontro la tabla de auditoria")
+        else:
+            vistos = set()
+            for fila in tabla.rows[1:]:
+                c = celdas(fila)
+                regla = c[0]
+                vistos.add(regla)
+                if c[1] != str(conteo.get(regla, 0)):
+                    errores.append(
+                        "Avance 5.docx auditoria {}: {} SAFE (esperadas {})".format(
+                            regla, c[1], conteo.get(regla, 0)))
+                if c[3] != "Falso positivo correcto":
+                    errores.append(
+                        "Avance 5.docx auditoria {}: veredicto '{}'".format(regla, c[3]))
+            if vistos != set(conteo):
+                errores.append(
+                    "Avance 5.docx auditoria: reglas {} (esperadas {})".format(
+                        sorted(vistos), sorted(conteo)))
+
+    filas = tabla_md(ruta_md.read_text(encoding="utf-8"),
+                     ["Regla", "Alertas SAFE", "Qué es", "Veredicto"]) if ruta_md.exists() else None
+    if not filas:
+        errores.append("docs/SMOKE_REPOS.md: no se encontro la tabla de auditoria")
+    else:
+        vistos = set()
+        for c in filas:
+            regla = c[0]
+            vistos.add(regla)
+            if c[1] != str(conteo.get(regla, 0)):
+                errores.append(
+                    "docs/SMOKE_REPOS.md auditoria {}: {} SAFE (esperadas {})".format(
+                        regla, c[1], conteo.get(regla, 0)))
+        if vistos != set(conteo):
+            errores.append(
+                "docs/SMOKE_REPOS.md auditoria: reglas {} (esperadas {})".format(
+                    sorted(vistos), sorted(conteo)))
+
+
 def revisar_readme(filas, errores):
     ruta = ROOT / "README.md"
     texto = ruta.read_text(encoding="utf-8")
@@ -218,6 +707,10 @@ def main():
     errores = []
     revisar_docx(filas, errores)
     revisar_docx_holdout(errores)
+    revisar_docx_c0_vs_d(errores)
+    revisar_md_c0_vs_d(errores)
+    revisar_owasp(errores)
+    revisar_smoke(errores)
     revisar_readme(filas, errores)
     revisar_marcadores(errores)
     revisar_obsoletas(errores)

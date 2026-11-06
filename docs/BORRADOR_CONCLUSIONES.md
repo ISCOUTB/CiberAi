@@ -97,6 +97,13 @@ de ver el holdout. Queda como trabajo futuro para un conjunto independiente.
 5. **Artefactos trazables.** Conjunto de evaluación, prompts, resultados crudos,
    hashes, scripts de entrenamiento, análisis reproducible y generación de
    documentos. Cada cifra se rastrea hasta un archivo y un comando.
+6. **Cobertura OWASP medida y declarada.** Las 141 alertas de desarrollo y las
+   111 del holdout se ubican en el Top 10 2021 por el CWE que reporta Bandit: A03
+   y A08 concentran más del 95 % y el resto del Top 10 queda fuera del alcance de
+   un SAST de reglas. El agente se analiza además con el Top 10 for LLM
+   Applications 2025, donde ocho riesgos tienen evidencia propia, y con una
+   checklist parcial de ASVS 5.0.0. El aporte metodológico es la distinción entre
+   «lo que el producto cubre» y «lo que la norma incluye».
 
 ## 8.5 Trabajo futuro
 

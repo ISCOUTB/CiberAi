@@ -1,0 +1,16 @@
+C4Context
+  title Contexto del agente de triage (C4 nivel 1)
+
+  Person(analista, "Analista de seguridad", "Revisa alertas y decide que corregir. Nunca recibe una alerta eliminada.")
+  System(agente, "Agente de triage local", "Ejecuta Bandit, extrae contexto y pide al modelo una recomendacion por alerta.")
+  System_Ext(repo, "Repositorio Python", "Codigo fuente analizado; entrada no confiable.")
+  System_Ext(bandit, "Bandit 1.9", "Analizador estatico de reglas. Emite alertas con regla, CWE y ubicacion.")
+  System_Ext(ollama, "Ollama + Qwen2.5-Coder", "Runtime local del modelo base o del adaptador fusionado en GGUF Q4_K_M.")
+  System_Ext(consumidor, "Consumidor de reportes", "Frontend, CI o revisor que lee JSON y SARIF.")
+
+  Rel(analista, agente, "Ejecuta scan y revisa resultados", "CLI")
+  Rel(agente, repo, "Lee archivos y funciones", "sistema de archivos")
+  Rel(agente, bandit, "Ejecuta y consume JSON", "subproceso")
+  Rel(agente, ollama, "Envia prompt y recibe JSON", "HTTP localhost:11434")
+  Rel(agente, consumidor, "Escribe reporte.json y hallazgos.sarif", "archivos")
+  Rel(consumidor, analista, "Presenta alertas conservadas y recomendadas")

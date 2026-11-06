@@ -159,7 +159,35 @@ clasificación independiente. El prompt incluye el CWE del SAST y el modelo lo
 copia en la mayoría de los casos; la exactitud CWE mide, sobre todo, qué alertas
 conservó cada configuración.
 
-## 2.6 Síntesis y vacío que cubre el proyecto
+## 2.6 OWASP como marco de referencia
+
+El proyecto no usa OWASP como una lista de buenas prácticas al final: lo usa para
+definir el alcance de lo que un SAST de reglas puede prometer. El OWASP Top 10
+2021 publica, para cada categoría, la lista de CWE que le corresponden. Esa lista
+es el puente entre la salida de Bandit —un CWE por alerta— y una taxonomía
+comparable entre herramientas.
+
+El marco se completa con dos documentos distintos, que no deben confundirse con
+el Top 10 web:
+
+- **OWASP Top 10 for LLM Applications 2025** describe riesgos del componente
+  LLM: inyección de prompt, fuga de información, cadena de suministro del modelo,
+  envenenamiento de datos, manejo de salida, agencia excesiva, fuga del prompt de
+  sistema, debilidades de embeddings, desinformación y consumo no acotado. Aplica
+  al agente porque el código analizado es entrada no confiable y la salida del
+  modelo se interpreta como una recomendación.
+- **OWASP ASVS 5.0.0** (mayo de 2025) es un estándar de verificación de
+  aplicaciones. Se usa como checklist parcial, con exclusiones declaradas, porque
+  el producto es una CLI local y no una aplicación web autenticada.
+
+La consecuencia metodológica es que la cobertura se mide y se declara. Un SAST de
+reglas sobre Python no cubre las diez categorías: A05 (configuración), A06
+(componentes), A09 (registro y monitoreo) y A10 (SSRF) quedan fuera por
+construcción, y A01, A02, A04 y A07 solo de forma parcial. Presentar el Top 10
+como una lista de verificación completa sería una afirmación falsa sobre la
+norma y sobre el producto.
+
+## 2.7 Síntesis y vacío que cubre el proyecto
 
 La literatura muestra que los LLM pueden reducir falsos positivos de SAST, que
 el ajuste eficiente permite especializar modelos pequeños y que los benchmarks
@@ -197,6 +225,11 @@ triage local, con un modelo de 1,5B que cabe en una GPU de 4 GB.
   https://arxiv.org/abs/2409.12186
 - Li, H. et al. (2025). IRIS: LLM-Assisted Static Analysis for Detecting Security
   Vulnerabilities. ICLR 2025. https://arxiv.org/abs/2405.17238
+- OWASP. (2021). OWASP Top 10:2021. https://owasp.org/Top10/2021/
+- OWASP. (2025). OWASP Top 10 for LLM Applications 2025.
+  https://genai.owasp.org/llm-top-10/
+- OWASP. (2025). Application Security Verification Standard 5.0.0.
+  https://asvs.owasp.org/
 - Siddiq, M. L., y Santos, J. C. (2022). SecurityEval dataset: mining
   vulnerability examples to evaluate machine learning-based code generation
   techniques. MSR4P&S 2022. https://doi.org/10.1145/3549035.3561184

@@ -91,12 +91,15 @@ medición pareada que separe el efecto del prompt del efecto del entrenamiento.
    otros lenguajes, Ollama caído, JSON inválido y prompt injection.
 7. Reservar un conjunto de verificación para una evaluación única en el Sprint
    7 y documentar las amenazas a la validez.
+8. Ubicar las alertas y los riesgos del componente inteligente en el OWASP Top 10
+   2021, el OWASP Top 10 for LLM Applications 2025 y ASVS 5.0.0, y declarar la
+   cobertura medida con sus exclusiones.
 
 ## 1.5 Contribuciones
 
 El proyecto no pretende superar el estado del arte en detección de
 vulnerabilidades. Aporta una comparación honesta y reproducible de un triage
-local, con cuatro contribuciones concretas:
+local, con cinco contribuciones concretas:
 
 1. **Una tubería local completa.** Bandit, normalización, deduplicación,
    extracción de contexto por AST, prompt, validación y reporte JSON/SARIF, con
@@ -115,6 +118,11 @@ local, con cuatro contribuciones concretas:
    crudos, hashes de los modelos, scripts de entrenamiento y de generación de
    documentos. Cualquier resultado del documento puede rastrearse hasta un
    archivo y un comando.
+5. **Cobertura OWASP medida, no declarada.** Las alertas se ubican en el Top 10
+   2021 por el CWE del SAST, con la matriz de cobertura y las discrepancias del
+   dataset documentadas; el agente se analiza además con el Top 10 for LLM
+   Applications 2025 y una checklist parcial de ASVS 5.0.0. El proyecto declara
+   qué categorías cubre y cuáles no puede cubrir con un SAST de reglas.
 
 ## 1.6 Alcance y exclusiones
 
@@ -127,10 +135,18 @@ local, con cuatro contribuciones concretas:
   Ollama.
 - Evaluación de desarrollo (A/B/C/C0/D), holdout (A/C0/D) y batería funcional.
 - Reporte JSON y SARIF en modo asesor.
+- Cobertura OWASP Top 10 2021 medida sobre las alertas evaluadas, con las
+  categorías alcanzables por Bandit; modelo de amenaza del agente según el Top 10
+  for LLM Applications 2025; checklist parcial de ASVS 5.0.0.
 
 **Excluido:**
 
 - Detección de vulnerabilidades que Bandit no reporta.
+- Cobertura de las categorías OWASP que requieren análisis de flujo, inventario
+  de dependencias o telemetría de runtime: A05, A06, A09 y A10, y el resto de
+  A01, A02, A04 y A07 fuera de las reglas evaluadas.
+- Cumplimiento de ASVS 5.0.0: se aplican seis capítulos de diecisiete, con
+  exclusiones declaradas.
 - Otros lenguajes (Java, C, JavaScript) y otros SAST (CodeQL, Semgrep).
 - Descarte automático de alertas.
 - Despliegue en producción, autenticación, multiusuario y integración CI/CD.
@@ -147,15 +163,16 @@ y no puede eliminar alertas sin supervisión.
 ## 1.7 Estructura de la memoria
 
 La memoria se organiza en nueve capítulos. El capítulo 2 revisa el estado del
-arte en SAST, LLM para seguridad, datos y ajuste eficiente. El capítulo 3 fija
-requisitos y alcance. El capítulo 4 describe la arquitectura y el contrato de
-datos. El capítulo 5 detalla la metodología: dataset, particiones,
-entrenamiento, exportación y métricas. El capítulo 6 presenta los experimentos y
-resultados (entrenamiento, A/B/C/C0/D, holdout, latencia, pruebas). El capítulo 7
-discute el intercambio entre ahorro y omisión, el CWE copiado, el sesgo de B403 y
-B311, el colapso de las explicaciones y las amenazas a la validez. El capítulo 8
-responde a la hipótesis y enumera el trabajo futuro. El capítulo 9 reúne las
-referencias y los anexos de reproducción.
+arte en SAST, LLM para seguridad, datos y ajuste eficiente, y fija el marco OWASP
+que ordena el alcance. El capítulo 3 fija requisitos y alcance. El capítulo 4
+describe la arquitectura y el contrato de datos. El capítulo 5 detalla la
+metodología: dataset, particiones, entrenamiento, exportación y métricas. El
+capítulo 6 presenta los experimentos y resultados (entrenamiento, A/B/C/C0/D,
+comparación con Qwen base, holdout, latencia, pruebas). El capítulo 7 discute el
+intercambio entre ahorro y omisión, el CWE copiado, el sesgo de B403 y B311, el
+colapso de las explicaciones y las amenazas a la validez. El capítulo 8 responde
+a la hipótesis y enumera el trabajo futuro. El capítulo 9 reúne las referencias y
+los anexos de reproducción.
 
 El hilo argumental es único: un modelo pequeño, entrenado de forma eficiente y
 ejecutado localmente, puede ahorrar revisión en un conjunto acotado, pero no

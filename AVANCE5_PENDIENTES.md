@@ -1,13 +1,16 @@
 # Avance 5 — estado y pendientes
 
-Estado: Sprint 6 cerrado. El Sprint 7 se ejecutó el 3 de noviembre de 2026:
-holdout medido una sola vez, política B403 implementada y frontend conectado a
-reportes reales. `Avance 5.docx` se regeneró con A/B/C/C0/D y una sección de
-holdout (142 párrafos, 15 tablas). El holdout cambió la conclusión: D no cumple
-la meta de FNR y el modo asesor se mantiene. Resultados en
-`docs/ANALISIS_HOLDOUT.md`; protocolo y comandos en `docs/PROTOCOLO_HOLDOUT.md`.
-Lo que resta es la rúbrica de explicaciones, el análisis de casi-duplicados y la
-integración final de la memoria.
+Estado: Sprint 7 cerrado. El Sprint 8 se ejecutó el 5 de noviembre de 2026 con
+las observaciones del director de programa: comparación explícita con Qwen base,
+OWASP como eje, arquitectura arc42/C4 y smoke test con repositorios reales.
+`Avance 5.docx` se regeneró con A/B/C/C0/D, holdout, C0 vs. D, cobertura OWASP y
+smoke test (182 párrafos, 22 tablas). El holdout se mantiene cerrado: no se
+reentrenó ni se rehizo el split, y ninguna pieza nueva cambia el modo asesor.
+Resultados del holdout en `docs/ANALISIS_HOLDOUT.md`; comparación con el modelo
+base en `docs/ANALISIS_C0_VS_D.md`; cobertura en `docs/OWASP.md`; arquitectura en
+`docs/ARQUITECTURA_ARC42.md`; smoke test en `docs/SMOKE_REPOS.md`. Lo que resta
+es la rúbrica de explicaciones, el análisis de casi-duplicados y la integración
+final de la memoria.
 
 ## 1. Ya resuelto en esta revisión
 
@@ -179,7 +182,7 @@ integración final de la memoria.
 - [ ] Borrador completo (requisito del Avance 5): Introducción, Estado del
   Arte, Requisitos, Arquitectura, Entrenamiento, Experimentos, Resultados,
   Conclusiones y Referencias. Hay borradores de introducción, estado del arte,
-  metodología, discusión, conclusiones y anexos; faltan requisitos, arquitectura
+  metodología, discusión, conclusiones, anexos y arquitectura; faltan requisitos
   y la integración en `Documento_Proyecto_Seguridad_Ia.docx`.
 
 ## 4. Criterios de la entrega
@@ -207,3 +210,34 @@ puntos sobre C0, no +46. La exactitud CWE de D (32,2 %) es menor que A (35,4 %)
 y C0 (33,8 %), aunque el modelo copia el CWE del SAST en 59/59: la diferencia es
 de denominador, no de clasificación. La conclusión es mantener el modo asesor,
 hacer obligatoria B403 y no agregar B311 después de ver el holdout.
+
+## 6. Sprint 8 (5 nov): estado
+
+- [x] **Comparación explícita con Qwen base.** `eval/analisis_c0_vs_d.py`
+  empareja C0 y D por alerta, calcula McNemar y un IC95 por bootstrap agrupado
+  por archivo. Desarrollo: FPRR 22,0 → 48,0 y FNR 2,2 → 5,5 (p = 0,0004).
+  Holdout: FPRR 10,9 → 30,4 y FNR 0,0 → 9,2 (p = 0,0015). El resultado es
+  negativo para D en FPRR y FNR; se publica completo. Datos en
+  `eval/analisis_c0_vs_d.json` y lectura en `docs/ANALISIS_C0_VS_D.md`.
+- [x] **OWASP como eje.** `eval/cobertura_owasp.py` mide la cobertura por el CWE
+  del SAST. Desarrollo: A01 1, A02 1, A03 83, A08 53, sin categoría 3. Holdout:
+  A02 3, A03 76, A08 30, sin categoría 2. Se documentan 10 discrepancias de 30
+  etiquetas del dataset, el LLM Top 10 2025 del agente y ASVS 5.0.0 como
+  checklist parcial con exclusiones. Datos en `eval/cobertura_owasp.json` y
+  lectura en `docs/OWASP.md`.
+- [x] **Arquitectura arc42/C4.** `docs/ARQUITECTURA_ARC42.md` cubre las 12
+  secciones de arc42 9.1; las vistas C4 de contexto y contenedores se
+  renderizan desde `docs/diagramas/*.mmd` con Mermaid CLI 12.2.0.
+- [x] **Smoke test con repositorios reales.** `pallets/itsdangerous` 2.2.0,
+  `jpadilla/pyjwt` 2.10.1 y `httpie/cli` 3.2.4, fijados por commit y limitados
+  al paquete fuente. Base: 3 SAFE de 38; D: 34 SAFE de 38; 0 alertas eliminadas
+  y 0 errores. Auditoría manual: 0 descartes incorrectos y 0 dudosos; D
+  conservó una alerta real (`requests.get(..., verify=False)`). Resumen en
+  `eval/auditoria_smoke_repos.json` y `docs/SMOKE_REPOS.md`.
+- [x] **Documento regenerado y validado.** `python scripts/build_avance5.py`
+  produce 182 párrafos y 22 tablas. `python scripts/check_consistencia.py`
+  valida las tablas del docx, README, `docs/ANALISIS_C0_VS_D.md`, `docs/OWASP.md`,
+  `docs/BORRADOR_ANEXOS.md` y `docs/SMOKE_REPOS.md` contra los JSON.
+- [ ] Rúbrica aplicada y kappa calculado (requiere dos revisores).
+- [ ] Análisis de casi-duplicados train/holdout.
+- [ ] Integración final de la memoria y ensayo de demostración.

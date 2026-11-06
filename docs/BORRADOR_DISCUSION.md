@@ -43,7 +43,7 @@ El holdout confirma la dirección y modera la magnitud:
 D descarta 18 alertas que C0 conserva: 6 reales y 12 falsos positivos. C0
 descarta 3 que D conserva: 0 reales y 3 falsos positivos. En términos netos D
 recomienda 15 descartes más, pero paga con 6 alertas reales adicionales. El
-ahorro sobre C0 cae de +26 a **+19,5 puntos** crudos; con la política B403 queda
+ahorro sobre C0 cae de +26 a **+19,6 puntos** crudos; con la política B403 queda
 en **+8,7 puntos**. Los “+46 puntos” de desarrollo comparaban D contra C y no se
 sostienen en el holdout.
 
@@ -244,3 +244,31 @@ No confirmó:
 El holdout no es una prueba de producción; es la última medición no contaminada
 de una hipótesis acotada. El resultado honesto es que D reduce el ruido de forma
 modesta y que el costo en omisión sigue impidiendo el descarte automático.
+
+## 7.11 Lectura por categoría OWASP
+
+El mapeo por CWE muestra que el proyecto no cubre el Top 10 de forma uniforme:
+A03 (Injection) y A08 (Software and Data Integrity Failures) concentran el 96,5 %
+de las alertas de desarrollo y el 95,5 % del holdout. A01 y A02 aparecen de forma
+marginal (1 y 1 alerta en desarrollo; 0 y 3 en el holdout), y A04, A05, A06, A07,
+A09 y A10 no tienen ninguna alerta medida.
+
+Esa concentración explica por qué la política B403 tiene tanto efecto: B403 y
+B301 son las dos reglas de deserialización que sostienen A08, y B403 es la que
+concentra los falsos negativos de D. También explica por qué el resultado no
+generaliza a otras categorías: el modelo aprendió el patrón dominante del corpus,
+no una noción general de «alerta real».
+
+La lectura por categoría agrega una conclusión de alcance, no de desempeño. El
+producto puede presentarse como un triage de alertas de Bandit con cobertura
+medida en A01–A03 y A08, y no como un escáner del Top 10 completo. A05, A06, A09
+y A10 quedan fuera por construcción: requieren configuración de despliegue,
+inventario de dependencias, observación de runtime y seguimiento de red, que un
+análisis estático del AST no provee.
+
+La misma lógica se aplica al agente. Ocho de los diez riesgos del OWASP Top 10 for
+LLM Applications 2025 tienen evidencia propia en el proyecto, LLM07 aplica con
+riesgo bajo y solo LLM08 queda excluido porque no hay RAG. Ese mapeo no mejora
+las métricas; hace visible qué controles ya existían y cuáles faltan. El detalle
+está en `docs/OWASP.md` y la matriz se regenera con
+`python eval/cobertura_owasp.py`.

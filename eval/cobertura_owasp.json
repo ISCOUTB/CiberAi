@@ -1,0 +1,201 @@
+{
+  "categorias": {
+    "A01": "Broken Access Control",
+    "A02": "Cryptographic Failures",
+    "A03": "Injection",
+    "A04": "Insecure Design",
+    "A05": "Security Misconfiguration",
+    "A06": "Vulnerable and Outdated Components",
+    "A07": "Identification and Authentication Failures",
+    "A08": "Software and Data Integrity Failures",
+    "A09": "Security Logging and Monitoring Failures",
+    "A10": "Server Side Request Forgery (SSRF)"
+  },
+  "conjuntos": {
+    "desarrollo": {
+      "alertas": 141,
+      "por_categoria": {
+        "A08": 53,
+        "A03": 83,
+        "A02": 1,
+        "A01": 1,
+        "sin_categoria": 3
+      },
+      "por_regla": {
+        "B102": {
+          "A03": 7
+        },
+        "B104": {
+          "sin_categoria": 1
+        },
+        "B108": {
+          "sin_categoria": 2
+        },
+        "B201": {
+          "A03": 10
+        },
+        "B301": {
+          "A08": 25
+        },
+        "B307": {
+          "A03": 21
+        },
+        "B310": {
+          "A01": 1
+        },
+        "B311": {
+          "A02": 1
+        },
+        "B403": {
+          "A08": 28
+        },
+        "B404": {
+          "A03": 16
+        },
+        "B602": {
+          "A03": 5
+        },
+        "B603": {
+          "A03": 7
+        },
+        "B605": {
+          "A03": 11
+        },
+        "B608": {
+          "A03": 6
+        }
+      },
+      "sin_categoria": {
+        "CWE-377": 2,
+        "CWE-605": 1
+      }
+    },
+    "holdout": {
+      "alertas": 111,
+      "por_categoria": {
+        "A03": 76,
+        "A08": 30,
+        "A02": 3,
+        "sin_categoria": 2
+      },
+      "por_regla": {
+        "B102": {
+          "A03": 7
+        },
+        "B108": {
+          "sin_categoria": 1
+        },
+        "B110": {
+          "sin_categoria": 1
+        },
+        "B201": {
+          "A03": 9
+        },
+        "B301": {
+          "A08": 15
+        },
+        "B307": {
+          "A03": 27
+        },
+        "B311": {
+          "A02": 3
+        },
+        "B403": {
+          "A08": 15
+        },
+        "B404": {
+          "A03": 11
+        },
+        "B602": {
+          "A03": 2
+        },
+        "B603": {
+          "A03": 3
+        },
+        "B605": {
+          "A03": 9
+        },
+        "B608": {
+          "A03": 8
+        }
+      },
+      "sin_categoria": {
+        "CWE-377": 1,
+        "CWE-703": 1
+      }
+    }
+  },
+  "mapeo_dataset": {
+    "etiquetas": 30,
+    "coinciden": 20,
+    "discrepancias": [
+      {
+        "cwe": "CWE-119",
+        "dataset": "A03",
+        "oficial": "sin_categoria"
+      },
+      {
+        "cwe": "CWE-125",
+        "dataset": "A03",
+        "oficial": "sin_categoria"
+      },
+      {
+        "cwe": "CWE-190",
+        "dataset": "A03",
+        "oficial": "sin_categoria"
+      },
+      {
+        "cwe": "CWE-269",
+        "dataset": "A01",
+        "oficial": "A04"
+      },
+      {
+        "cwe": "CWE-362",
+        "dataset": "A04",
+        "oficial": "sin_categoria"
+      },
+      {
+        "cwe": "CWE-399",
+        "dataset": "A04",
+        "oficial": "sin_categoria"
+      },
+      {
+        "cwe": "CWE-401",
+        "dataset": "A03",
+        "oficial": "sin_categoria"
+      },
+      {
+        "cwe": "CWE-416",
+        "dataset": "A03",
+        "oficial": "sin_categoria"
+      },
+      {
+        "cwe": "CWE-476",
+        "dataset": "A03",
+        "oficial": "sin_categoria"
+      },
+      {
+        "cwe": "CWE-787",
+        "dataset": "A03",
+        "oficial": "sin_categoria"
+      }
+    ],
+    "forzadas_a_A03": 7
+  },
+  "alcanzables_por_bandit": {
+    "medidas_en_la_evaluacion": [
+      "A01",
+      "A02",
+      "A03",
+      "A08"
+    ],
+    "no_medidas": [
+      "A04",
+      "A05",
+      "A06",
+      "A07",
+      "A09",
+      "A10"
+    ]
+  }
+}

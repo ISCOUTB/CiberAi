@@ -1,0 +1,19 @@
+flowchart LR
+  subgraph PC["Equipo local (sin salida a Internet durante el escaneo)"]
+    subgraph PY["Proceso Python"]
+      CLI["agente-seguridad<br/>CLI + contexto + politica"]
+    end
+    subgraph OL["Ollama 0.40"]
+      SRV["llama-server<br/>localhost:11434"]
+      GGUF[("GGUF Q4_K_M<br/>940 MB")]
+    end
+    OUT[("reportes/<br/>reporte.json + hallazgos.sarif")]
+  end
+
+  REPO[("Repositorio Python<br/>entrada no confiable")] --> CLI
+  CLI -->|subproceso| BANDIT["Bandit 1.9.4"]
+  BANDIT --> CLI
+  CLI -->|HTTP local| SRV
+  SRV --> GGUF
+  CLI --> OUT
+  OUT --> REV["Revision humana"]

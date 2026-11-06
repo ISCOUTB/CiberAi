@@ -1,0 +1,18 @@
+flowchart TD
+  A["scan &lt;repo&gt;"] --> B["cli.py<br/>orquesta el escaneo"]
+  B --> C["sast/bandit_runner.py<br/>Bandit -r -f json"]
+  C --> D["models.Finding<br/>normalizacion"]
+  D --> E["dedup.py<br/>huella rule_id + contexto"]
+  E --> F["context.py<br/>funcion por AST"]
+  F --> G["triage.build_prompt<br/>TEMPLATE + SYSTEM"]
+  G --> H["llm/ollama_client.py<br/>temperature 0, num_predict 512"]
+  H --> I["triage.parse_response<br/>JSON + veredicto + justificacion"]
+  I --> J{"SAFE y regla<br/>protegida?"}
+  J -->|si| K["SOSPECHOSA<br/>origen politica_seguridad"]
+  J -->|no| L["VULNERABLE / SAFE<br/>origen llm"]
+  I -->|error| M["SOSPECHOSA<br/>origen respaldo"]
+  K --> N["report.summary<br/>modo asesor"]
+  L --> N
+  M --> N
+  N --> O["reporte.json"]
+  N --> P["hallazgos.sarif"]

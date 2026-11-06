@@ -70,7 +70,7 @@ El intercambio marginal es claro: por cada 12 falsos positivos adicionales que D
 elimina, omite 6 alertas reales. No es un cambio de “inteligencia”; es un cambio
 de umbral de decisión aprendido.
 
-Frente a C0, el FPRR de D crudo sube **+19,5 puntos**; con la política B403 sube
+Frente a C0, el FPRR de D crudo sube **+19,6 puntos**; con la política B403 sube
 **+8,7 puntos**. Los “+46 puntos” que se reportaban en desarrollo comparaban D
 contra C, no contra C0, y no se sostienen en el holdout.
 

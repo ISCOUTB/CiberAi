@@ -30,7 +30,11 @@ python eval\run_eval.py --config C  --model qwen2.5-coder:1.5b
 python eval\run_eval.py --config C0 --model qwen2.5-coder:1.5b
 python eval\run_eval.py --config D  --model qwen2.5-coder-triage
 
-# 6. Pruebas y consistencia de cifras
+# 6. Cobertura OWASP y análisis pareado C0/D
+python eval\cobertura_owasp.py
+python eval\analisis_c0_vs_d.py
+
+# 7. Pruebas y consistencia de cifras
 python -m unittest discover -s agente\tests -v
 python scripts\check_consistencia.py
 ```
@@ -60,7 +64,7 @@ ED23ABB0F677473486977A22F58D4A4D90105336797EB082DB08A232E9FFA9AD  qwen-coder-1.5
 
 ## Anexo C. Prompts
 
-**Sistema (idéntico en entrenamiento, evaluación y producto):**
+**Sistema (idéntico en entrenamiento y evaluación):**
 
 > Eres un analista de seguridad de software. Analizas un fragmento de código y
 > decides si contiene una vulnerabilidad real (VULNERABLE) o si es seguro
@@ -90,6 +94,15 @@ Devuelve el JSON.
 prueba) al mismo bloque de alerta. **B** envía solo el código, sin alerta ni
 ejemplos. El texto completo está en `eval/run_eval.py` (`SYSTEM`, `FEW_SHOT`,
 `TEMPLATE_ALERTA`).
+
+**Diferencia con el prompt del producto.** `agente/src/agente_seguridad/triage.py`
+usa un `SYSTEM` y un `TEMPLATE` más detallados: agrega archivo, línea y una
+descripción campo por campo de la salida. Las métricas del proyecto se midieron
+con el prompt de evaluación, no con el del producto. La comparación C0/D no se
+ve afectada —ambas usan el mismo prompt—, pero el FPRR y el FNR reportados no
+describen exactamente el comportamiento de la CLI. Alinear ambos prompts y medir
+el efecto sobre `examples/sample_repo` queda como trabajo futuro; no se hizo en
+este sprint porque el holdout ya está cerrado y el cambio no está medido.
 
 El delimitador `<code>` separa el código de las instrucciones. No es una defensa
 completa contra prompt injection: reduce el riesgo de que el modelo confunda
@@ -127,3 +140,77 @@ Las tablas de resultados por regla de Bandit viven en `docs/ANALISIS_C.md`,
 documento se genera desde `scripts/build_avance5.py` y se valida contra los JSON
 con `scripts/check_consistencia.py`. El análisis del holdout se reproduce con
 `python eval/analisis_holdout.py`.
+
+## Anexo G. Cobertura OWASP
+
+La matriz se calcula con `python eval/cobertura_owasp.py`, que escribe
+`eval/cobertura_owasp.json`. Se usa el CWE que reporta Bandit (`cwe_sast`) y no
+la columna `owasp` del dataset. Las tablas siguientes se regeneran desde ese JSON.
+
+**Cobertura del OWASP Top 10 2021**
+
+| Categoría | Nombre | Desarrollo (141) | Holdout (111) |
+|---|---|---:|---:|
+| A01 | Broken Access Control | 1 | 0 |
+| A02 | Cryptographic Failures | 1 | 3 |
+| A03 | Injection | 83 | 76 |
+| A04 | Insecure Design | 0 | 0 |
+| A05 | Security Misconfiguration | 0 | 0 |
+| A06 | Vulnerable and Outdated Components | 0 | 0 |
+| A07 | Identification and Authentication Failures | 0 | 0 |
+| A08 | Software and Data Integrity Failures | 53 | 30 |
+| A09 | Security Logging and Monitoring Failures | 0 | 0 |
+| A10 | Server Side Request Forgery (SSRF) | 0 | 0 |
+| — | Fuera del Top 10 2021 | 3 | 2 |
+
+**Regla, CWE del SAST y categoría**
+
+| Regla | CWE | Categoría | Desarrollo | Holdout |
+|---|---|---|---:|---:|
+| B102 | CWE-78 | A03 | 7 | 7 |
+| B201 | CWE-94 | A03 | 10 | 9 |
+| B307 | CWE-78 | A03 | 21 | 27 |
+| B404 | CWE-78 | A03 | 16 | 11 |
+| B602 | CWE-78 | A03 | 5 | 2 |
+| B603 | CWE-78 | A03 | 7 | 3 |
+| B605 | CWE-78 | A03 | 11 | 9 |
+| B608 | CWE-89 | A03 | 6 | 8 |
+| B301 | CWE-502 | A08 | 25 | 15 |
+| B403 | CWE-502 | A08 | 28 | 15 |
+| B310 | CWE-22 | A01 | 1 | 0 |
+| B311 | CWE-330 | A02 | 1 | 3 |
+| B104 | CWE-605 | sin categoría | 1 | 0 |
+| B108 | CWE-377 | sin categoría | 2 | 1 |
+| B110 | CWE-703 | sin categoría | 0 | 1 |
+
+**Discrepancias entre el mapeo del dataset y las listas oficiales**
+
+El dataset asigna categoría OWASP a 30 CWE; 10 no coinciden con la lista oficial
+y 7 de esas 10 están forzadas a A03.
+
+| CWE | Dataset | Oficial | Observación |
+|---|---|---|---|
+| CWE-119 | A03 | sin categoría | Desbordamiento de búfer; el Top 10 2021 no cubre memoria. |
+| CWE-125 | A03 | sin categoría | Lectura fuera de límites; ídem. |
+| CWE-190 | A03 | sin categoría | Desbordamiento de entero; ídem. |
+| CWE-401 | A03 | sin categoría | Fuga de memoria; ídem. |
+| CWE-416 | A03 | sin categoría | Uso después de liberar; ídem. |
+| CWE-476 | A03 | sin categoría | Desreferencia de puntero nulo; ídem. |
+| CWE-787 | A03 | sin categoría | Escritura fuera de límites; ídem. |
+| CWE-362 | A04 | sin categoría | Condición de carrera; no está en A04. |
+| CWE-399 | A04 | sin categoría | Gestión de recursos; no está en A04. |
+| CWE-269 | A01 | A04 | Gestión de privilegios; A04 la incluye explícitamente. |
+
+**Categorías no medidas y motivo**
+
+| Categoría | Motivo |
+|---|---|
+| A04 | Requiere diseño y flujo; Bandit no distingue intención. |
+| A05 | Depende de la configuración de despliegue, no del código fuente. |
+| A06 | Requiere inventario y versiones de dependencias. |
+| A07 | Solo credenciales embebidas (B105–B107), fuera del corpus evaluado. |
+| A09 | Requiere observar el runtime y los registros. |
+| A10 | Bandit no sigue destinos de red. |
+
+El detalle del modelo de amenaza del agente (OWASP Top 10 for LLM Applications
+2025 y ASVS 5.0.0) está en `docs/OWASP.md`.

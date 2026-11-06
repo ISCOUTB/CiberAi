@@ -84,6 +84,18 @@ EVIDENCIAS = [
     ["Holdout del Sprint 7",
      "111 alertas; A, C0 y D medidos; 0 respuestas inválidas en D; política B403 probada",
      "Completa (Sprint 7)"],
+    ["Comparación pareada C0 vs. D",
+     "McNemar p=0,0004 (desarrollo) y p=0,0015 (holdout); Δ FPRR +26,0 y +19,6 puntos",
+     "Completa (Sprint 8)"],
+    ["Cobertura OWASP Top 10 2021",
+     "Desarrollo: A01 1, A02 1, A03 83, A08 53, sin categoría 3. Holdout: A02 3, A03 76, A08 30, sin categoría 2",
+     "Completa (Sprint 8)"],
+    ["Arquitectura arc42 y vistas C4",
+     "12 secciones arc42 y 5 diagramas Mermaid versionados en docs/diagramas/",
+     "Completa (Sprint 8)"],
+    ["Smoke test con repositorios reales",
+     "itsdangerous 2.2.0, PyJWT 2.10.1 y HTTPie 3.2.4; 38 alertas por modelo; 34 SAFE auditados; 0 descartes incorrectos",
+     "Completa (Sprint 8)"],
     ["Rúbrica de explicaciones con dos revisores",
      "Pendiente de calificación; D produjo 11 explicaciones únicas para 111 alertas",
      "Pendiente"],
@@ -359,10 +371,10 @@ para(doc, "Terminación, pruebas y validación del agente", size=29, bold=True,
      font=HEAD_FONT, align=WD_ALIGN_PARAGRAPH.CENTER, before=11, line=31, color=NAVY)
 para(doc, "Agente inteligente para la revisión de seguridad de código fuente", size=14,
      bold=True, before=12, color=BLUE)
-para(doc, "Modelo afinado · Modo asesor · Evaluación A/B/C/C0/D y holdout", size=10,
+para(doc, "Modelo afinado · Modo asesor · Evaluación A/B/C/C0/D y holdout · OWASP · arc42/C4", size=10,
      align=WD_ALIGN_PARAGRAPH.CENTER, before=30, color=MUTED)
-para(doc, "Periodo: 30 de octubre – 3 de noviembre de 2026  |  "
-          "Actualización: 3 de noviembre de 2026 (Sprint 7)",
+para(doc, "Periodo: 30 de octubre – 5 de noviembre de 2026  |  "
+          "Actualización: 5 de noviembre de 2026 (Sprint 8)",
      size=9.5, align=WD_ALIGN_PARAGRAPH.CENTER, before=28, color=DARK)
 para(doc, "Integrantes: Santiago Reyes, Marien Daniela, Luis Patron, William Cuello  |  "
           "Asignatura: Proyecto de Ingeniería",
@@ -413,6 +425,17 @@ body(doc,
      "alertas: el modelo sirve para triage, no para explicar. La decisión se mantiene: modo "
      "asesor, B403 obligatoria y B311 reportada como riesgo nuevo, sin agregarla después de ver "
      "el holdout.")
+body(doc,
+     "El Sprint 8 agrega tres piezas que la revisión del director de programa pidió como eje, no "
+     "como apéndice. Primero, la comparación explícita con Qwen base: C0 y D comparten prompt, "
+     "conjunto y temperatura, y el análisis pareado muestra que D aumenta el ahorro de revisión "
+     "a costa de omitir más alertas reales (Δ FPRR +26,0 puntos en desarrollo y +19,6 en el "
+     "holdout; Δ FNR +3,3 y +9,2). El resultado no favorece a D en omisión y se reporta así. "
+     "Segundo, OWASP como marco de alcance: la cobertura se mide por el CWE del SAST y se declara "
+     "que A03 y A08 concentran más del 95 % de las alertas, mientras A05, A06, A09 y A10 quedan "
+     "fuera del alcance de Bandit. Tercero, la arquitectura se documenta con arc42 y vistas C4, "
+     "y el producto se prueba sobre tres repositorios reales fijados por commit. Ninguna de las "
+     "tres piezas cambia el modo asesor.")
 
 h2(doc, "1.1 Ajustes derivados de la revisión")
 bullet(doc, "Modo asesor: el agente no suprime hallazgos; el veredicto SAFE queda como "
@@ -535,6 +558,38 @@ body(doc,
      "el modelo base (para reproducir B y C) y el modelo afinado (para D) sin tocar el "
      "código. El modelo afinado está registrado en Ollama como qwen2.5-coder-triage y el "
      "modelo base como qwen2.5-coder:1.5b; el despliegue solo cambia la etiqueta.")
+
+h2(doc, "2.3 Vistas arc42 y C4")
+body(doc,
+     "La arquitectura se documenta en docs/ARQUITECTURA_ARC42.md con la plantilla arc42 9.1. "
+     "Se usan las vistas C4 de contexto y contenedores; el nivel de componentes se resuelve "
+     "con la vista de bloques de arc42 para no duplicar diagramas. Los diagramas se escriben "
+     "en docs/diagramas/*.mmd y se renderizan con Mermaid CLI 12.2.0; el .mmd es la fuente y "
+     "las imágenes se regeneran. Las secciones de arc42 que no aplican a una CLI local se "
+     "declaran en el documento, no se rellenan.", keep=True)
+table(doc,
+      ["Sección arc42", "Contenido en este proyecto"],
+      [["1. Introducción y objetivos", "Requisitos de seguridad, degradación y reproducibilidad."],
+       ["2. Restricciones", "Python, Bandit, modelo ≤ 2B, sin API externa, holdout cerrado."],
+       ["3. Contexto y alcance", "Vista C4 nivel 1; qué queda fuera del producto."],
+       ["4. Estrategia de solución", "Separar SAST y modelo, contexto mínimo, contrato conservador."],
+       ["5. Vista de bloques", "Ocho módulos con responsabilidad y archivo."],
+       ["6. Vista de ejecución", "Secuencia de un escaneo y puntos de decisión."],
+       ["7. Vista de despliegue", "Un equipo, Ollama local, reportes en disco."],
+       ["8. Conceptos transversales", "Modo asesor, política, validación, privacidad, observabilidad."],
+       ["9. Decisiones de arquitectura", "Bandit, Qwen 1.5B, LoRA/GGUF, modo asesor, SARIF."],
+       ["10. Requisitos de calidad", "Escenarios medidos de seguridad, disponibilidad y rendimiento."],
+       ["11. Riesgos y deuda técnica", "Prompt distinto, frontend, retención, hash del modelo."],
+       ["12. Glosario", "Alerta, triage, SAFE, SOSPECHOSA, arc42, C4."]],
+      widths=[5.4, 12.6])
+figure(doc,
+       Path(__file__).resolve().parents[1] / "docs" / "diagramas" / "c4_contexto.png",
+       "Figura 1. Contexto del sistema (C4 nivel 1). El agente orquesta Bandit y Ollama; el "
+       "código y los reportes permanecen en el equipo local.", width_cm=14.0)
+figure(doc,
+       Path(__file__).resolve().parents[1] / "docs" / "diagramas" / "c4_contenedores.png",
+       "Figura 2. Contenedores (C4 nivel 2). La CLI concentra la orquestación y la política; "
+       "Ollama sirve el modelo GGUF por HTTP local.", width_cm=15.0)
 
 # 3. Modelo de datos
 h1(doc, "3. Modelo de datos consolidado")
@@ -782,6 +837,28 @@ body(doc,
      "BERTScore se conserva como medida descriptiva de similitud, nunca como sustituto de la "
      "rúbrica.")
 
+h2(doc, "5.5 Cobertura OWASP: método y alcance")
+body(doc,
+     "OWASP no se agrega como apéndice: ordena el alcance de lo que un SAST de reglas puede "
+     "prometer. La cobertura se calcula, no se declara. eval/cobertura_owasp.py toma el CWE "
+     "que Bandit reporta para cada alerta (cwe_sast), lo ubica en la lista oficial de CWE del "
+     "OWASP Top 10 2021 y escribe eval/cobertura_owasp.json. Un CWE que no aparece en ninguna "
+     "lista oficial se reporta como sin_categoria; no se fuerza a la categoría más parecida.",
+     keep=True)
+body(doc,
+     "Se usa el CWE del SAST y no la columna owasp del dataset porque esa columna asigna "
+     "categoría al CWE etiquetado en la función, no al que Bandit señala. El contraste entre "
+     "ambas fuentes se reporta como hallazgo de calidad de datos: 10 de las 30 etiquetas del "
+     "dataset no coinciden con la lista oficial y 7 están forzadas a A03. Siete clases de "
+     "memoria (CWE-119, 125, 190, 401, 416, 476 y 787) no forman parte del Top 10 2021; "
+     "CWE-362 y CWE-399 tampoco, y CWE-269 pertenece a A04, no a A01.")
+body(doc,
+     "El marco se completa con el OWASP Top 10 for LLM Applications 2025, que se aplica al "
+     "propio agente: ocho de los diez riesgos tienen evidencia en el proyecto, LLM07 aplica "
+     "con riesgo bajo y solo LLM08 queda excluido porque no hay RAG. ASVS 5.0.0 se usa como "
+     "checklist parcial: seis capítulos de diecisiete, con exclusiones declaradas. El detalle "
+     "está en docs/OWASP.md; la matriz se regenera con python eval/cobertura_owasp.py.")
+
 # 6. Resultados
 h1(doc, "6. Resultados")
 body(doc,
@@ -832,7 +909,7 @@ body(doc,
 
 figure(doc,
        Path(__file__).resolve().parents[1] / "reportes" / "curva_perdida.png",
-       "Figura 1. Pérdida de entrenamiento del adaptador LoRA (1 época, 11.510 ejemplos, "
+       "Figura 3. Pérdida de entrenamiento del adaptador LoRA (1 época, 11.510 ejemplos, "
        "1.439 pasos). La curva de validación no se incluye porque las evaluaciones "
        "intermedias quedaron invalidadas por truncamiento de ejemplos largos; el generador "
        "de datos ya se corrigió para futuras corridas.")
@@ -857,7 +934,7 @@ table(doc,
 body(doc,
      "D crudo descarta 14 de 46 falsos positivos y 6 de 65 alertas reales. Frente a C0, que "
      "descarta 5 falsos positivos y ninguna real, D suma 9 descartes correctos y 6 errores. El "
-     "ahorro real sobre C0 es +19,5 puntos de FPRR crudo, no +46; con la política B403 queda en "
+     "ahorro real sobre C0 es +19,6 puntos de FPRR crudo, no +46; con la política B403 queda en "
      "+8,7 puntos. La dirección se mantiene, pero la magnitud es mucho menor que en desarrollo.")
 body(doc,
      "Los 6 falsos negativos son 4 B403 y 2 B311. Dos B403 deserializan un objeto explotable "
@@ -892,6 +969,68 @@ body(doc,
      "El detalle completo, los intervalos, la tabla por regla y los comandos de reproducción "
      "están en docs/ANALISIS_HOLDOUT.md y docs/PROTOCOLO_HOLDOUT.md. El resumen se regenera con "
      "python eval/analisis_holdout.py.")
+
+h2(doc, "6.2 Comparación explícita con Qwen base (C0 vs. D)")
+body(doc,
+     "La comparación que aísla el efecto del ajuste es C0 contra D: mismo modelo base en C0, "
+     "mismo formato de alerta, mismo SYSTEM, misma temperatura 0 y mismo num_predict. C no "
+     "sirve como control porque agrega few-shot. eval/analisis_c0_vs_d.py empareja las alertas "
+     "por id, construye la matriz de acuerdo, aplica la prueba exacta de McNemar sobre las "
+     "discordancias y estima la diferencia de FPRR y FNR con un bootstrap agrupado por archivo "
+     "(2.000 iteraciones, semilla 20261103).", keep=True)
+table(doc,
+      ["Conjunto", "FPRR C0", "FPRR D", "FNR C0", "FNR D", "McNemar p"],
+      [["Desarrollo", "22,0 %", "48,0 %", "2,2 %", "5,5 %", "0,0004"],
+       ["Holdout", "10,9 %", "30,4 %", "0,0 %", "9,2 %", "0,0015"]],
+      widths=[3.4, 2.6, 2.6, 2.4, 2.4, 2.6])
+table(doc,
+      ["Conjunto", "Δ FPRR (D−C0)", "IC95", "Δ FNR (D−C0)", "IC95"],
+      [["Desarrollo", "+26,0 pts", "9,4 a 43,6", "+3,3 pts", "−1,2 a 8,2"],
+       ["Holdout", "+19,6 pts", "0,0 a 38,5", "+9,2 pts", "1,8 a 17,5"]],
+      widths=[3.4, 3.4, 3.4, 3.4, 3.4])
+body(doc,
+     "El resultado es negativo para D en las dos métricas que importan. En desarrollo, D "
+     "descarta 18 alertas más que C0: 14 falsos positivos y 4 reales. En el holdout también "
+     "descarta 18 más: 12 falsos positivos y 6 reales. C0 conserva más y omite menos; su FNR "
+     "es 0,0 % en el holdout. El aporte del ajuste no es «superar a Qwen», sino aumentar el "
+     "ahorro de revisión a cambio de más omisiones. McNemar confirma que el patrón de "
+     "discordancia no es azar (p=0,0004 y p=0,0015), pero no dice que D sea mejor.")
+body(doc,
+     "El único argumento a favor de D es económico: con la misma cantidad de alertas, D "
+     "recomienda descartar 24 de 50 falsos positivos en desarrollo y 14 de 46 en el holdout, "
+     "frente a 11 y 5 de C0. Ese ahorro es real y está medido; la omisión también. Por eso el "
+     "producto no usa D para suprimir alertas y la comparación se publica completa, incluidos "
+     "los intervalos que cruzan cero en el Δ FNR de desarrollo y en el Δ FPRR del holdout.")
+
+h2(doc, "6.3 Cobertura OWASP medida")
+body(doc,
+     "La matriz se calcula sobre las alertas realmente evaluadas. A03 Injection y A08 Software "
+     "and Data Integrity Failures concentran el 96,5 % de las alertas de desarrollo y el "
+     "95,5 % del holdout. No es un defecto del mapeo: es la consecuencia de elegir Bandit, "
+     "cuyas reglas más frecuentes son ejecución de comandos, eval, plantillas y "
+     "deserialización.", keep=True)
+table(doc,
+      ["Categoría", "Nombre", "Desarrollo (141)", "Holdout (111)"],
+      [["A01", "Broken Access Control", "1", "0"],
+       ["A02", "Cryptographic Failures", "1", "3"],
+       ["A03", "Injection", "83", "76"],
+       ["A04", "Insecure Design", "0", "0"],
+       ["A05", "Security Misconfiguration", "0", "0"],
+       ["A06", "Vulnerable and Outdated Components", "0", "0"],
+       ["A07", "Identification and Authentication Failures", "0", "0"],
+       ["A08", "Software and Data Integrity Failures", "53", "30"],
+       ["A09", "Security Logging and Monitoring Failures", "0", "0"],
+       ["A10", "Server Side Request Forgery (SSRF)", "0", "0"],
+       ["—", "Fuera del Top 10 2021", "3", "2"]],
+      widths=[2.0, 9.6, 3.2, 3.2])
+body(doc,
+     "Los tres CWE sin categoría en desarrollo son CWE-377 (archivo temporal inseguro), "
+     "CWE-605 (múltiples binds al mismo puerto) y CWE-703 (verificación de estado incorrecta); "
+     "en el holdout son CWE-377 y CWE-703. Ninguno forma parte del Top 10 2021. A04, A05, A06, "
+     "A07, A09 y A10 no tienen alertas medidas: requieren diseño y flujo, configuración de "
+     "despliegue, inventario de dependencias, credenciales fuera del corpus, telemetría de "
+     "runtime o seguimiento de red. El producto es un triage de alertas de Bandit organizado "
+     "por OWASP, no un escáner del Top 10 completo.")
 
 # 7. Pruebas
 h1(doc, "7. Pruebas y validación del producto")
@@ -948,6 +1087,52 @@ body(doc,
      "descartar alguna. Esa comprobación es la evidencia del modo asesor y la condición para "
      "que el producto siga siendo auditable.")
 
+h2(doc, "7.1 Smoke test con repositorios reales")
+body(doc,
+     "Además del conjunto etiquetado, el producto se probó sobre tres repositorios Python "
+     "pequeños, fijados por etiqueta y commit, para verificar que funciona con código que no "
+     "se escribió para el proyecto. No es una evaluación etiquetada: no hay verdad de "
+     "referencia por línea y no produce FPRR ni FNR. Se escaneó solo el paquete fuente para no "
+     "mezclar pruebas ni entornos virtuales.", keep=True)
+table(doc,
+      ["Repositorio", "Etiqueta", "Commit", "Subdirectorio", "Alertas"],
+      [["pallets/itsdangerous", "2.2.0", "096c8d42", "src/", "2"],
+       ["jpadilla/pyjwt", "2.10.1", "3ebbb22f", "jwt/", "1"],
+       ["httpie/cli", "3.2.4", "2105caa4", "httpie/", "35"]],
+      widths=[4.4, 1.8, 2.4, 3.0, 1.6])
+table(doc,
+      ["Modelo", "Alertas", "Conservadas", "SAFE", "SOSPECHOSA", "Errores"],
+      [["Base (qwen2.5-coder:1.5b)", "38", "38", "3", "0", "0"],
+       ["D (qwen2.5-coder-triage)", "38", "38", "34", "0", "0"]],
+      widths=[5.6, 2.2, 2.6, 2.0, 2.6, 2.0])
+body(doc,
+     "En los 38 escaneos por modelo, conservadas == total: ninguna alerta se eliminó. D "
+     "recomienda descartar 34 de 38 alertas (89,5 %) y el modelo base 3 de 38 (7,9 %). La "
+     "diferencia es consistente con el conjunto de evaluación, pero el smoke test no permite "
+     "generalizar: la muestra es pequeña y la auditoría la hizo una sola persona.")
+table(doc,
+      ["Regla", "SAFE de D", "Qué es", "Veredicto"],
+      [["B101", "21", "assert internos que verifican invariantes, no validación de entrada",
+        "Falso positivo correcto"],
+       ["B404", "4", "Aviso de importación de subprocess", "Falso positivo correcto"],
+       ["B603", "5", "subprocess con lista constante y shell=False", "Falso positivo correcto"],
+       ["B408", "1", "Import de xml.dom.minidom bajo TYPE_CHECKING; en runtime se usa defusedxml",
+        "Falso positivo correcto"],
+       ["B105", "2", "password: None como valor por defecto de la sesión",
+        "Falso positivo correcto"],
+       ["B110", "1", "try/except/pass deliberado al parsear el timestamp",
+        "Falso positivo correcto"]],
+      widths=[2.0, 2.2, 9.2, 4.6])
+body(doc,
+     "Se revisó el código de las 34 recomendaciones SAFE de D: 0 incorrectas y 0 dudosas. El "
+     "modelo base sumó 3 SAFE, también B101 y también correctos. En el otro sentido, D "
+     "conservó una alerta real de HTTPie: requests.get(..., verify=False) en "
+     "internal/update_warnings.py, que desactiva la validación TLS. También conservó B113 "
+     "(misma petición sin timeout), B324 (SHA-1 en itsdangerous) y B310 (urlopen en PyJWT), "
+     "decisiones conservadoras o falsos positivos probables. El smoke test respalda que el "
+     "producto se ejecuta sobre código ajeno y que la política conservadora funciona; no "
+     "respalda el descarte automático.")
+
 # 8. Limitaciones
 h1(doc, "8. Limitaciones")
 bullet(doc, "Cobertura de lenguaje: Bandit solo analiza Python y el 94,1 % del corpus es C. La "
@@ -1003,6 +1188,21 @@ bullet(doc, "Llamadas externas: la promesa de que el código no sale de la máqu
             "reconciliarse con las funciones que descargan repositorios o consultan "
             "dependencias. Hay que documentar qué sale, hacia dónde y con qué control, o "
             "restringir el producto al análisis estrictamente local.")
+bullet(doc, "Cobertura OWASP: A03 y A08 concentran más del 95 % de las alertas y seis "
+            "categorías no tienen ninguna. El producto no cubre el Top 10 2021; cubre A01, "
+            "A02, A03 y A08 con distinto grado de evidencia. El mapeo del dataset tiene 10 "
+            "discrepancias de 30 etiquetas y 7 CWE forzados a A03. Presentar la matriz como "
+            "certificación de cumplimiento sería falso.")
+bullet(doc, "Prompt de evaluación y prompt de producto: las métricas se midieron con el "
+            "prompt de eval/run_eval.py, que coincide con el de entrenamiento; la CLI usa un "
+            "SYSTEM y un TEMPLATE más detallados en triage.py. C0 y D comparten prompt, así "
+            "que la comparación no se ve afectada, pero el FPRR y el FNR reportados no "
+            "describen exactamente el comportamiento del producto. Alinear ambos prompts "
+            "exige un conjunto nuevo, no el holdout cerrado.")
+bullet(doc, "Smoke test con repositorios: 38 alertas por modelo, tres repos y auditoría de "
+            "una sola persona. Los 34 SAFE de D fueron correctos en esta muestra, pero no "
+            "demuestran que el descarte automático sea seguro. Los reportes completos no se "
+            "versionan porque incluyen rutas absolutas y marcas de tiempo.")
 
 # 9. Próximos pasos
 h1(doc, "9. Próximos pasos")
@@ -1023,6 +1223,13 @@ bullet(doc, "Medir el efecto de la cuantización comparando Q4_K_M contra el mod
             "f16, para separar el efecto del ajuste del de la exportación.")
 bullet(doc, "Ampliar la batería de prompt injection con más patrones y documentar la política "
             "de llamadas externas y de descarga de repositorios.")
+bullet(doc, "Alinear el prompt de evaluación con el prompt del producto y medir el efecto en un "
+            "conjunto nuevo; no reutilizar el holdout. Mientras tanto, declarar la diferencia "
+            "en la memoria y no presentar las métricas como si describieran la CLI exacta.")
+bullet(doc, "Corregir el frontend para rotular los SAFE como «recomendadas para descarte» y "
+            "distinguir SOSPECHOSA; el contrato del reporte ya conserva todas las alertas.")
+bullet(doc, "Fijar el modelo base por revisión y verificar los hashes al desplegar; hoy el "
+            "entrenamiento carga Qwen/Qwen2.5-Coder-1.5B-Instruct por nombre, sin revisión.")
 bullet(doc, "Integrar las secciones de entrenamiento, resultados, discusión y conclusiones en "
             "la memoria final; unificar referencias y preparar el ensayo de demostración y el "
             "paquete de entrega.")
@@ -1038,6 +1245,14 @@ body(doc,
      "es técnica sino de producto: el agente se mantiene en modo asesor porque un SAFE "
      "formalmente válido puede ser un falso negativo real, y el holdout no permite demostrar "
      "que el FNR sea ≤ 5 %.")
+body(doc,
+     "La comparación con Qwen base no favorece al modelo afinado en omisión: C0 conserva más "
+     "alertas y su FNR es menor; D solo gana en ahorro de revisión. Ese resultado se publica "
+     "completo porque el objetivo del proyecto no era demostrar superioridad, sino medir un "
+     "triage local con un control adecuado. OWASP cumple la misma función: no mejora las "
+     "métricas, pero hace visible que el producto cubre A01–A03 y A08 y no el Top 10 completo. "
+     "La arquitectura arc42/C4 y el smoke test con repositorios reales cierran la entrega con "
+     "evidencia de diseño y de funcionamiento sobre código ajeno, sin cambiar el modo asesor.")
 body(doc,
      "El trabajo que resta es de validación y documentación, no de arquitectura: cerrar la "
      "rúbrica de explicaciones —condicionada por el colapso de D a 11 plantillas—, medir "
@@ -1068,7 +1283,12 @@ for ref in [
     "NIST. (2022). Secure Software Development Framework (SSDF), SP 800-218. "
     "https://csrc.nist.gov/pubs/sp/800/218/final",
     "Ollama. Ejecución local de modelos de lenguaje. https://ollama.com",
-    "OWASP GenAI. (2025). LLM01:2025 – Prompt Injection. https://genai.owasp.org",
+    "OWASP. (2021). OWASP Top 10:2021. https://owasp.org/Top10/2021/",
+    "OWASP. (2025). OWASP Top 10 for LLM Applications 2025. https://genai.owasp.org/llm-top-10/",
+    "OWASP. (2025). Application Security Verification Standard 5.0.0. https://asvs.owasp.org/",
+    "Starke, G., y Hruschka, P. (2023). arc42: Template for Architecture Communication and "
+    "Documentation, versión 9.1. https://arc42.org",
+    "Brown, S. (2018). The C4 Model for Visualising Software Architecture. https://c4model.com",
     "Siddiq, M. L., y Santos, J. C. (2022). SecurityEval dataset: mining vulnerability "
     "examples to evaluate machine learning-based code generation techniques. MSR4P&S 2022, "
     "pp. 29–33. https://doi.org/10.1145/3549035.3561184",

@@ -19,15 +19,33 @@ que ya está validado. Este archivo es un mapa de trabajo, no el documento.
 | 1. Introducción | Contexto, problema, pregunta de investigación, hipótesis, objetivos, contribuciones | `docs/BORRADOR_INTRODUCCION.md` | Borrador listo |
 | 2. Estado del arte | SAST, LLM para seguridad, fine-tuning, QLoRA, trabajos relacionados | Avance 5 §11 + `docs/BORRADOR_ESTADO_ARTE.md` | Borrador listo (~2.000 palabras) |
 | 3. Requisitos y alcance | Funcionales, no funcionales, recorte Python/Bandit/CWE, modo asesor | Avance 5 §1.1 y §5 | Reutilizable |
-| 4. Arquitectura | Pipeline, modelo de datos, CLI, resiliencia, contrato de decisión | Avance 5 §2–§4 | Reutilizable |
-| 5. Metodología | Dataset, particiones, SFT, QLoRA, exportación, evaluación A/B/C/D, métricas | `docs/BORRADOR_METODOLOGIA.md` | Borrador listo |
-| 6. Experimentos y resultados | Entrenamiento, D, C, comparativa, holdout, latencia, pruebas | Avance 5 §6–§7 + D/C + `docs/ANALISIS_HOLDOUT.md` | Borrador listo con holdout |
-| 7. Discusión | FPRR vs. FNR, CWE copiado, B403/B311, límites de la partición, explicaciones, validez | `docs/BORRADOR_DISCUSION.md` | Borrador actualizado |
+| 4. Arquitectura | Pipeline, modelo de datos, CLI, resiliencia, contrato de decisión; arc42 con vistas C4 | `docs/ARQUITECTURA_ARC42.md` + Avance 5 §2–§4 | Por escribir |
+| 5. Metodología | Dataset, particiones, SFT, QLoRA, exportación, evaluación A/B/C/C0/D, métricas, cobertura OWASP | `docs/BORRADOR_METODOLOGIA.md` | Borrador listo |
+| 6. Experimentos y resultados | Entrenamiento, D, C, comparativa, C0 vs Qwen base, holdout, latencia, robustez, smoke test con repos | Avance 5 §6–§7 + D/C + `docs/ANALISIS_HOLDOUT.md` + `docs/ANALISIS_C0_VS_D.md` | En actualización |
+| 7. Discusión | FPRR vs. FNR, CWE copiado, B403/B311, límites de la partición, explicaciones, validez, lectura OWASP | `docs/BORRADOR_DISCUSION.md` | Borrador actualizado |
 | 8. Conclusiones | Respuesta a la hipótesis, aportes, trabajo futuro | `docs/BORRADOR_CONCLUSIONES.md` | Borrador actualizado |
-| 9. Referencias | 15–20 fuentes verificables | Avance 5 §11 | Ampliar |
-| Anexos | Reproducción, artefactos, hashes, prompts, tabla por regla | `docs/BORRADOR_ANEXOS.md` + README + training/ | Borrador listo |
+| 9. Referencias | 15–20 fuentes verificables, incluida la normativa OWASP | Avance 5 §11 + `docs/BORRADOR_ESTADO_ARTE.md` | Ampliar |
+| Anexos | Reproducción, artefactos, hashes, prompts, tabla por regla, cobertura OWASP | `docs/BORRADOR_ANEXOS.md` + README + training/ | Borrador listo |
 
 ## Secciones que faltan y cómo resolverlas
+
+### 4. Arquitectura
+
+`docs/ARQUITECTURA_ARC42.md` sigue la plantilla arc42 9.1 (edición en inglés;
+8.3 en español) con las secciones que aplican a un producto de este tamaño:
+objetivos y requisitos, restricciones, contexto y alcance, estrategia de
+solución, vista de bloques, vista de ejecución, vista de despliegue, conceptos
+transversales, decisiones de arquitectura, requisitos de calidad y riesgos
+técnicos. Las vistas C4 se limitan a contexto y contenedores; el nivel de
+componentes se resuelve con la vista de bloques de arc42 para no duplicar
+diagramas. Los diagramas viven en `docs/diagramas/*.mmd` y se renderizan con
+Mermaid CLI; el texto generado se versiona junto al `.mmd`.
+
+La arquitectura debe mostrar el flujo real: Bandit → normalización y
+deduplicación → contexto por AST → cliente Ollama → validación → reporte
+JSON/SARIF. También debe dejar visible que el modelo no puede eliminar alertas:
+el contrato de decisión es parte de la arquitectura, no un detalle de
+implementación.
 
 ### 2. Estado del arte
 
@@ -119,6 +137,23 @@ Responder explícitamente:
 - Explicaciones de D: 11 / 8 / 2 valores únicos (explicación, vector,
   corrección). C0: 109 / 103 / 106.
 
+**Comparación con Qwen base (C0 vs. D, mismas alertas y mismo prompt):**
+
+- Desarrollo: FPRR 22,0 → 48,0; FNR 2,2 → 5,5; McNemar p = 0,0004;
+  Δ FPRR +26,0 pts (IC95 9,4–43,6); Δ FNR +3,3 pts (IC95 −1,2–8,2).
+- Holdout: FPRR 10,9 → 30,4; FNR 0,0 → 9,2; McNemar p = 0,0015;
+  Δ FPRR +19,6 pts (IC95 0,0–38,5); Δ FNR +9,2 pts (IC95 1,8–17,5).
+- Lectura honesta: el modelo base conserva más alertas; el aporte del ajuste es
+  aumentar el ahorro de revisión a costa de omitir más reales. No se afirma que
+  D supere a Qwen base.
+
+**Cobertura OWASP (CWE del SAST):**
+
+- Desarrollo (141): A01 1, A02 1, A03 83, A08 53, sin categoría 3.
+- Holdout (111): A01 0, A02 3, A03 76, A08 30, sin categoría 2.
+- A04–A07, A09 y A10 sin alertas medidas.
+- Mapeo del dataset: 10 de 30 etiquetas no coinciden; 7 forzadas a A03.
+
 ## Riesgos de la escritura
 
 - **No presentar CWE como clasificación independiente.** El prompt incluye el
@@ -135,6 +170,10 @@ Responder explícitamente:
   holdout; es un hallazgo y trabajo futuro.
 - **No presentar las explicaciones de D como aporte de calidad.** Son plantillas
   repetidas; la diversidad debe reportarse.
+- **No presentar OWASP como certificación.** Se mide cobertura de A01–A03 y A08;
+  no se afirma cumplimiento del Top 10 ni de ASVS.
+- **No ocultar que C0 gana en omisión.** D contra C0 es un resultado negativo en
+  FPRR y FNR; el aporte es el ahorro de revisión, no la superioridad del modelo.
 
 ## Orden de trabajo sugerido
 

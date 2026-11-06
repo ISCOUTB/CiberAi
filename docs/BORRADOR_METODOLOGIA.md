@@ -126,6 +126,12 @@ La respuesta se parsea como JSON. Si el JSON es inválido, el veredicto no es
 `SOSPECHOSA` y se cuenta como respuesta inválida. Un `SAFE` se interpreta como
 **recomendación de descarte**, nunca como eliminación.
 
+El análisis pareado entre C0 y D se calcula con `eval/analisis_c0_vs_d.py`. El
+script empareja las alertas por `id`, construye la matriz de acuerdo, aplica la
+prueba exacta de McNemar sobre las discordancias y estima la diferencia de FPRR y
+FNR con un bootstrap agrupado por archivo. El resultado queda en
+`eval/analisis_c0_vs_d.json` y se interpreta en `docs/ANALISIS_C0_VS_D.md`.
+
 ### 5.5.1 Holdout
 
 El Sprint 7 generó un conjunto independiente con
@@ -188,3 +194,30 @@ Los resultados crudos, el conjunto de evaluación y los prompts viven en `eval/`
 `scripts/check_consistencia.py` compara las tablas publicadas contra los JSON y
 falla si una cifra no coincide. Cualquier número del documento se rastrea hasta
 un archivo y un comando.
+
+## 5.9 Marco OWASP y cobertura declarada
+
+La cobertura no se estima: se cuenta. `eval/cobertura_owasp.py` toma el CWE que
+Bandit reporta para cada alerta (`cwe_sast`), lo ubica en la lista oficial de CWE
+del OWASP Top 10 2021 y escribe la matriz en `eval/cobertura_owasp.json`. Un CWE
+que no aparece en ninguna lista oficial se reporta como `sin_categoria`; no se
+fuerza a la categoría más parecida.
+
+Se usa el CWE del SAST y no la columna `owasp` del dataset porque esa columna
+asigna categoría al CWE etiquetado en la función, no al que Bandit señala. El
+contraste entre ambas fuentes se reporta como hallazgo de calidad de datos: 10 de
+las 30 etiquetas del dataset no coinciden con la lista oficial y 7 están forzadas
+a A03.
+
+La misma lógica se aplica en dos direcciones:
+
+- **Hacia las alertas:** la matriz A01–A10 indica qué categorías tienen evidencia
+  medida en desarrollo y en el holdout, y cuáles quedan fuera del alcance de
+  Bandit.
+- **Hacia el agente:** el OWASP Top 10 for LLM Applications 2025 se usa como
+  modelo de amenaza del componente inteligente. Cada riesgo se declara aplicable
+  o excluido, con la prueba o el control que lo respalda.
+
+La cobertura OWASP no reemplaza a las métricas de calidad. FPRR, FNR y la rúbrica
+miden el desempeño; OWASP ordena el alcance y el modelo de amenaza. Mezclar ambas
+cosas produciría una tabla de cumplimiento que el proyecto no puede sostener.

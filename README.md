@@ -18,6 +18,10 @@ Todo corre en la máquina del usuario: no se envía código a ninguna API extern
   completada (111 alertas, 65 reales); política B403 implementada y validada
   parcialmente. El holdout confirmó que el FNR de D supera la meta y que el modo
   asesor debe mantenerse.
+- Sprint 8: comparación pareada con Qwen base (C0 vs. D), cobertura OWASP
+  calculada por el CWE del SAST, arquitectura arc42 con vistas C4 y smoke test
+  sobre tres repositorios reales. Ninguna de las tres piezas cambia el modo
+  asesor.
 
 El producto funciona en **modo asesor**: una recomendación `SAFE` marca la
 alerta para descarte, pero **nunca la elimina** del reporte. Ante una respuesta
@@ -176,6 +180,67 @@ el diseño no alcanza para demostrar la meta. La conclusión es mantener el modo
 asesor, hacer obligatoria la política B403 y **no** agregar B311 después de ver
 el holdout. El detalle está en `docs/ANALISIS_HOLDOUT.md`.
 
+### Comparación con Qwen base (C0 vs. D)
+
+C0 y D comparten prompt, conjunto, temperatura y `num_predict`; la única
+diferencia es la etiqueta del modelo. Por eso el par C0/D aísla el efecto del
+ajuste fino. El análisis empareja las alertas por `id`, aplica McNemar sobre las
+discordancias y estima la diferencia con bootstrap agrupado por archivo.
+
+| Conjunto | Configuración | FPRR | FNR | McNemar p |
+|---|---|---:|---:|---:|
+| Desarrollo | C0 (base) | 22,0 % | 2,2 % | — |
+| Desarrollo | D (afinado) | 48,0 % | 5,5 % | 0,0004 |
+| Holdout | C0 (base) | 10,9 % | 0,0 % | — |
+| Holdout | D (afinado) | 30,4 % | 9,2 % | 0,0015 |
+
+El resultado es negativo para D en las dos métricas: descarta más falsos
+positivos, pero también más alertas reales. En el holdout, Δ FPRR = +19,6 puntos
+(IC95 0,0–38,5) y Δ FNR = +9,2 puntos (IC95 1,8–17,5). El aporte del ajuste es
+ahorro de revisión, no superioridad sobre el modelo base. El detalle está en
+`docs/ANALISIS_C0_VS_D.md`; se reproduce con `python eval/analisis_c0_vs_d.py`.
+
+## Cobertura OWASP
+
+La cobertura se calcula con el CWE que reporta Bandit, no con la columna `owasp`
+del dataset. Se usa el OWASP Top 10 2021 y se reportan como `sin_categoria` los
+CWE que no pertenecen a ninguna lista oficial.
+
+| Categoría | Desarrollo (141) | Holdout (111) |
+|---|---:|---:|
+| A01 Broken Access Control | 1 | 0 |
+| A02 Cryptographic Failures | 1 | 3 |
+| A03 Injection | 83 | 76 |
+| A08 Software and Data Integrity Failures | 53 | 30 |
+| Fuera del Top 10 2021 | 3 | 2 |
+
+A03 y A08 concentran más del 95 % de las alertas. A04–A07, A09 y A10 no tienen
+alertas medidas porque requieren diseño, configuración de despliegue, inventario
+de dependencias, credenciales, telemetría o seguimiento de red. El producto es un
+triage de Bandit organizado por OWASP, no un escáner del Top 10 completo. El
+modelo de amenaza del agente (OWASP LLM Top 10 2025 y ASVS 5.0.0) y las
+discrepancias del mapeo del dataset están en `docs/OWASP.md`; la matriz se
+regenera con `python eval/cobertura_owasp.py`.
+
+## Arquitectura arc42/C4
+
+La arquitectura está documentada en `docs/ARQUITECTURA_ARC42.md` con la plantilla
+arc42 9.1 y vistas C4 de contexto y contenedores. Los diagramas se escriben en
+`docs/diagramas/*.mmd` y se renderizan con Mermaid CLI; el `.mmd` es la fuente.
+El contrato de decisión —un `SAFE` solo recomienda, nunca elimina— forma parte de
+la arquitectura, no es un detalle de implementación.
+
+## Smoke test con repositorios
+
+Se ejecutó el producto sobre tres repositorios fijados por etiqueta y commit:
+`pallets/itsdangerous` 2.2.0, `jpadilla/pyjwt` 2.10.1 y `httpie/cli` 3.2.4. Se
+escaneó solo el paquete fuente: 38 alertas por modelo, 0 errores, 0 alertas
+eliminadas. D recomendó descartar 34 y el modelo base 3; la auditoría manual de
+las 34 recomendaciones de D no encontró descartes incorrectos. D conservó una
+alerta real de HTTPie (`requests.get(..., verify=False)`). No es una evaluación
+etiquetada y no produce FPRR/FNR; el detalle está en `docs/SMOKE_REPOS.md` y el
+resumen en `eval/auditoria_smoke_repos.json`.
+
 ## Estructura del proyecto
 
 ```
@@ -221,6 +286,14 @@ prompt injection).
   agotó el timeout de 180 s. El cliente del producto y el arnés de evaluación
   ahora usan `num_predict: 512`; con el límite, la misma alerta responde en
   8,2 s y el runner no sigue generando tras el timeout.
+- El prompt de evaluación (`eval/run_eval.py`) coincide con el de entrenamiento,
+  pero no es idéntico al prompt de producto (`agente/src/agente_seguridad/triage.py`).
+  C0 y D comparten prompt, así que la comparación no se ve afectada; el FPRR y el
+  FNR reportados no describen exactamente la CLI. Alinear ambos prompts exige un
+  conjunto nuevo, no el holdout cerrado.
+- El smoke test con repositorios usa 38 alertas por modelo, tres repos y una
+  auditoría de una sola persona. Los 34 `SAFE` de D fueron correctos en esa
+  muestra, pero no demuestran que el descarte automático sea seguro.
 
 ## Documentación
 
@@ -235,8 +308,18 @@ prompt injection).
   detallada de las corridas de desarrollo.
 - `docs/ANALISIS_HOLDOUT.md`: resultados, intervalos, falsos negativos y límites
   de la evaluación única.
+- `docs/ANALISIS_C0_VS_D.md`: comparación pareada con Qwen base, McNemar e
+  intervalos por bootstrap.
+- `docs/OWASP.md`: cobertura del Top 10 2021, discrepancias del dataset, LLM Top
+  10 2025 y ASVS 5.0.0 como checklist parcial.
+- `docs/ARQUITECTURA_ARC42.md`: arquitectura arc42 9.1 con vistas C4; diagramas
+  en `docs/diagramas/`.
+- `docs/SMOKE_REPOS.md`: smoke test sobre tres repositorios reales y auditoría
+  manual de las recomendaciones de descarte.
 - `docs/PROTOCOLO_HOLDOUT.md`: reglas, comandos y checklist de la evaluación.
-- `AVANCE5_PENDIENTES.md`: estado del Sprint 6 y pendientes del Sprint 7.
+- `AVANCE5_PENDIENTES.md`: estado del Sprint 8 y pendientes.
+- `scripts/check_consistencia.py`: valida las tablas del Avance 5 y de los
+  documentos contra los JSON de resultados.
 
 ## Licencia
 

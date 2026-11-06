@@ -1,0 +1,24 @@
+C4Container
+  title Contenedores del agente (C4 nivel 2)
+
+  Person(analista, "Analista de seguridad", "Opera la CLI y revisa el reporte.")
+
+  System_Boundary(local, "Equipo local del analista") {
+    Container(cli, "CLI agente-seguridad", "Python 3.14 + argparse", "Orquesta el escaneo, aplica deduplicacion, politica y escritura de reportes.")
+    Container(contexto, "Extractor de contexto", "Python ast", "Recorta la funcion que contiene la alerta; fallback a 20 lineas si no hay AST.")
+    ContainerDb(salida, "Reportes", "JSON + SARIF", "Conserva todas las alertas, incluidas las recomendadas para descarte.")
+    Container(ollama_rt, "Runtime de inferencia", "Ollama 0.40 + llama.cpp", "Sirve el modelo local por HTTP y acota la generacion.")
+    ContainerDb(modelo, "Modelo", "GGUF Q4_K_M, 940 MB", "Qwen2.5-Coder-1.5B fusionado con el adaptador LoRA.")
+  }
+
+  System_Ext(bandit, "Bandit 1.9.4", "SAST de reglas sobre Python.")
+  System_Ext(repo, "Repositorio Python", "Fuente analizada.")
+
+  Rel(analista, cli, "Ejecuta scan", "terminal")
+  Rel(cli, repo, "Lee", "archivos")
+  Rel(cli, bandit, "Invoca -r -f json", "subproceso")
+  Rel(cli, contexto, "Pide contexto por alerta", "funcion")
+  Rel(cli, ollama_rt, "POST /api/generate", "HTTP JSON")
+  Rel(ollama_rt, modelo, "Carga pesos", "mmap")
+  Rel(cli, salida, "Escribe", "archivos")
+  Rel(salida, analista, "Se revisa", "lectura")
