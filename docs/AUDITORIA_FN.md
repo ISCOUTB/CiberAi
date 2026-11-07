@@ -114,7 +114,10 @@ pre-registrarse y validarse en la próxima evaluación, no un resultado ya proba
 - La adjudicación es manual y **no fue a ciegas**: se conocía el veredicto del
   modelo. El criterio es objetivo (presencia o ausencia del sink), y el script
   comprueba que la evidencia no lo contradiga, pero falta una segunda revisión
-  independiente.
+  independiente. La hoja ciega ya está generada en
+  `eval/rubrica/auditoria_fn_ciega.csv` (12 casos mezclados, sin veredicto del
+  modelo ni etiqueta del conjunto) y el acuerdo se calculará con
+  `python eval/acuerdo_auditoria.py`.
 - El criterio es de patrón, no de flujo de datos. Si se exige un origen no
   confiable, los cinco casos de pickle con `load` también serían discutibles y
   el FNR ajustado de ambos modelos bajaría a cero.

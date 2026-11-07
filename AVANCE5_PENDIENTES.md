@@ -253,8 +253,11 @@ hacer obligatoria B403 y no agregar B311 después de ver el holdout.
   política B403, D queda en FNR 0,0 % y FPRR 38,0 %/23,9 %, pero es post hoc.
   Lectura en `docs/AUDITORIA_FN.md` y sección 11 de `docs/ANALISIS_C0_VS_D.md`.
 - [ ] **Segunda revisión a ciegas de la auditoría de falsos negativos.** La
-  adjudicación actual conoce el veredicto del modelo. Falta otro revisor que
-  clasifique los 12 casos sin verlo, y reportar el acuerdo entre revisores.
+  adjudicación actual conoce el veredicto del modelo. La hoja ciega está en
+  `eval/rubrica/auditoria_fn_ciega.csv` (12 casos mezclados, sin veredicto ni
+  etiqueta) y se regenera con `python eval/preparar_auditoria_ciega.py`. Falta
+  que otro revisor la complete; el acuerdo se calcula con
+  `python eval/acuerdo_auditoria.py` (kappa de Cohen y discrepancias).
 - [ ] Rúbrica aplicada y kappa calculado (requiere dos revisores).
 - [ ] Análisis de casi-duplicados train/holdout.
 - [ ] Integración final de la memoria y ensayo de demostración.

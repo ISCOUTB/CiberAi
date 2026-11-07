@@ -1070,7 +1070,9 @@ body(doc,
      "desarrollo y 23,9 % en el holdout, pero es un cálculo post hoc: la regla se fijó después de "
      "ver los errores. La auditoría es manual, no fue a ciegas y usa un criterio de patrón, no de "
      "flujo de datos; sus cifras son una cota de sensibilidad y no sustituyen el resultado "
-     "pre-registrado del holdout.")
+     "pre-registrado del holdout. Para cerrarla, la hoja ciega de los 12 casos está preparada en "
+     "eval/rubrica/auditoria_fn_ciega.csv y el acuerdo entre revisores se calculará con el kappa "
+     "de Cohen.")
 
 # 7. Pruebas
 h1(doc, "7. Pruebas y validación del producto")
