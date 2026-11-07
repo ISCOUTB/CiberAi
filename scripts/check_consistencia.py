@@ -9,6 +9,8 @@ Comprueba:
   `docs/BORRADOR_ANEXOS.md` contra `eval/cobertura_owasp.json`;
 - las tablas del smoke test de `Avance 5.docx` y `docs/SMOKE_REPOS.md`
   contra `eval/auditoria_smoke_repos.json`;
+- la tabla de la auditoría de falsos negativos de `Avance 5.docx` y
+  `docs/AUDITORIA_FN.md` contra `eval/analisis_fn.json`;
 - la tabla comparativa de `README.md`;
 - que no queden marcadores de trabajo sin completar;
 - que no reaparezcan cifras obsoletas de la corrida C anterior.
@@ -667,6 +669,92 @@ def revisar_smoke(errores):
                     sorted(vistos), sorted(conteo)))
 
 
+def revisar_auditoria_fn(errores):
+    """Compara las tablas de la auditoría de falsos negativos con su JSON."""
+    datos = cargar_json("eval/analisis_fn.json")["conjuntos"]
+    nombres = (("desarrollo", "Desarrollo"), ("holdout", "Holdout"))
+
+    cabecera_docx = ["Conjunto", "Modelo", "FN brutos", "Reales", "Ruido",
+                     "FNR bruto", "FNR ajustado", "FPRR ajustado", "Precisión"]
+    esperadas = []
+    for clave, nombre in nombres:
+        for cfg in ("C0", "D"):
+            m = datos[clave][cfg]
+            esperadas.append([
+                nombre, cfg, str(m["fn_brutos"]), str(m["fn_reales"]), str(m["fn_ruido"]),
+                fmt(m["bruto"]["FNR"]), fmt(m["ajustado"]["FNR"]),
+                fmt(m["ajustado"]["FPRR"]), fmt(m["ajustado"]["precision_descarte"]),
+            ])
+
+    ruta_docx = ROOT / "Avance 5.docx"
+    if ruta_docx.exists():
+        doc = docx.Document(str(ruta_docx))
+        tabla = tabla_docx(doc, cabecera_docx)
+        if tabla is None:
+            errores.append("Avance 5.docx: no se encontro la tabla de auditoria de FN")
+        else:
+            comparar_filas("Avance 5.docx auditoria FN",
+                           [celdas(f) for f in tabla.rows[1:]], esperadas, errores)
+
+    ruta_md = ROOT / "docs" / "AUDITORIA_FN.md"
+    if not ruta_md.exists():
+        errores.append("Falta docs/AUDITORIA_FN.md")
+        return
+    texto = ruta_md.read_text(encoding="utf-8")
+
+    cabecera_md = ["Conjunto", "Modelo", "FN brutos", "FN reales", "Ruido",
+                   "FNR bruto", "FNR ajustado", "FPRR bruto", "FPRR ajustado"]
+    filas = tabla_md(texto, cabecera_md)
+    if filas is None:
+        errores.append("docs/AUDITORIA_FN.md: no se encontro la tabla corregida")
+    else:
+        esperadas_md = []
+        for clave, nombre in nombres:
+            for cfg in ("C0", "D"):
+                m = datos[clave][cfg]
+                esperadas_md.append([
+                    nombre, cfg, str(m["fn_brutos"]), str(m["fn_reales"]),
+                    str(m["fn_ruido"]), fmt(m["bruto"]["FNR"]),
+                    fmt(m["ajustado"]["FNR"]), fmt(m["bruto"]["FPRR"]),
+                    fmt(m["ajustado"]["FPRR"]),
+                ])
+        comparar_filas("docs/AUDITORIA_FN.md corregida", filas, esperadas_md, errores)
+
+    cabecera_pol = ["Conjunto", "Modelo", "FNR", "FPRR", "Precisión del descarte"]
+    filas = tabla_md(texto, cabecera_pol)
+    if filas is None:
+        errores.append("docs/AUDITORIA_FN.md: no se encontro la tabla de política")
+    else:
+        esperadas_pol = []
+        for clave, nombre in nombres:
+            for cfg in ("C0", "D"):
+                m = datos[clave][cfg]["con_politica_b403"]
+                esperadas_pol.append([
+                    nombre, cfg, fmt(m["FNR"]), fmt(m["FPRR"]),
+                    fmt(m["precision_descarte"]),
+                ])
+        comparar_filas("docs/AUDITORIA_FN.md política", filas, esperadas_pol, errores)
+
+    ruta_readme = ROOT / "README.md"
+    if ruta_readme.exists():
+        cabecera_readme = ["Conjunto", "Modelo", "FN brutos", "FN reales", "Ruido",
+                           "FNR bruto", "FNR ajustado", "FPRR ajustado"]
+        filas = tabla_md(ruta_readme.read_text(encoding="utf-8"), cabecera_readme)
+        if filas is None:
+            errores.append("README.md: no se encontro la tabla de auditoria de FN")
+        else:
+            esperadas_readme = []
+            for clave, nombre in nombres:
+                for cfg in ("C0", "D"):
+                    m = datos[clave][cfg]
+                    esperadas_readme.append([
+                        nombre, cfg, str(m["fn_brutos"]), str(m["fn_reales"]),
+                        str(m["fn_ruido"]), fmt(m["bruto"]["FNR"]),
+                        fmt(m["ajustado"]["FNR"]), fmt(m["ajustado"]["FPRR"]),
+                    ])
+            comparar_filas("README.md auditoria FN", filas, esperadas_readme, errores)
+
+
 def revisar_readme(filas, errores):
     ruta = ROOT / "README.md"
     texto = ruta.read_text(encoding="utf-8")
@@ -711,6 +799,7 @@ def main():
     revisar_md_c0_vs_d(errores)
     revisar_owasp(errores)
     revisar_smoke(errores)
+    revisar_auditoria_fn(errores)
     revisar_readme(filas, errores)
     revisar_marcadores(errores)
     revisar_obsoletas(errores)

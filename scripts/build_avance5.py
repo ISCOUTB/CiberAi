@@ -374,7 +374,7 @@ para(doc, "Agente inteligente para la revisión de seguridad de código fuente",
 para(doc, "Modelo afinado · Modo asesor · Evaluación A/B/C/C0/D y holdout · OWASP · arc42/C4", size=10,
      align=WD_ALIGN_PARAGRAPH.CENTER, before=30, color=MUTED)
 para(doc, "Periodo: 30 de octubre – 5 de noviembre de 2026  |  "
-          "Actualización: 5 de noviembre de 2026 (Sprint 8)",
+          "Actualización: 7 de noviembre de 2026 (Sprint 8 y auditoría de falsos negativos)",
      size=9.5, align=WD_ALIGN_PARAGRAPH.CENTER, before=28, color=DARK)
 para(doc, "Integrantes: Santiago Reyes, Marien Daniela, Luis Patron, William Cuello  |  "
           "Asignatura: Proyecto de Ingeniería",
@@ -436,6 +436,13 @@ body(doc,
      "fuera del alcance de Bandit. Tercero, la arquitectura se documenta con arc42 y vistas C4, "
      "y el producto se prueba sobre tres repositorios reales fijados por commit. Ninguna de las "
      "tres piezas cambia el modo asesor.")
+body(doc,
+     "Una auditoría posterior de los falsos negativos corrige la lectura de la omisión. De las 11 "
+     "alertas que C0 y D descartan y que la etiqueta de fragmento considera reales, 6 son falsos "
+     "positivos de la propia alerta: el fragmento es vulnerable, pero la línea señalada por Bandit "
+     "no lo es. El FNR de D baja de 5,5 % a 3,3 % en desarrollo y de 9,2 % a 3,1 % en el holdout; "
+     "la diferencia frente a C0 queda en 1 y 2 alertas y deja de ser significativa. El resultado se "
+     "reporta como análisis de sensibilidad, no como reetiquetado del holdout.")
 
 h2(doc, "1.1 Ajustes derivados de la revisión")
 bullet(doc, "Modo asesor: el agente no suprime hallazgos; el veredicto SAFE queda como "
@@ -989,12 +996,14 @@ table(doc,
        ["Holdout", "+19,6 pts", "0,0 a 38,5", "+9,2 pts", "1,8 a 17,5"]],
       widths=[3.4, 3.4, 3.4, 3.4, 3.4])
 body(doc,
-     "El resultado es negativo para D en las dos métricas que importan. En desarrollo, D "
+     "El resultado es un intercambio, no una derrota en las dos métricas: D gana en FPRR "
+     "(descarta más ruido) y C0 gana en FNR (omite menos alertas reales). En desarrollo, D "
      "descarta 18 alertas más que C0: 14 falsos positivos y 4 reales. En el holdout también "
      "descarta 18 más: 12 falsos positivos y 6 reales. C0 conserva más y omite menos; su FNR "
      "es 0,0 % en el holdout. El aporte del ajuste no es «superar a Qwen», sino aumentar el "
      "ahorro de revisión a cambio de más omisiones. McNemar confirma que el patrón de "
-     "discordancia no es azar (p=0,0004 y p=0,0015), pero no dice que D sea mejor.")
+     "discordancia no es azar (p=0,0004 y p=0,0015), pero no dice que D sea mejor. La sección "
+     "6.4 muestra cuánto de esa omisión es ruido de etiqueta.")
 body(doc,
      "El único argumento a favor de D es económico: con la misma cantidad de alertas, D "
      "recomienda descartar 24 de 50 falsos positivos en desarrollo y 14 de 46 en el holdout, "
@@ -1031,6 +1040,37 @@ body(doc,
      "despliegue, inventario de dependencias, credenciales fuera del corpus, telemetría de "
      "runtime o seguimiento de red. El producto es un triage de alertas de Bandit organizado "
      "por OWASP, no un escáner del Top 10 completo.")
+
+h2(doc, "6.4 Auditoría a nivel de alerta de los falsos negativos")
+body(doc,
+     "La etiqueta del conjunto es a nivel de fragmento: si el fragmento es vulnerable, cualquier "
+     "alerta de Bandit sobre él cuenta como real, aunque la línea señalada sea otra. Para medir "
+     "cuánto pesa ese efecto se auditaron los 12 falsos negativos de C0 y D con un criterio de "
+     "patrón: B403 es real si hay pickle.load o pickle.loads; B404, si el import acompaña a "
+     "shell=True con entrada externa; B311, si el aleatorio alimenta un token, clave o sesión. "
+     "El detalle está en docs/AUDITORIA_FN.md y se reproduce con python eval/auditar_fn.py.")
+table(doc,
+      ["Conjunto", "Modelo", "FN brutos", "Reales", "Ruido", "FNR bruto", "FNR ajustado",
+       "FPRR ajustado", "Precisión"],
+      [["Desarrollo", "C0", "2", "2", "0", "2,2 %", "2,2 %", "22,0 %", "84,6 %"],
+       ["Desarrollo", "D", "5", "3", "2", "5,5 %", "3,3 %", "52,0 %", "89,7 %"],
+       ["Holdout", "C0", "0", "0", "0", "0,0 %", "0,0 %", "10,9 %", "100,0 %"],
+       ["Holdout", "D", "6", "2", "4", "9,2 %", "3,1 %", "39,1 %", "90,0 %"]],
+      widths=[2.2, 1.5, 1.5, 1.3, 1.2, 2.0, 2.3, 2.3, 1.7], size=7.6)
+body(doc,
+     "Seis de las once omisiones brutas son ruido de etiqueta: cuatro B403 de código que solo "
+     "hace pickle.dump (no deserializa) y dos B311 de random usado en una división. La omisión "
+     "real de D baja a 3 alertas en desarrollo y 2 en el holdout, y la precisión de sus "
+     "recomendaciones de descarte sube a 89,7 % y 90,0 %. La diferencia frente a C0 queda en 1 y "
+     "2 alertas; la prueba exacta de McNemar sobre alertas reales deja de ser significativa "
+     "(p=1,00 y p=0,50). El empeoramiento de FNR, por tanto, no está demostrado una vez "
+     "descontado el ruido.")
+body(doc,
+     "Con la política B403, D quedaría en FNR 0,0 % en ambos conjuntos y FPRR 38,0 % en "
+     "desarrollo y 23,9 % en el holdout, pero es un cálculo post hoc: la regla se fijó después de "
+     "ver los errores. La auditoría es manual, no fue a ciegas y usa un criterio de patrón, no de "
+     "flujo de datos; sus cifras son una cota de sensibilidad y no sustituyen el resultado "
+     "pre-registrado del holdout.")
 
 # 7. Pruebas
 h1(doc, "7. Pruebas y validación del producto")
@@ -1144,7 +1184,9 @@ bullet(doc, "Verdad de referencia a nivel de función y sin alcanzabilidad: el d
             "función vulnerable cuenta como alerta real aunque la línea señalada no sea el "
             "defecto. Tampoco se etiqueta si el flujo es alcanzable; una función vulnerable en "
             "código muerto se cuenta como real. Esto favorece al SAST y explica parte del 45,1 % "
-            "de concordancia CWE en desarrollo y del 35,4 % en el holdout.")
+            "de concordancia CWE en desarrollo y del 35,4 % en el holdout. La auditoría de la "
+             "sección 6.4 cuantifica el efecto: 6 de los 11 falsos negativos brutos son "
+             "alertas sobre líneas que no son el defecto.")
 bullet(doc, "Independencia de la partición: la evaluación de desarrollo usa val_total, la misma "
             "partición que alimentó la validación del ajuste. El holdout usa el test y se "
             "ejecutó una sola vez, pero el split sigue siendo aleatorio por función y el "
@@ -1153,9 +1195,11 @@ bullet(doc, "Independencia de la partición: la evaluación de desarrollo usa va
             "quedan pendientes y la partición agrupada no es posible con los metadatos "
             "actuales.")
 bullet(doc, "Falsos negativos bien formados: un SAFE con JSON válido y justificación puede ser "
-            "incorrecto. En el holdout D descartó 6 de 65 alertas reales (9,2 %); la política "
-            "B403 rescata 4 y deja 2 B311. El modo asesor evita que desaparezcan del reporte, "
-            "pero la calidad depende de la revisión humana y de la tasa de omisión medida.")
+            "incorrecto. En el holdout D descartó 6 de 65 alertas reales según la etiqueta de "
+            "fragmento (9,2 %); la auditoría a nivel de alerta reduce la omisión real a 2 (3,1 %). "
+            "La política B403 rescata 4 de las 6 brutas y deja 2 B311, que la auditoría identifica "
+            "como ruido. El modo asesor evita que desaparezcan del reporte, pero la calidad "
+            "depende de la revisión humana y de la tasa de omisión medida.")
 bullet(doc, "Potencia del holdout: con 65 alertas reales, incluso 0 falsos negativos deja el "
             "límite superior del IC95 en 5,6 %. No se puede demostrar estadísticamente un FNR "
             "≤ 5 % con este tamaño. El bootstrap agrupado por archivo es más conservador que "
@@ -1215,6 +1259,14 @@ bullet(doc, "Medir casi-duplicados entre entrenamiento y holdout con similitud d
 bullet(doc, "Mantener el holdout cerrado: no se reutiliza para ajustar prompts, hiperparámetros "
             "ni reglas. Cualquier cambio posterior exige un conjunto nuevo, no otra corrida "
             "sobre estas 111 alertas.")
+bullet(doc, "Cerrar la auditoría de falsos negativos con una segunda revisión a ciegas de los 12 "
+            "casos, para que deje de ser análisis de sensibilidad y pase a ser una medida "
+            "principal con acuerdo entre revisores.")
+bullet(doc, "Reentrenar con alertas reales de Bandit en el formato de producción, en lugar de "
+            "alertas sintéticas y de ejemplos sin alerta. El diagnóstico está en la memoria: el "
+            "modelo nunca vio B403 durante el ajuste y el objetivo de entrenamiento es una "
+            "plantilla. La validación debe hacerse sobre un conjunto nuevo, no sobre el holdout "
+            "cerrado.")
 bullet(doc, "Reportar B403 como política obligatoria y B311 como riesgo nuevo. No agregar B311 "
             "con los mismos datos que la sugirieron; validarla en un conjunto independiente.")
 bullet(doc, "Explorar una regla B403 basada en el punto de uso —no descartar por el import, "
@@ -1246,9 +1298,10 @@ body(doc,
      "formalmente válido puede ser un falso negativo real, y el holdout no permite demostrar "
      "que el FNR sea ≤ 5 %.")
 body(doc,
-     "La comparación con Qwen base no favorece al modelo afinado en omisión: C0 conserva más "
-     "alertas y su FNR es menor; D solo gana en ahorro de revisión. Ese resultado se publica "
-     "completo porque el objetivo del proyecto no era demostrar superioridad, sino medir un "
+     "La comparación con Qwen base muestra un intercambio: C0 conserva más alertas y D elimina más "
+     "ruido. La auditoría a nivel de alerta reduce la ventaja de C0 en FNR a 1 y 2 alertas y la "
+     "deja sin significación; el ahorro de revisión de D, en cambio, se mantiene. Ese resultado se "
+     "publica completo porque el objetivo del proyecto no era demostrar superioridad, sino medir un "
      "triage local con un control adecuado. OWASP cumple la misma función: no mejora las "
      "métricas, pero hace visible que el producto cubre A01–A03 y A08 y no el Top 10 completo. "
      "La arquitectura arc42/C4 y el smoke test con repositorios reales cierran la entrega con "
@@ -1258,9 +1311,9 @@ body(doc,
      "rúbrica de explicaciones —condicionada por el colapso de D a 11 plantillas—, medir "
      "casi-duplicados, integrar la memoria con las cifras del holdout y preparar la defensa. "
      "B403 queda como política obligatoria; B311 se reporta como riesgo nuevo y no se agrega "
-     "después de ver el holdout. Con FNR crudo 9,2 % el producto no habilita descarte "
-     "automático: el ahorro de revisión es real pero modesto, y la alerta siempre permanece "
-     "visible para el analista.")
+     "después de ver el holdout. Con FNR crudo 9,2 % y FNR ajustado 3,1 %, el producto no "
+     "habilita descarte automático: el ahorro de revisión es real, la omisión queda concentrada "
+     "en B403 y la alerta siempre permanece visible para el analista.")
 
 # 11. Referencias
 h1(doc, "11. Referencias")

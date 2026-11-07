@@ -1,0 +1,134 @@
+{
+ "generado_por": "eval/auditar_fn.py",
+ "fuente_adjudicacion": "eval/auditoria_fn.json",
+ "criterio": {
+  "B403": "Vulnerabilidad real si el fragmento contiene un sink de deserializacion (pickle.load o pickle.loads). Si solo importa pickle o solo hace pickle.dump, el aviso no corresponde a una vulnerabilidad en ese contexto.",
+  "B404": "Vulnerabilidad real si el import de subprocess acompana a una llamada con shell=True sobre entrada externa. El sink exacto puede ser otra regla (B602/B605), pero el aviso es contextualmente correcto.",
+  "B311": "Vulnerabilidad real solo si el valor aleatorio se usa en un contexto de seguridad (token, clave, nonce, contrasena, sesion). El uso en calculos o demos no es vulnerabilidad.",
+  "nota": "La adjudicacion se hizo leyendo el codigo con el criterio anterior, sin usar la salida de otro modelo. Sigue pendiente una segunda revision a ciegas."
+ },
+ "conjuntos": {
+  "desarrollo": {
+   "alertas": 141,
+   "reales": 91,
+   "falsos_positivos": 50,
+   "C0": {
+    "fn_brutos": 2,
+    "fn_reales": 2,
+    "fn_ruido": 0,
+    "fn_ids": [
+     "f14508.py:1",
+     "f2404.py:2"
+    ],
+    "fn_ruido_ids": [],
+    "bruto": {
+     "FNR": 2.2,
+     "FPRR": 22.0,
+     "precision_descarte": 84.6
+    },
+    "ajustado": {
+     "FNR": 2.2,
+     "FPRR": 22.0,
+     "precision_descarte": 84.6
+    },
+    "con_politica_b403": {
+     "FNR": 1.1,
+     "FPRR": 20.0,
+     "precision_descarte": 90.9
+    }
+   },
+   "D": {
+    "fn_brutos": 5,
+    "fn_reales": 3,
+    "fn_ruido": 2,
+    "fn_ids": [
+     "f12443.py:1",
+     "f1448.py:1",
+     "f14508.py:1",
+     "f2077.py:1",
+     "f8631.py:1"
+    ],
+    "fn_ruido_ids": [
+     "f1448.py:1",
+     "f2077.py:1"
+    ],
+    "bruto": {
+     "FNR": 5.5,
+     "FPRR": 48.0,
+     "precision_descarte": 82.8
+    },
+    "ajustado": {
+     "FNR": 3.3,
+     "FPRR": 52.0,
+     "precision_descarte": 89.7
+    },
+    "con_politica_b403": {
+     "FNR": 0.0,
+     "FPRR": 38.0,
+     "precision_descarte": 100.0
+    }
+   }
+  },
+  "holdout": {
+   "alertas": 111,
+   "reales": 65,
+   "falsos_positivos": 46,
+   "C0": {
+    "fn_brutos": 0,
+    "fn_reales": 0,
+    "fn_ruido": 0,
+    "fn_ids": [],
+    "fn_ruido_ids": [],
+    "bruto": {
+     "FNR": 0.0,
+     "FPRR": 10.9,
+     "precision_descarte": 100.0
+    },
+    "ajustado": {
+     "FNR": 0.0,
+     "FPRR": 10.9,
+     "precision_descarte": 100.0
+    },
+    "con_politica_b403": {
+     "FNR": 0.0,
+     "FPRR": 8.7,
+     "precision_descarte": 100.0
+    }
+   },
+   "D": {
+    "fn_brutos": 6,
+    "fn_reales": 2,
+    "fn_ruido": 4,
+    "fn_ids": [
+     "f11445.py:1",
+     "f15804.py:1",
+     "f16317.py:7",
+     "f16317.py:8",
+     "f1878.py:1",
+     "f2231.py:1"
+    ],
+    "fn_ruido_ids": [
+     "f15804.py:1",
+     "f16317.py:7",
+     "f16317.py:8",
+     "f2231.py:1"
+    ],
+    "bruto": {
+     "FNR": 9.2,
+     "FPRR": 30.4,
+     "precision_descarte": 70.0
+    },
+    "ajustado": {
+     "FNR": 3.1,
+     "FPRR": 39.1,
+     "precision_descarte": 90.0
+    },
+    "con_politica_b403": {
+     "FNR": 0.0,
+     "FPRR": 23.9,
+     "precision_descarte": 100.0
+    }
+   }
+  }
+ }
+}

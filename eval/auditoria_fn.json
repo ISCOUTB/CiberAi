@@ -1,0 +1,107 @@
+{
+  "descripcion": "Auditoria manual de los falsos negativos de C0 y D en desarrollo y holdout. La etiqueta del conjunto es a nivel de fragmento (is_vulnerable); aqui se adjudica a nivel de alerta: si la linea senalada por Bandit corresponde a una vulnerabilidad real en ese contexto.",
+  "criterio": {
+    "B403": "Vulnerabilidad real si el fragmento contiene un sink de deserializacion (pickle.load o pickle.loads). Si solo importa pickle o solo hace pickle.dump, el aviso no corresponde a una vulnerabilidad en ese contexto.",
+    "B404": "Vulnerabilidad real si el import de subprocess acompana a una llamada con shell=True sobre entrada externa. El sink exacto puede ser otra regla (B602/B605), pero el aviso es contextualmente correcto.",
+    "B311": "Vulnerabilidad real solo si el valor aleatorio se usa en un contexto de seguridad (token, clave, nonce, contrasena, sesion). El uso en calculos o demos no es vulnerabilidad.",
+    "nota": "La adjudicacion se hizo leyendo el codigo con el criterio anterior, sin usar la salida de otro modelo. Sigue pendiente una segunda revision a ciegas."
+  },
+  "casos": [
+    {
+      "split": "desarrollo",
+      "id": "f12443.py:1",
+      "regla": "B403",
+      "veredicto": "real",
+      "motivo": "Deserializa con pickle.load y pickle.loads; el aviso de importar pickle corresponde a un flujo real de deserializacion insegura (CWE-502).",
+      "evidencia": "pickle.load(f); pickle.loads(malicious_data)"
+    },
+    {
+      "split": "desarrollo",
+      "id": "f1448.py:1",
+      "regla": "B403",
+      "veredicto": "falso_positivo",
+      "motivo": "Solo usa pickle.dump. No hay load ni loads ni datos entrantes, asi que importar pickle no es una vulnerabilidad en este contexto.",
+      "evidencia": "pickle.dump(VulnerableClass(), f)"
+    },
+    {
+      "split": "desarrollo",
+      "id": "f14508.py:1",
+      "regla": "B403",
+      "veredicto": "real",
+      "motivo": "Deserializa un fichero con pickle.load; la deserializacion insegura esta presente. Es falso negativo de C0 y de D.",
+      "evidencia": "pickle.load(f)"
+    },
+    {
+      "split": "desarrollo",
+      "id": "f2077.py:1",
+      "regla": "B403",
+      "veredicto": "falso_positivo",
+      "motivo": "Solo serializa con pickle.dump; no deserializa datos.",
+      "evidencia": "pickle.dump(malicious, f)"
+    },
+    {
+      "split": "desarrollo",
+      "id": "f8631.py:1",
+      "regla": "B403",
+      "veredicto": "real",
+      "motivo": "Usa pickle.loads sobre datos serializados; hay deserializacion insegura. El CWE del dataset (CWE-787) no coincide con el del SAST (CWE-502).",
+      "evidencia": "pickle.loads(exploit_data)"
+    },
+    {
+      "split": "desarrollo",
+      "id": "f2404.py:2",
+      "regla": "B404",
+      "veredicto": "real",
+      "motivo": "El import de subprocess acompana a check_output(..., shell=True) con entrada de input(). El aviso esta justificado por el flujo, aunque el sink exacto sea B602/B605.",
+      "evidencia": "subprocess.check_output(command, shell=True)"
+    },
+    {
+      "split": "holdout",
+      "id": "f11445.py:1",
+      "regla": "B403",
+      "veredicto": "real",
+      "motivo": "Deserializa con pickle.load y pickle.loads; deserializacion insegura presente.",
+      "evidencia": "pickle.load(f); pickle.loads(malicious_data)"
+    },
+    {
+      "split": "holdout",
+      "id": "f15804.py:1",
+      "regla": "B403",
+      "veredicto": "falso_positivo",
+      "motivo": "Solo serializa con pickle.dump; no deserializa datos.",
+      "evidencia": "pickle.dump(malicious, f)"
+    },
+    {
+      "split": "holdout",
+      "id": "f16317.py:7",
+      "regla": "B311",
+      "veredicto": "falso_positivo",
+      "motivo": "random.randint se usa para una demo de division. No hay contexto de seguridad (token, clave, sesion, contrasena) y el CWE-94 del dataset no corresponde al fragmento.",
+      "evidencia": "a = random.randint(0, 10)"
+    },
+    {
+      "split": "holdout",
+      "id": "f16317.py:8",
+      "regla": "B311",
+      "veredicto": "falso_positivo",
+      "motivo": "Segunda alerta del mismo fragmento, mismo criterio: el aleatorio no se usa en un contexto de seguridad.",
+      "evidencia": "b = random.randint(0, 10)"
+    },
+    {
+      "split": "holdout",
+      "id": "f1878.py:1",
+      "regla": "B403",
+      "veredicto": "real",
+      "motivo": "Deserializa con pickle.load; deserializacion insegura presente.",
+      "evidencia": "pickle.load(f)"
+    },
+    {
+      "split": "holdout",
+      "id": "f2231.py:1",
+      "regla": "B403",
+      "veredicto": "falso_positivo",
+      "motivo": "Solo serializa con pickle.dump; no deserializa datos.",
+      "evidencia": "pickle.dump(EvilPickle(), f)"
+    }
+  ]
+}

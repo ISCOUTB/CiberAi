@@ -22,6 +22,11 @@ Todo corre en la máquina del usuario: no se envía código a ninguna API extern
   calculada por el CWE del SAST, arquitectura arc42 con vistas C4 y smoke test
   sobre tres repositorios reales. Ninguna de las tres piezas cambia el modo
   asesor.
+- Auditoría de falsos negativos: de las 11 alertas reales que C0 y D descartan,
+  6 son ruido de etiqueta (la línea señalada no es el defecto). El FNR de D baja
+  de 5,5 % a 3,3 % en desarrollo y de 9,2 % a 3,1 % en el holdout, y la
+  diferencia frente a C0 deja de ser significativa. Se reporta como análisis de
+  sensibilidad; el resultado pre-registrado del holdout no cambia.
 
 El producto funciona en **modo asesor**: una recomendación `SAFE` marca la
 alerta para descarte, pero **nunca la elimina** del reporte. Ante una respuesta
@@ -158,7 +163,8 @@ aislar el efecto del ajuste se agregó C0 (modelo base con el mismo formato de
 alerta que D, sin few-shot). En desarrollo, D frente a C0 sube el FPRR de 22,0 %
 a 48,0 %, pero también el FNR de 2,2 % a 5,5 %. Frente a C, la diferencia es
 mayor, pero mezcla modelo y prompt. Como el FNR de D supera la meta de 5 %, el
-producto se queda en modo asesor.
+producto se queda en modo asesor. La auditoría de falsos negativos reduce ese
+FNR a 3,3 % (sección «Auditoría de falsos negativos»).
 
 ### Holdout (Sprint 7)
 
@@ -194,11 +200,34 @@ discordancias y estima la diferencia con bootstrap agrupado por archivo.
 | Holdout | C0 (base) | 10,9 % | 0,0 % | — |
 | Holdout | D (afinado) | 30,4 % | 9,2 % | 0,0015 |
 
-El resultado es negativo para D en las dos métricas: descarta más falsos
-positivos, pero también más alertas reales. En el holdout, Δ FPRR = +19,6 puntos
-(IC95 0,0–38,5) y Δ FNR = +9,2 puntos (IC95 1,8–17,5). El aporte del ajuste es
-ahorro de revisión, no superioridad sobre el modelo base. El detalle está en
-`docs/ANALISIS_C0_VS_D.md`; se reproduce con `python eval/analisis_c0_vs_d.py`.
+El resultado es un intercambio, no una derrota en ambas métricas: D gana en FPRR
+(descarta más ruido) y C0 gana en FNR (omite menos alertas reales). En el
+holdout, Δ FPRR = +19,6 puntos (IC95 0,0–38,5) y Δ FNR = +9,2 puntos (IC95
+1,8–17,5). El aporte del ajuste es ahorro de revisión, no superioridad sobre el
+modelo base. El detalle está en `docs/ANALISIS_C0_VS_D.md`; se reproduce con
+`python eval/analisis_c0_vs_d.py`.
+
+### Auditoría de falsos negativos
+
+La etiqueta del conjunto es a nivel de fragmento: si el fragmento es vulnerable,
+cualquier alerta de Bandit sobre él cuenta como real, aunque la línea señalada
+sea otra. Se auditaron los 12 falsos negativos de C0 y D con un criterio de
+patrón (B403 real si hay `pickle.load`/`pickle.loads`; B404 real si acompaña a
+`shell=True`); **6 de las 11 omisiones de D son ruido de etiqueta**.
+
+| Conjunto | Modelo | FN brutos | FN reales | Ruido | FNR bruto | FNR ajustado | FPRR ajustado |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Desarrollo | C0 | 2 | 2 | 0 | 2,2 % | 2,2 % | 22,0 % |
+| Desarrollo | D | 5 | 3 | 2 | 5,5 % | 3,3 % | 52,0 % |
+| Holdout | C0 | 0 | 0 | 0 | 0,0 % | 0,0 % | 10,9 % |
+| Holdout | D | 6 | 2 | 4 | 9,2 % | 3,1 % | 39,1 % |
+
+La diferencia real frente a C0 queda en 1 alerta (desarrollo) y 2 (holdout), y
+McNemar sobre alertas reales deja de ser significativo (p = 1,00 y p = 0,50). La
+precisión de las recomendaciones de descarte de D sube a 89,7 % y 90,0 %. Es un
+análisis de sensibilidad manual y no a ciegas: no reetiqueta el holdout ni
+sustituye el resultado pre-registrado. Se reproduce con `python eval/auditar_fn.py`
+y se detalla en `docs/AUDITORIA_FN.md`.
 
 ## Cobertura OWASP
 

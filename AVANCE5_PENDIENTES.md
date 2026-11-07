@@ -2,15 +2,19 @@
 
 Estado: Sprint 7 cerrado. El Sprint 8 se ejecutó el 5 de noviembre de 2026 con
 las observaciones del director de programa: comparación explícita con Qwen base,
-OWASP como eje, arquitectura arc42/C4 y smoke test con repositorios reales.
-`Avance 5.docx` se regeneró con A/B/C/C0/D, holdout, C0 vs. D, cobertura OWASP y
-smoke test (182 párrafos, 22 tablas). El holdout se mantiene cerrado: no se
-reentrenó ni se rehizo el split, y ninguna pieza nueva cambia el modo asesor.
+OWASP como eje, arquitectura arc42/C4 y smoke test con repositorios reales. El 7
+de noviembre se añadió la auditoría de falsos negativos a nivel de alerta.
+`Avance 5.docx` se regeneró con A/B/C/C0/D, holdout, C0 vs. D, auditoría de
+falsos negativos, cobertura OWASP y smoke test (190 párrafos, 23 tablas). El
+holdout se mantiene cerrado: no se reentrenó ni se rehizo el split, y ninguna
+pieza nueva cambia el modo asesor.
 Resultados del holdout en `docs/ANALISIS_HOLDOUT.md`; comparación con el modelo
-base en `docs/ANALISIS_C0_VS_D.md`; cobertura en `docs/OWASP.md`; arquitectura en
-`docs/ARQUITECTURA_ARC42.md`; smoke test en `docs/SMOKE_REPOS.md`. Lo que resta
-es la rúbrica de explicaciones, el análisis de casi-duplicados y la integración
-final de la memoria.
+base en `docs/ANALISIS_C0_VS_D.md`; auditoría en `docs/AUDITORIA_FN.md`;
+cobertura en `docs/OWASP.md`; arquitectura en `docs/ARQUITECTURA_ARC42.md`;
+smoke test en `docs/SMOKE_REPOS.md`. Lo que resta es la segunda revisión a
+ciegas de la auditoría, la rúbrica de explicaciones, el análisis de
+casi-duplicados, el reentrenamiento con alertas reales y la integración final de
+la memoria.
 
 ## 1. Ya resuelto en esta revisión
 
@@ -216,9 +220,10 @@ hacer obligatoria B403 y no agregar B311 después de ver el holdout.
 - [x] **Comparación explícita con Qwen base.** `eval/analisis_c0_vs_d.py`
   empareja C0 y D por alerta, calcula McNemar y un IC95 por bootstrap agrupado
   por archivo. Desarrollo: FPRR 22,0 → 48,0 y FNR 2,2 → 5,5 (p = 0,0004).
-  Holdout: FPRR 10,9 → 30,4 y FNR 0,0 → 9,2 (p = 0,0015). El resultado es
-  negativo para D en FPRR y FNR; se publica completo. Datos en
-  `eval/analisis_c0_vs_d.json` y lectura en `docs/ANALISIS_C0_VS_D.md`.
+  Holdout: FPRR 10,9 → 30,4 y FNR 0,0 → 9,2 (p = 0,0015). Es un intercambio: D
+  gana en reducción de ruido y C0 gana en conservación de alertas reales; se
+  publica completo. Datos en `eval/analisis_c0_vs_d.json` y lectura en
+  `docs/ANALISIS_C0_VS_D.md`.
 - [x] **OWASP como eje.** `eval/cobertura_owasp.py` mide la cobertura por el CWE
   del SAST. Desarrollo: A01 1, A02 1, A03 83, A08 53, sin categoría 3. Holdout:
   A02 3, A03 76, A08 30, sin categoría 2. Se documentan 10 discrepancias de 30
@@ -235,9 +240,41 @@ hacer obligatoria B403 y no agregar B311 después de ver el holdout.
   conservó una alerta real (`requests.get(..., verify=False)`). Resumen en
   `eval/auditoria_smoke_repos.json` y `docs/SMOKE_REPOS.md`.
 - [x] **Documento regenerado y validado.** `python scripts/build_avance5.py`
-  produce 182 párrafos y 22 tablas. `python scripts/check_consistencia.py`
-  valida las tablas del docx, README, `docs/ANALISIS_C0_VS_D.md`, `docs/OWASP.md`,
-  `docs/BORRADOR_ANEXOS.md` y `docs/SMOKE_REPOS.md` contra los JSON.
+  produce 190 párrafos y 23 tablas. `python scripts/check_consistencia.py`
+  valida las tablas del docx, README, `docs/ANALISIS_C0_VS_D.md`,
+  `docs/AUDITORIA_FN.md`, `docs/OWASP.md`, `docs/BORRADOR_ANEXOS.md` y
+  `docs/SMOKE_REPOS.md` contra los JSON.
+- [x] **Auditoría de falsos negativos.** `eval/auditar_fn.py` cruza los 12
+  falsos negativos de C0 y D con la adjudicación manual de
+  `eval/auditoria_fn.json` y escribe `eval/analisis_fn.json`. 6 de 11 omisiones
+  brutas son ruido de etiqueta. FNR ajustado: desarrollo C0 2,2 % vs. D 3,3 %;
+  holdout C0 0,0 % vs. D 3,1 %. FPRR ajustado de D: 52,0 % y 39,1 %. McNemar
+  sobre alertas reales deja de ser significativo (p = 1,00 y p = 0,50). Con la
+  política B403, D queda en FNR 0,0 % y FPRR 38,0 %/23,9 %, pero es post hoc.
+  Lectura en `docs/AUDITORIA_FN.md` y sección 11 de `docs/ANALISIS_C0_VS_D.md`.
+- [ ] **Segunda revisión a ciegas de la auditoría de falsos negativos.** La
+  adjudicación actual conoce el veredicto del modelo. Falta otro revisor que
+  clasifique los 12 casos sin verlo, y reportar el acuerdo entre revisores.
 - [ ] Rúbrica aplicada y kappa calculado (requiere dos revisores).
 - [ ] Análisis de casi-duplicados train/holdout.
 - [ ] Integración final de la memoria y ensayo de demostración.
+
+## 7. Plan de mejora del modelo (siguiente iteración)
+
+La auditoría confirma que el problema no es de prompt ni de umbral: es de
+entrenamiento. El modelo nunca vio B403 en el ajuste, la alerta de entrenamiento
+es sintética y va al final del prompt, y la mitad de los ejemplos no tienen
+alerta. Orden propuesto:
+
+1. [x] Auditar los falsos negativos y separar omisión real de ruido de etiqueta.
+2. [ ] Derivar la política por regla **solo de desarrollo**: ninguna regla donde
+   el modelo haya descartado una alerta real puede producir `SAFE`. En
+   desarrollo eso selecciona B403; debe pre-registrarse antes de volver a mirar
+   el holdout.
+3. [ ] Reentrenar el SFT con alertas reales de Bandit en el formato de
+   producción: sin ejemplos sin alerta, target sin `finding_id`, peso en
+   `veredicto`/`cwe` y balance 2:1 o 3:1. Validar solo en desarrollo.
+4. [ ] Añadir pérdida centrada en la decisión (veredicto y CWE antes que la
+   explicación) y diversificar las explicaciones, hoy casi únicas.
+5. [ ] Construir un conjunto de oro **a nivel de alerta** (no de fragmento) y
+   evaluar sobre un conjunto nuevo; el holdout actual queda cerrado.

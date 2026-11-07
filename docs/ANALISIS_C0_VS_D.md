@@ -49,8 +49,9 @@ La exactitud de la decisión —el porcentaje de alertas clasificadas correctame
 **sube** con D en ambos conjuntos. Es una métrica engañosa en este problema: como
 hay más falsos positivos (50 de 141 en desarrollo, 46 de 111 en el holdout),
 descartar mucho mejora la exactitud aunque se pierdan alertas reales. El FPRR y
-el FNR separan los dos tipos de error y muestran lo contrario: **D no domina a
-C0 en ninguna de las dos métricas, en ninguno de los dos conjuntos**.
+el FNR separan los dos tipos de error y muestran un intercambio: **D gana en
+reducción de ruido y C0 gana en conservación de alertas reales**, en los dos
+conjuntos. Ninguno domina al otro en ambas métricas.
 
 En desarrollo, C0 descarta 11 de 50 falsos positivos y 2 de 91 reales; D descarta
 24 de 50 y 5 de 91. En el holdout, C0 descarta 5 de 46 falsos positivos y ninguna
@@ -111,12 +112,18 @@ pickle» con «deserializar datos no confiables». Los 2 B311 son un riesgo nuev
 que no apareció en desarrollo y que motivó la política reportada en
 `docs/ANALISIS_HOLDOUT.md`.
 
-En desarrollo el patrón es idéntico y aún más concentrado: los 4 descartes
-indebidos de D son B403, y el quinto falso negativo es una B403 que C0 también
-descarta. Es decir, **el ajuste no repartió el error: lo especializó en una
-regla**. Eso tiene una consecuencia práctica: una política por regla (B403)
-recupera la mayor parte del daño, que es exactamente lo que se midió en el
-Sprint 7.
+En desarrollo el patrón es idéntico y aún más concentrado: los 4 descartes de
+alertas etiquetadas como reales son B403, y el quinto falso negativo es una B403
+que C0 también descarta. Es decir, **el ajuste no repartió el error: lo
+especializó en una regla**. Eso tiene una consecuencia práctica: una política
+por regla (B403) recupera la mayor parte del daño, que es exactamente lo que se
+midió en el Sprint 7.
+
+Estas cifras usan la etiqueta de fragmento. La auditoría a nivel de alerta
+(`docs/AUDITORIA_FN.md`) muestra que 4 de los 6 falsos negativos del holdout y 2
+de los 5 de desarrollo son falsos positivos de la propia alerta: el fragmento es
+vulnerable, pero la línea señalada por Bandit no lo es. La omisión real de D
+baja a 2 y 3 alertas, respectivamente.
 
 ## 6. El intercambio, en términos de producto
 
@@ -127,10 +134,11 @@ Sprint 7.
 
 La tabla es la forma más honesta de resumir el ajuste: en el holdout, cada
 alerta real que D pierde frente a C0 se paga con 1,5 falsos positivos
-adicionales eliminados. Para un producto en modo asesor, donde el objetivo es
-ahorrar revisión sin ocultar riesgo, ese intercambio es malo: el ahorro de
-revisión es real pero modesto, y el costo se paga en la métrica que el producto
-no puede permitirse.
+adicionales eliminados. Con la etiqueta de fragmento, el intercambio es malo
+para un producto en modo asesor. La auditoría a nivel de alerta
+(`docs/AUDITORIA_FN.md`) lo corrige a 16 falsos positivos por cada 2 alertas
+reales perdidas en ambos conjuntos: sigue siendo un intercambio, pero deja de
+ser un mal negocio y la diferencia en FNR pierde significación estadística.
 
 ## 7. Efecto sobre las explicaciones
 
@@ -183,8 +191,10 @@ Se puede afirmar:
 
 No se puede afirmar:
 
-- Que el modelo afinado sea mejor que el base. En FPRR y FNR, el base gana en
-  los dos conjuntos.
+- Que el modelo afinado sea mejor que el base. D gana en FPRR (descarta más
+  ruido), pero el base gana en FNR (omite menos alertas reales) en los dos
+  conjuntos. Tras la auditoría de `docs/AUDITORIA_FN.md`, la ventaja del base en
+  FNR se reduce a 1 y 2 alertas y deja de ser significativa.
 - Que la mejora de FPRR esté demostrada en el holdout: su IC95 incluye el cero.
 - Que el ajuste generalice a reglas que no aparecen en el corpus; el error se
   concentra en las familias con más ejemplos.
@@ -197,7 +207,8 @@ No se puede afirmar:
 La comparación con Qwen base no respalda la hipótesis de que el ajuste fino
 mejora la detección. Respalda una conclusión más específica y más útil: **un
 modelo base de 1,5B ya es conservador y útil como segundo filtro, y el ajuste
-fino compró decisión a cambio de omisiones**. El aporte del proyecto no es
+fino compró reducción de ruido a cambio de unas pocas omisiones concentradas en
+B403**. El aporte del proyecto no es
 «nuestro modelo supera a Qwen»; es el pipeline local completo, el protocolo de
 medición pareado con intervalos agrupados por archivo, la política de no
 descarte y la evidencia de que el ajuste, sin control por regla, no es una
@@ -206,3 +217,29 @@ mejora automática.
 Esa es la sección que debe leerse antes que la tabla de resultados: si el jurado
 pregunta por qué existe un modelo afinado que rinde peor que el base, la
 respuesta está en el diseño experimental, no en una excusa.
+
+## 11. Auditoría a nivel de alerta (análisis de sensibilidad)
+
+La tabla de la sección 2 usa la etiqueta del conjunto, que es a nivel de
+fragmento: si el fragmento es vulnerable, cualquier alerta de Bandit sobre él
+cuenta como real. `docs/AUDITORIA_FN.md` audita los 12 falsos negativos de C0 y
+D y encuentra que **6 son ruido de etiqueta**: la línea señalada no corresponde a
+la vulnerabilidad del fragmento.
+
+| Conjunto | Modelo | FNR bruto | FNR ajustado | FPRR ajustado | Precisión del descarte |
+|---|---|---:|---:|---:|---:|
+| Desarrollo | C0 | 2,2 % | 2,2 % | 22,0 % | 84,6 % |
+| Desarrollo | D | 5,5 % | 3,3 % | 52,0 % | 89,7 % |
+| Holdout | C0 | 0,0 % | 0,0 % | 10,9 % | 100,0 % |
+| Holdout | D | 9,2 % | 3,1 % | 39,1 % | 90,0 % |
+
+La diferencia real frente a C0 queda en 1 alerta (desarrollo) y 2 (holdout), y
+la prueba de McNemar sobre alertas reales deja de ser significativa (p = 1,00 y
+p = 0,50). El empeoramiento de FNR, por tanto, **no está demostrado** una vez
+descontado el ruido; lo que sí sigue en pie es que D descarta mucho más ruido y
+que el ajuste no mejora la detección.
+
+La auditoría es manual, no fue a ciegas y usa un criterio de patrón (presencia
+del sink), no de flujo de datos. Sus cifras son una cota de sensibilidad, no un
+reetiquetado del holdout. El resultado pre-registrado sigue siendo el de la
+sección 2.
