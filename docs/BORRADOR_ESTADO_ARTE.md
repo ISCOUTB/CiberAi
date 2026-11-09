@@ -1,7 +1,11 @@
 # Borrador — Estado del arte (Sprint 8)
 
-> Documento de trabajo. Las referencias de esta sección están verificadas contra
-> arXiv, Crossref o el sitio del proyecto al 3 de noviembre de 2026. Falta
+> Documento de trabajo. Las referencias académicas están verificadas contra
+> arXiv, Crossref o el sitio del proyecto al 3 de noviembre de 2026, y la sede de
+> Du et al. (2026) se confirmó el 8 de noviembre de 2026 con el DOI de ACM. Las
+> entradas de herramientas y normas (Bandit, llama.cpp, Ollama, MITRE, arc42, C4,
+> dataset) se citan pero no se revisaron en esa pasada. La lista es la misma que
+> en `scripts/build_avance5.py` (§11). Falta
 > integrarlo al formato institucional y ampliar la discusión de trabajos
 > relacionados con SAST comercial.
 
@@ -204,11 +208,17 @@ evaluación única. No pretende superar el estado del arte
 en detección; pretende producir una comparación honesta y reproducible de un
 triage local, con un modelo de 1,5B que cabe en una GPU de 4 GB.
 
-## Referencias de esta sección
+## Referencias
 
+- ayshajavd. Code Security Vulnerability Dataset. Hugging Face.
+  https://huggingface.co/datasets/ayshajavd/code-security-vulnerability-dataset
+- Bandit. Herramienta de análisis estático de seguridad para Python.
+  https://bandit.readthedocs.io
 - Bhandari, G., Naseer, A., y Moonen, L. (2021). CVEfixes: automated collection
   of vulnerabilities and their fixes from open-source software. PROMISE 2021.
   https://doi.org/10.1145/3475960.3475985
+- Brown, S. (2018). The C4 Model for Visualising Software Architecture.
+  https://c4model.com
 - Chen, Y. et al. (2023). DiverseVul: A New Vulnerable Source Code Dataset for
   Deep Learning Based Vulnerability Detection. RAID 2023.
   https://arxiv.org/abs/2304.00409
@@ -218,13 +228,17 @@ triage local, con un modelo de 1,5B que cabe en una GPU de 4 GB.
   Far Are We? ICSE 2025. https://arxiv.org/abs/2403.18624
 - Du, X. et al. (2026). Reducing False Positives in Static Bug Detection with
   LLMs: An Empirical Study in Industry. ICSE 2026 SEIP.
-  https://arxiv.org/abs/2601.18844
+  https://doi.org/10.1145/3786583.3786910
 - Hu, E. J. et al. (2021). LoRA: Low-Rank Adaptation of Large Language Models.
   https://arxiv.org/abs/2106.09685
 - Hui, B. et al. (2024). Qwen2.5-Coder Technical Report.
   https://arxiv.org/abs/2409.12186
 - Li, H. et al. (2025). IRIS: LLM-Assisted Static Analysis for Detecting Security
   Vulnerabilities. ICLR 2025. https://arxiv.org/abs/2405.17238
+- llama.cpp. Inferencia de modelos en formato GGUF.
+  https://github.com/ggml-org/llama.cpp
+- MITRE. Common Weakness Enumeration (CWE). https://cwe.mitre.org
+- Ollama. Ejecución local de modelos de lenguaje. https://ollama.com
 - OWASP. (2021). OWASP Top 10:2021. https://owasp.org/Top10/2021/
 - OWASP. (2025). OWASP Top 10 for LLM Applications 2025.
   https://genai.owasp.org/llm-top-10/
@@ -233,5 +247,7 @@ triage local, con un modelo de 1,5B que cabe en una GPU de 4 GB.
 - Siddiq, M. L., y Santos, J. C. (2022). SecurityEval dataset: mining
   vulnerability examples to evaluate machine learning-based code generation
   techniques. MSR4P&S 2022. https://doi.org/10.1145/3549035.3561184
+- Starke, G., y Hruschka, P. (2023). arc42: Template for Architecture
+  Communication and Documentation, versión 9.1. https://arc42.org
 - Zhang, T. et al. (2020). BERTScore: Evaluating Text Generation with BERT.
   ICLR 2020. https://arxiv.org/abs/1904.09675

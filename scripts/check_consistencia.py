@@ -985,10 +985,34 @@ def revisar_obsoletas(errores):
                 errores.append("{}: cifra obsoleta '{}'".format(archivo.name, cifra))
 
 
+def revisar_referencias(errores):
+    """La lista del estado del arte y la del Avance 5 deben tener las mismas fuentes."""
+    texto_arte = (ROOT / "docs" / "BORRADOR_ESTADO_ARTE.md").read_text(encoding="utf-8")
+    seccion_arte = texto_arte.split("## Referencias", 1)[-1]
+    fuente_avance = (ROOT / "scripts" / "build_avance5.py").read_text(encoding="utf-8")
+    seccion_avance = fuente_avance.split("# 11. Referencias", 1)[-1].split("doc.save", 1)[0]
+
+    def urls(bloque):
+        encontradas = [u.rstrip(".,)\"") for u in re.findall(r"https?://[^\s\"]+", bloque)]
+        return encontradas
+
+    arte = urls(seccion_arte)
+    avance = urls(seccion_avance)
+    if len(set(arte)) != len(arte):
+        errores.append("BORRADOR_ESTADO_ARTE.md: URL repetida en Referencias")
+    if set(arte) != set(avance):
+        errores.append("Referencias: fuentes distintas entre el estado del arte y el Avance 5: "
+                       "solo en estado del arte {}; solo en Avance 5 {}".format(
+                           sorted(set(arte) - set(avance)), sorted(set(avance) - set(arte))))
+    if "csrc.nist.gov" in seccion_avance or "NIST" in seccion_avance:
+        errores.append("Avance 5 §11: NIST SSDF citada sin uso en el texto")
+
+
 def main():
     metricas = cargar_metricas()
     filas = fila_esperada(metricas)
     errores = []
+    revisar_referencias(errores)
     revisar_docx(filas, errores)
     revisar_docx_holdout(errores)
     revisar_docx_c0_vs_d(errores)
