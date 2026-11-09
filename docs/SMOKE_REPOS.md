@@ -61,6 +61,14 @@ evaluación: el ajuste aumenta el ahorro de revisión. El smoke test no permite
 afirmar que esos descartes sean correctos en general; para eso está la auditoría
 manual de la sección siguiente.
 
+> **Repetición del 8 de noviembre de 2026.** La corrida reproducible con el mismo
+> `qwen2.5-coder:1.5b` dio 4 `SAFE`, 2 `SOSPECHOSA` y 2 respuestas inválidas para
+> el modelo base; D se mantuvo en 34 `SAFE` y 0 errores. La diferencia con la
+> tabla (3 `SAFE`, 0 errores) es no determinismo del servidor, no un cambio de
+> prompt ni de política. El detalle está en `docs/CORRIDA_REPOS_REALES.md`. Esa
+> repetición también muestra que D descarta el 100 % de las alertas de severidad
+> baja y el 0 % de las de severidad media o alta.
+
 ## 4. Auditoría manual de los descartes
 
 Se revisó el código de cada alerta recomendada como `SAFE`. La clasificación es

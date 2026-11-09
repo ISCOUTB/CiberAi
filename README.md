@@ -280,16 +280,49 @@ arc42 9.1 y vistas C4 de contexto y contenedores. Los diagramas se escriben en
 El contrato de decisión —un `SAFE` solo recomienda, nunca elimina— forma parte de
 la arquitectura, no es un detalle de implementación.
 
-## Smoke test con repositorios
+## Pruebas con repositorios reales y banco sintético
+
+### Repositorios pinneados
 
 Se ejecutó el producto sobre tres repositorios fijados por etiqueta y commit:
 `pallets/itsdangerous` 2.2.0, `jpadilla/pyjwt` 2.10.1 y `httpie/cli` 3.2.4. Se
-escaneó solo el paquete fuente: 38 alertas por modelo, 0 errores, 0 alertas
-eliminadas. D recomendó descartar 34 y el modelo base 3; la auditoría manual de
-las 34 recomendaciones de D no encontró descartes incorrectos. D conservó una
-alerta real de HTTPie (`requests.get(..., verify=False)`). No es una evaluación
-etiquetada y no produce FPRR/FNR; el detalle está en `docs/SMOKE_REPOS.md` y el
-resumen en `eval/auditoria_smoke_repos.json`.
+escaneó solo el paquete fuente: 38 alertas por modelo y 0 alertas eliminadas. En
+la corrida reproducible del 8 de noviembre, el modelo base recomendó descartar 4
+(2 respuestas inválidas quedaron como `SOSPECHOSA`) y D recomendó descartar 34,
+sin errores. Una corrida anterior del base había dado 3 `SAFE` y 0 errores; la
+diferencia es no determinismo del servidor, no un cambio de política. La
+auditoría manual de las 34 recomendaciones de D no encontró descartes
+incorrectos. D conservó una alerta real de HTTPie (`requests.get(...,
+verify=False)`). No es una evaluación etiquetada y no produce FPRR/FNR; el
+detalle está en `docs/SMOKE_REPOS.md`, la repetición en
+`docs/CORRIDA_REPOS_REALES.md` y el resumen en `eval/corrida_repos_reales.json`.
+
+La repetición confirma un patrón: D recomienda descartar 34 de 34 alertas de
+severidad baja y 0 de las 4 de severidad media o alta. El banco sintético mide
+esa hipótesis de forma directa.
+
+### Banco sintético etiquetado
+
+`eval/sinteticas/casos.jsonl` contiene 26 alertas nuevas con etiqueta a nivel de
+alerta: 14 reales y 12 falsos positivos, repartidas en 13 reglas de Bandit. Cada
+regla tiene casos reales y falsos para romper la correlación regla→veredicto. No
+se usa el holdout.
+
+| Métrica | Base | D |
+|---|---:|---:|
+| FPRR (FP recomendados para descarte) | 0,0 % | 58,3 % |
+| FNR (reales recomendados para descarte) | 0,0 % | 35,7 % |
+| Exactitud de decisión | 53,8 % | 61,5 % |
+| Precisión de los descartes | n/a | 58,3 % |
+
+El base no descarta nada y su FPRR de 0 % no es un mérito. D mejora la exactitud
+7,7 puntos y acierta 7 de 12 falsos positivos, pero descarta 5 de 14 alertas
+reales. Su decisión se reproduce al 100 % con la regla «`SAFE` si la severidad
+del SAST es baja», y sus explicaciones son plantillas idénticas: en este banco no
+usa el contexto del código. El resultado respalda el modo asesor y desaconseja el
+descarte automático. Detalle en `docs/BANCO_SINTETICO.md`, interpretación en
+`docs/ANALISIS_BANCO_SINTETICO.md`; se reproduce con
+`python eval/banco_sintetico.py`.
 
 ## Estructura del proyecto
 
@@ -366,6 +399,11 @@ prompt injection).
   en `docs/diagramas/`.
 - `docs/SMOKE_REPOS.md`: smoke test sobre tres repositorios reales y auditoría
   manual de las recomendaciones de descarte.
+- `docs/CORRIDA_REPOS_REALES.md`: repetición reproducible del smoke con los dos
+  modelos, desglose OWASP y decisión por severidad.
+- `docs/BANCO_SINTETICO.md`: resultados del banco de 26 casos etiquetados.
+- `docs/ANALISIS_BANCO_SINTETICO.md`: interpretación del banco, atajo de
+  severidad y límites.
 - `docs/PROTOCOLO_HOLDOUT.md`: reglas, comandos y checklist de la evaluación.
 - `AVANCE5_PENDIENTES.md`: estado del Sprint 8 y pendientes.
 - `scripts/check_consistencia.py`: valida las tablas del Avance 5 y de los

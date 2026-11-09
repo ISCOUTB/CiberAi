@@ -179,6 +179,17 @@ fijados por commit y limitados al paquete fuente.
 - Auditoría manual: 0 descartes incorrectos y 0 dudosos.
 - D conservó una alerta real (`requests.get(..., verify=False)`).
 
+Repetición del 8 de noviembre (`docs/CORRIDA_REPOS_REALES.md`): 38 alertas, base
+4 `SAFE`, 2 `SOSPECHOSA` y 2 respuestas inválidas; D 34 `SAFE` y 0 errores. D
+descarta 34/34 alertas de severidad baja y 0/4 de severidad media o alta.
+
+Banco sintético etiquetado del 8 de noviembre: 26 alertas nuevas (14 reales, 12
+falsos positivos, 13 reglas), fuera del holdout. Base: FPRR 0,0 %, FNR 0,0 %,
+exactitud 53,8 %, 2 respuestas inválidas. D: FPRR 58,3 %, FNR 35,7 %, exactitud
+61,5 %. La decisión de D se reproduce al 100 % con «SAFE si la severidad del SAST
+es baja», y sus explicaciones son plantillas idénticas. Detalle en
+`docs/BANCO_SINTETICO.md` y `docs/ANALISIS_BANCO_SINTETICO.md`.
+
 ### 5.8 Rendimiento y robustez
 
 - Integración: 43,1 s para 9 alertas (≈4,8 s/alerta) en GTX 1650.

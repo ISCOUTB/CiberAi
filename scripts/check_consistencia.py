@@ -669,6 +669,175 @@ def revisar_smoke(errores):
                     sorted(vistos), sorted(conteo)))
 
 
+def _num(valor, decimales=1):
+    if valor is None:
+        return "n/a"
+    return ("{:." + str(decimales) + "f}").format(valor).replace(".", ",")
+
+
+def _num_pct(valor):
+    return "n/a" if valor is None else _num(valor) + " %"
+
+
+def _num_delta(valor):
+    if valor is None:
+        return "n/a"
+    return ("{:+." + "1f}").format(valor).replace(".", ",")
+
+
+def _filas_banco_metricas(datos):
+    base = datos["metricas"]["base"]
+    d = datos["metricas"]["d"]
+    comp = datos["comparacion"]
+    filas = []
+    for etiqueta, clave in (
+        ("FPRR (FP recomendados para descarte)", "FPRR"),
+        ("FNR (reales recomendadas para descarte)", "FNR"),
+        ("Exactitud de decisión", "exactitud_decision"),
+        ("Precisión de los descartes", "precision_descartes"),
+    ):
+        filas.append([
+            etiqueta, _num_pct(base[clave]), _num_pct(d[clave]),
+            _num_delta(comp[clave]["delta_pts"]),
+            _num_pct(comp[clave]["relativo_pct"]),
+        ])
+    return filas
+
+
+def revisar_banco(errores):
+    """Compara las tablas del banco sintético con eval/banco_sintetico.json."""
+    datos = cargar_json("eval/banco_sintetico.json")
+    ruta = ROOT / "docs" / "BANCO_SINTETICO.md"
+    if not ruta.exists():
+        errores.append("Falta docs/BANCO_SINTETICO.md")
+        return
+    texto = ruta.read_text(encoding="utf-8")
+
+    filas = tabla_md(texto, ["Métrica", "Base", "D", "Δ puntos", "Relativo"])
+    if filas is None:
+        errores.append("docs/BANCO_SINTETICO.md: no se encontro la tabla de metricas")
+    else:
+        comparar_filas("docs/BANCO_SINTETICO.md metricas",
+                       filas, _filas_banco_metricas(datos), errores)
+
+    filas = tabla_md(texto, ["Modelo", "TP", "FN", "TN", "FP", "Inválidas"])
+    esperadas = []
+    for nombre, clave in (("Base", "base"), ("D", "d")):
+        m = datos["metricas"][clave]
+        c = m["confusion"]
+        esperadas.append([
+            nombre, str(c["TP"]), str(c["FN"]), str(c["TN"]), str(c["FP"]),
+            str(m["respuestas_invalidas"]),
+        ])
+    if filas is None:
+        errores.append("docs/BANCO_SINTETICO.md: no se encontro la matriz de decision")
+    else:
+        comparar_filas("docs/BANCO_SINTETICO.md confusion", filas, esperadas, errores)
+
+    filas = tabla_md(texto, ["Regla", "CWE", "OWASP", "Reales", "FP",
+                             "SAFE base", "SAFE D"])
+    esperadas = [
+        [r["regla"], r["cwe"], r["owasp"], str(r["reales"]),
+         str(r["falsos_positivos"]), str(r["base_safe"]), str(r["d_safe"])]
+        for r in datos["reglas"]
+    ]
+    if filas is None:
+        errores.append("docs/BANCO_SINTETICO.md: no se encontro la tabla por regla")
+    else:
+        comparar_filas("docs/BANCO_SINTETICO.md reglas", filas, esperadas, errores)
+
+    atajo = datos["atajo_severidad"]
+    frase = "{}/{} casos ({} %)".format(
+        atajo["coincidencias"], atajo["total"], _num(atajo["porcentaje"]))
+    if frase not in texto:
+        errores.append(
+            "docs/BANCO_SINTETICO.md: falta el atajo de severidad '{}'".format(frase))
+
+    filas = tabla_md(texto, ["ID", "Regla", "Severidad SAST", "Veredicto D"])
+    esperadas = [
+        [r["id"], r["regla"], r.get("severidad_sast", "?"),
+         r["modelos"]["d"]["veredicto"]]
+        for r in datos["registros"]
+    ]
+    if filas is None:
+        errores.append("docs/BANCO_SINTETICO.md: no se encontro el detalle por caso")
+    else:
+        comparar_filas("docs/BANCO_SINTETICO.md atajo", filas, esperadas, errores)
+
+    # README: misma tabla de metricas, con etiquetas ligeramente distintas.
+    filas = tabla_md((ROOT / "README.md").read_text(encoding="utf-8"),
+                     ["Métrica", "Base", "D"])
+    esperadas = _filas_banco_metricas(datos)
+    if filas is None:
+        errores.append("README.md: no se encontro la tabla del banco sintetico")
+    else:
+        if len(filas) != len(esperadas):
+            errores.append("README.md banco: {} filas (esperadas {})".format(
+                len(filas), len(esperadas)))
+        for obtenido, esperado in zip(filas, esperadas):
+            if obtenido[1] != esperado[1] or obtenido[2] != esperado[2]:
+                errores.append(
+                    "README.md banco '{}': esperado {} | documento {}".format(
+                        esperado[0], esperado[1:3], obtenido[1:3]))
+
+
+def revisar_corrida(errores):
+    """Compara las tablas de la corrida real con eval/corrida_repos_reales.json."""
+    datos = cargar_json("eval/corrida_repos_reales.json")
+    ruta = ROOT / "docs" / "CORRIDA_REPOS_REALES.md"
+    if not ruta.exists():
+        errores.append("Falta docs/CORRIDA_REPOS_REALES.md")
+        return
+    texto = ruta.read_text(encoding="utf-8")
+
+    filas = tabla_md(texto, ["Repo", "Etiqueta", "Commit", "Subdirectorio", "Alertas"])
+    esperadas = [
+        ["`{}`".format(nombre), info["tag"], "`{}`".format(info["commit"]),
+         "`{}`".format(info["subdir"]), str(info["alertas"])]
+        for nombre, info in datos["repos"].items()
+    ]
+    if filas is None:
+        errores.append("docs/CORRIDA_REPOS_REALES.md: no se encontro la tabla de repos")
+    else:
+        comparar_filas("docs/CORRIDA_REPOS_REALES.md repos", filas, esperadas, errores)
+
+    filas = tabla_md(texto, ["Modelo", "Alertas", "SAFE", "Conservadas",
+                             "SOSPECHOSA", "Errores", "% SAFE"])
+    esperadas = []
+    for nombre, clave in (("Base", "base"), ("D", "d")):
+        m = datos["totales"][clave]
+        esperadas.append([
+            nombre, str(m["alertas"]), str(m["SAFE"]), str(m["conservadas"]),
+            str(m["SOSPECHOSA"]), str(m["errores_modelo"]),
+            _num_pct(100.0 * m["SAFE"] / m["alertas"]),
+        ])
+    if filas is None:
+        errores.append("docs/CORRIDA_REPOS_REALES.md: no se encontro la tabla de totales")
+    else:
+        comparar_filas("docs/CORRIDA_REPOS_REALES.md totales", filas, esperadas, errores)
+
+    filas = tabla_md(texto, ["Categoría", "Alertas", "SAFE base", "SAFE D"])
+    esperadas = [
+        [categoria, str(v["alertas"]), str(v["base_safe"]), str(v["d_safe"])]
+        for categoria, v in datos["por_owasp"].items()
+    ]
+    if filas is None:
+        errores.append("docs/CORRIDA_REPOS_REALES.md: no se encontro la tabla OWASP")
+    else:
+        comparar_filas("docs/CORRIDA_REPOS_REALES.md owasp", filas, esperadas, errores)
+
+    filas = tabla_md(texto, ["Severidad", "Alertas", "SAFE base", "SAFE D", "% SAFE D"])
+    esperadas = [
+        [sev, str(v["alertas"]), str(v["base_safe"]), str(v["d_safe"]),
+         _num_pct(100.0 * v["d_safe"] / v["alertas"])]
+        for sev, v in datos["por_severidad"].items()
+    ]
+    if filas is None:
+        errores.append("docs/CORRIDA_REPOS_REALES.md: no se encontro la tabla de severidad")
+    else:
+        comparar_filas("docs/CORRIDA_REPOS_REALES.md severidad", filas, esperadas, errores)
+
+
 def revisar_auditoria_fn(errores):
     """Compara las tablas de la auditoría de falsos negativos con su JSON."""
     datos = cargar_json("eval/analisis_fn.json")["conjuntos"]
@@ -799,6 +968,8 @@ def main():
     revisar_md_c0_vs_d(errores)
     revisar_owasp(errores)
     revisar_smoke(errores)
+    revisar_banco(errores)
+    revisar_corrida(errores)
     revisar_auditoria_fn(errores)
     revisar_readme(filas, errores)
     revisar_marcadores(errores)

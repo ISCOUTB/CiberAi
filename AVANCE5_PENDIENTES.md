@@ -240,7 +240,16 @@ hacer obligatoria B403 y no agregar B311 después de ver el holdout.
   al paquete fuente. Base: 3 SAFE de 38; D: 34 SAFE de 38; 0 alertas eliminadas
   y 0 errores. Auditoría manual: 0 descartes incorrectos y 0 dudosos; D
   conservó una alerta real (`requests.get(..., verify=False)`). Resumen en
-  `eval/auditoria_smoke_repos.json` y `docs/SMOKE_REPOS.md`.
+  `eval/auditoria_smoke_repos.json` y `docs/SMOKE_REPOS.md`. Repetición del 8 de
+  noviembre: base 4 SAFE, 2 SOSPECHOSA y 2 respuestas inválidas; D 34 SAFE y 0
+  errores; D descarta 34/34 alertas de severidad baja y 0/4 de media o alta
+  (`docs/CORRIDA_REPOS_REALES.md`).
+- [x] **Banco sintético etiquetado.** 26 alertas nuevas fuera del holdout (14
+  reales, 12 falsos positivos, 13 reglas). Base: FPRR 0,0 %, FNR 0,0 %, exactitud
+  53,8 %, 2 respuestas inválidas. D: FPRR 58,3 %, FNR 35,7 %, exactitud 61,5 %.
+  La decisión de D se reproduce al 100 % con «SAFE si la severidad del SAST es
+  baja», señal de atajo y no de lectura del contexto. `eval/banco_sintetico.py`,
+  `docs/BANCO_SINTETICO.md` y `docs/ANALISIS_BANCO_SINTETICO.md`.
 - [x] **Documento regenerado y validado.** `python scripts/build_avance5.py`
   produce 190 párrafos y 23 tablas. `python scripts/check_consistencia.py`
   valida las tablas del docx, README, `docs/ANALISIS_C0_VS_D.md`,

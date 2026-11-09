@@ -1,0 +1,1223 @@
+{
+  "generado_por": "eval/corrida_repos_reales.py",
+  "fecha": "2026-11-08",
+  "modelos": {
+    "base": "qwen2.5-coder:1.5b",
+    "d": "qwen2.5-coder-triage"
+  },
+  "prompt": "triage.build_prompt + triage.SYSTEM (producto)",
+  "repos": {
+    "itsdangerous": {
+      "tag": "2.2.0",
+      "commit": "096c8d42545d3b68ea21a4f890fb2b2d8979c0bd",
+      "subdir": "src",
+      "alertas": 2,
+      "base": {
+        "alertas": 2,
+        "SAFE": 0,
+        "SOSPECHOSA": 0,
+        "VULNERABLE": 2,
+        "conservadas": 2,
+        "errores_modelo": 0
+      },
+      "d": {
+        "alertas": 2,
+        "SAFE": 1,
+        "SOSPECHOSA": 0,
+        "VULNERABLE": 1,
+        "conservadas": 2,
+        "errores_modelo": 0
+      },
+      "acuerdo": {
+        "coincidencias": 1,
+        "total": 2
+      }
+    },
+    "pyjwt": {
+      "tag": "2.10.1",
+      "commit": "3ebbb22f30f2b1b41727b269a08b427e9a85d6bb",
+      "subdir": "jwt",
+      "alertas": 1,
+      "base": {
+        "alertas": 1,
+        "SAFE": 0,
+        "SOSPECHOSA": 0,
+        "VULNERABLE": 1,
+        "conservadas": 1,
+        "errores_modelo": 0
+      },
+      "d": {
+        "alertas": 1,
+        "SAFE": 0,
+        "SOSPECHOSA": 0,
+        "VULNERABLE": 1,
+        "conservadas": 1,
+        "errores_modelo": 0
+      },
+      "acuerdo": {
+        "coincidencias": 1,
+        "total": 1
+      }
+    },
+    "httpie": {
+      "tag": "3.2.4",
+      "commit": "2105caa49bae87c5809c274e407619a0de2639d1",
+      "subdir": "httpie",
+      "alertas": 35,
+      "base": {
+        "alertas": 35,
+        "SAFE": 4,
+        "SOSPECHOSA": 2,
+        "VULNERABLE": 29,
+        "conservadas": 35,
+        "errores_modelo": 2
+      },
+      "d": {
+        "alertas": 35,
+        "SAFE": 33,
+        "SOSPECHOSA": 0,
+        "VULNERABLE": 2,
+        "conservadas": 35,
+        "errores_modelo": 0
+      },
+      "acuerdo": {
+        "coincidencias": 6,
+        "total": 35
+      }
+    }
+  },
+  "por_owasp": {
+    "A01": {
+      "alertas": 1,
+      "base_safe": 0,
+      "d_safe": 0
+    },
+    "A02": {
+      "alertas": 1,
+      "base_safe": 0,
+      "d_safe": 0
+    },
+    "A03": {
+      "alertas": 10,
+      "base_safe": 1,
+      "d_safe": 10
+    },
+    "A07": {
+      "alertas": 2,
+      "base_safe": 0,
+      "d_safe": 2
+    },
+    "sin_categoria": {
+      "alertas": 24,
+      "base_safe": 3,
+      "d_safe": 22
+    }
+  },
+  "por_severidad": {
+    "alta": {
+      "alertas": 2,
+      "base_safe": 0,
+      "d_safe": 0
+    },
+    "baja": {
+      "alertas": 34,
+      "base_safe": 4,
+      "d_safe": 34
+    },
+    "media": {
+      "alertas": 2,
+      "base_safe": 0,
+      "d_safe": 0
+    }
+  },
+  "discrepancias": [
+    {
+      "repo": "itsdangerous",
+      "regla": "B110",
+      "severidad": "baja",
+      "archivo": "itsdangerous/timed.py",
+      "linea": 114,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "cli/argparser.py",
+      "linea": 416,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "cli/dicts.py",
+      "linea": 65,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "cli/nested_json/interpret.py",
+      "linea": 115,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "cli/nested_json/parse.py",
+      "linea": 48,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "cli/utils.py",
+      "linea": 53,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "downloads.py",
+      "linea": 263,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "downloads.py",
+      "linea": 319,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "downloads.py",
+      "linea": 350,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "downloads.py",
+      "linea": 369,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "downloads.py",
+      "linea": 370,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "internal/daemon_runner.py",
+      "linea": 44,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "internal/daemon_runner.py",
+      "linea": 45,
+      "base": "SOSPECHOSA",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B603",
+      "severidad": "baja",
+      "archivo": "internal/daemons.py",
+      "linea": 29,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B404",
+      "severidad": "baja",
+      "archivo": "internal/daemons.py",
+      "linea": 33,
+      "base": "SOSPECHOSA",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "manager/cli.py",
+      "linea": 100,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B404",
+      "severidad": "baja",
+      "archivo": "manager/compat.py",
+      "linea": 3,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B603",
+      "severidad": "baja",
+      "archivo": "manager/compat.py",
+      "linea": 30,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B603",
+      "severidad": "baja",
+      "archivo": "manager/compat.py",
+      "linea": 52,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B408",
+      "severidad": "baja",
+      "archivo": "output/formatters/xml.py",
+      "linea": 7,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "output/streams.py",
+      "linea": 45,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "output/streams.py",
+      "linea": 212,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B404",
+      "severidad": "baja",
+      "archivo": "output/ui/man_pages.py",
+      "linea": 3,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B603",
+      "severidad": "baja",
+      "archivo": "output/ui/man_pages.py",
+      "linea": 26,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B603",
+      "severidad": "baja",
+      "archivo": "output/ui/man_pages.py",
+      "linea": 44,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "output/ui/palette.py",
+      "linea": 97,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "output/ui/rich_progress.py",
+      "linea": 109,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B105",
+      "severidad": "baja",
+      "archivo": "sessions.py",
+      "linea": 144,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B105",
+      "severidad": "baja",
+      "archivo": "sessions.py",
+      "linea": 280,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "severidad": "baja",
+      "archivo": "sessions.py",
+      "linea": 303,
+      "base": "VULNERABLE",
+      "d": "SAFE"
+    }
+  ],
+  "totales": {
+    "base": {
+      "alertas": 38,
+      "SAFE": 4,
+      "SOSPECHOSA": 2,
+      "VULNERABLE": 32,
+      "conservadas": 38,
+      "errores_modelo": 2
+    },
+    "d": {
+      "alertas": 38,
+      "SAFE": 34,
+      "SOSPECHOSA": 0,
+      "VULNERABLE": 4,
+      "conservadas": 38,
+      "errores_modelo": 0
+    }
+  },
+  "hallazgos": [
+    {
+      "repo": "itsdangerous",
+      "regla": "B324",
+      "cwe": "CWE-327",
+      "owasp": "A02",
+      "severidad": "alta",
+      "archivo": "itsdangerous/signer.py",
+      "linea": 45,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-327",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-327",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "itsdangerous",
+      "regla": "B110",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "itsdangerous/timed.py",
+      "linea": 114,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "pyjwt",
+      "regla": "B310",
+      "cwe": "CWE-22",
+      "owasp": "A01",
+      "severidad": "media",
+      "archivo": "jwks_client.py",
+      "linea": 56,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-22",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-22",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "cli/argparser.py",
+      "linea": 416,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "cli/dicts.py",
+      "linea": 65,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "cli/nested_json/interpret.py",
+      "linea": 115,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "cli/nested_json/interpret.py",
+      "linea": 127,
+      "base": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "cli/nested_json/parse.py",
+      "linea": 48,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "cli/utils.py",
+      "linea": 53,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "context.py",
+      "linea": 99,
+      "base": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "downloads.py",
+      "linea": 217,
+      "base": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "downloads.py",
+      "linea": 263,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "downloads.py",
+      "linea": 319,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "downloads.py",
+      "linea": 350,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "downloads.py",
+      "linea": 369,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "downloads.py",
+      "linea": 370,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "internal/daemon_runner.py",
+      "linea": 44,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "internal/daemon_runner.py",
+      "linea": 45,
+      "base": {
+        "veredicto": "SOSPECHOSA",
+        "cwe": "CWE-703",
+        "valido": false,
+        "origen": "respaldo"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B404",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "severidad": "baja",
+      "archivo": "internal/daemons.py",
+      "linea": 14,
+      "base": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B603",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "severidad": "baja",
+      "archivo": "internal/daemons.py",
+      "linea": 29,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-78",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B404",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "severidad": "baja",
+      "archivo": "internal/daemons.py",
+      "linea": 33,
+      "base": {
+        "veredicto": "SOSPECHOSA",
+        "cwe": "CWE-78",
+        "valido": false,
+        "origen": "respaldo"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B501",
+      "cwe": "CWE-295",
+      "owasp": "sin_categoria",
+      "severidad": "alta",
+      "archivo": "internal/update_warnings.py",
+      "linea": 44,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-295",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-295",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B113",
+      "cwe": "CWE-400",
+      "owasp": "sin_categoria",
+      "severidad": "media",
+      "archivo": "internal/update_warnings.py",
+      "linea": 44,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-400",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-400",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "manager/cli.py",
+      "linea": 100,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B404",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "severidad": "baja",
+      "archivo": "manager/compat.py",
+      "linea": 3,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-78",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B603",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "severidad": "baja",
+      "archivo": "manager/compat.py",
+      "linea": 30,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-78",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B603",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "severidad": "baja",
+      "archivo": "manager/compat.py",
+      "linea": 52,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-78",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B408",
+      "cwe": "CWE-20",
+      "owasp": "A03",
+      "severidad": "baja",
+      "archivo": "output/formatters/xml.py",
+      "linea": 7,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-20",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "output/streams.py",
+      "linea": 45,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "output/streams.py",
+      "linea": 212,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B404",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "severidad": "baja",
+      "archivo": "output/ui/man_pages.py",
+      "linea": 3,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-78",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B603",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "severidad": "baja",
+      "archivo": "output/ui/man_pages.py",
+      "linea": 26,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-78",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B603",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "severidad": "baja",
+      "archivo": "output/ui/man_pages.py",
+      "linea": 44,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-78",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "output/ui/palette.py",
+      "linea": 97,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "output/ui/rich_progress.py",
+      "linea": 109,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B105",
+      "cwe": "CWE-259",
+      "owasp": "A07",
+      "severidad": "baja",
+      "archivo": "sessions.py",
+      "linea": 144,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-259",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B105",
+      "cwe": "CWE-259",
+      "owasp": "A07",
+      "severidad": "baja",
+      "archivo": "sessions.py",
+      "linea": 280,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-259",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    },
+    {
+      "repo": "httpie",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "severidad": "baja",
+      "archivo": "sessions.py",
+      "linea": 303,
+      "base": {
+        "veredicto": "VULNERABLE",
+        "cwe": "CWE-703",
+        "valido": true,
+        "origen": "llm"
+      },
+      "d": {
+        "veredicto": "SAFE",
+        "cwe": "Ninguno",
+        "valido": true,
+        "origen": "llm"
+      }
+    }
+  ]
+}

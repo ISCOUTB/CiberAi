@@ -1,0 +1,1067 @@
+{
+  "generado_por": "eval/banco_sintetico.py",
+  "fecha": "2026-11-08",
+  "modelos": {
+    "base": "qwen2.5-coder:1.5b",
+    "d": "qwen2.5-coder-triage"
+  },
+  "prompt": "triage.build_prompt + triage.SYSTEM (producto)",
+  "alertas": 26,
+  "errores_validacion": [],
+  "ignoradas": {
+    "B404 en S03": 1,
+    "B403 en S06": 1,
+    "B404 en S11": 1,
+    "B607 en S11": 1,
+    "B404 en S16": 1,
+    "B607 en S16": 1,
+    "B607 en S17": 1,
+    "B403 en S19": 1,
+    "B404 en S24": 1,
+    "B607 en S24": 1
+  },
+  "metricas": {
+    "base": {
+      "alertas": 26,
+      "reales": 14,
+      "falsos_positivos": 12,
+      "confusion": {
+        "TP": 14,
+        "FN": 0,
+        "TN": 0,
+        "FP": 12
+      },
+      "conservadas": 26,
+      "recomendadas_descarte": 0,
+      "sospechosas": 2,
+      "FPRR": 0.0,
+      "FNR": 0.0,
+      "exactitud_decision": 53.8,
+      "precision_descartes": null,
+      "respuestas_invalidas": 2
+    },
+    "d": {
+      "alertas": 26,
+      "reales": 14,
+      "falsos_positivos": 12,
+      "confusion": {
+        "TP": 9,
+        "FN": 5,
+        "TN": 7,
+        "FP": 5
+      },
+      "conservadas": 14,
+      "recomendadas_descarte": 12,
+      "sospechosas": 0,
+      "FPRR": 58.3,
+      "FNR": 35.7,
+      "exactitud_decision": 61.5,
+      "precision_descartes": 58.3,
+      "respuestas_invalidas": 0
+    }
+  },
+  "comparacion": {
+    "FPRR": {
+      "base": 0.0,
+      "d": 58.3,
+      "delta_pts": 58.3,
+      "relativo_pct": null
+    },
+    "FNR": {
+      "base": 0.0,
+      "d": 35.7,
+      "delta_pts": 35.7,
+      "relativo_pct": null
+    },
+    "exactitud_decision": {
+      "base": 53.8,
+      "d": 61.5,
+      "delta_pts": 7.7,
+      "relativo_pct": 14.3
+    },
+    "precision_descartes": {
+      "base": null,
+      "d": 58.3,
+      "delta_pts": null,
+      "relativo_pct": null
+    }
+  },
+  "acuerdo": {
+    "coincidencias": 13,
+    "discrepancias": [
+      {
+        "id": "S02",
+        "regla": "B608",
+        "etiqueta": "real",
+        "base": "SOSPECHOSA",
+        "d": "VULNERABLE"
+      },
+      {
+        "id": "S08",
+        "regla": "B311",
+        "etiqueta": "real",
+        "base": "VULNERABLE",
+        "d": "SAFE"
+      },
+      {
+        "id": "S09",
+        "regla": "B105",
+        "etiqueta": "real",
+        "base": "VULNERABLE",
+        "d": "SAFE"
+      },
+      {
+        "id": "S11",
+        "regla": "B603",
+        "etiqueta": "real",
+        "base": "VULNERABLE",
+        "d": "SAFE"
+      },
+      {
+        "id": "S13",
+        "regla": "B101",
+        "etiqueta": "real",
+        "base": "VULNERABLE",
+        "d": "SAFE"
+      },
+      {
+        "id": "S14",
+        "regla": "B110",
+        "etiqueta": "real",
+        "base": "VULNERABLE",
+        "d": "SAFE"
+      },
+      {
+        "id": "S16",
+        "regla": "B602",
+        "etiqueta": "falso_positivo",
+        "base": "VULNERABLE",
+        "d": "SAFE"
+      },
+      {
+        "id": "S17",
+        "regla": "B605",
+        "etiqueta": "falso_positivo",
+        "base": "VULNERABLE",
+        "d": "SAFE"
+      },
+      {
+        "id": "S21",
+        "regla": "B311",
+        "etiqueta": "falso_positivo",
+        "base": "SOSPECHOSA",
+        "d": "SAFE"
+      },
+      {
+        "id": "S22",
+        "regla": "B105",
+        "etiqueta": "falso_positivo",
+        "base": "VULNERABLE",
+        "d": "SAFE"
+      },
+      {
+        "id": "S24",
+        "regla": "B603",
+        "etiqueta": "falso_positivo",
+        "base": "VULNERABLE",
+        "d": "SAFE"
+      },
+      {
+        "id": "S25",
+        "regla": "B101",
+        "etiqueta": "falso_positivo",
+        "base": "VULNERABLE",
+        "d": "SAFE"
+      },
+      {
+        "id": "S26",
+        "regla": "B110",
+        "etiqueta": "falso_positivo",
+        "base": "VULNERABLE",
+        "d": "SAFE"
+      }
+    ]
+  },
+  "reglas": [
+    {
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "reales": 1,
+      "falsos_positivos": 1,
+      "base_safe": 0,
+      "d_safe": 2
+    },
+    {
+      "regla": "B105",
+      "cwe": "CWE-259",
+      "owasp": "A07",
+      "reales": 1,
+      "falsos_positivos": 1,
+      "base_safe": 0,
+      "d_safe": 2
+    },
+    {
+      "regla": "B110",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "reales": 1,
+      "falsos_positivos": 1,
+      "base_safe": 0,
+      "d_safe": 2
+    },
+    {
+      "regla": "B201",
+      "cwe": "CWE-94",
+      "owasp": "A03",
+      "reales": 1,
+      "falsos_positivos": 0,
+      "base_safe": 0,
+      "d_safe": 0
+    },
+    {
+      "regla": "B301",
+      "cwe": "CWE-502",
+      "owasp": "A08",
+      "reales": 1,
+      "falsos_positivos": 1,
+      "base_safe": 0,
+      "d_safe": 0
+    },
+    {
+      "regla": "B307",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "reales": 1,
+      "falsos_positivos": 1,
+      "base_safe": 0,
+      "d_safe": 0
+    },
+    {
+      "regla": "B310",
+      "cwe": "CWE-22",
+      "owasp": "A01",
+      "reales": 1,
+      "falsos_positivos": 1,
+      "base_safe": 0,
+      "d_safe": 0
+    },
+    {
+      "regla": "B311",
+      "cwe": "CWE-330",
+      "owasp": "A02",
+      "reales": 1,
+      "falsos_positivos": 1,
+      "base_safe": 0,
+      "d_safe": 2
+    },
+    {
+      "regla": "B324",
+      "cwe": "CWE-327",
+      "owasp": "A02",
+      "reales": 1,
+      "falsos_positivos": 1,
+      "base_safe": 0,
+      "d_safe": 0
+    },
+    {
+      "regla": "B602",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "reales": 1,
+      "falsos_positivos": 1,
+      "base_safe": 0,
+      "d_safe": 1
+    },
+    {
+      "regla": "B603",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "reales": 1,
+      "falsos_positivos": 1,
+      "base_safe": 0,
+      "d_safe": 2
+    },
+    {
+      "regla": "B605",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "reales": 1,
+      "falsos_positivos": 1,
+      "base_safe": 0,
+      "d_safe": 1
+    },
+    {
+      "regla": "B608",
+      "cwe": "CWE-89",
+      "owasp": "A03",
+      "reales": 2,
+      "falsos_positivos": 1,
+      "base_safe": 0,
+      "d_safe": 0
+    }
+  ],
+  "registros": [
+    {
+      "id": "S01",
+      "archivo": "S01_b608_concat.py",
+      "regla": "B608",
+      "cwe": "CWE-89",
+      "owasp": "A03",
+      "etiqueta": "real",
+      "justificacion": "La consulta SQL se construye concatenando un identificador recibido por parametro; permite inyeccion SQL.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-89",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta es real porque se detecta un riesgo de SQL injection en la función buscar. El código concatena el user_id directamente a la consulta SQL, lo que permite que cualquier usuario pueda ejecutar consultas SQL maliciosas."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-89",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-89 en código Python."
+        }
+      },
+      "severidad_sast": "media",
+      "confianza_sast": "LOW"
+    },
+    {
+      "id": "S02",
+      "archivo": "S02_b608_format.py",
+      "regla": "B608",
+      "cwe": "CWE-89",
+      "owasp": "A03",
+      "etiqueta": "real",
+      "justificacion": "La consulta SQL interpola el nombre con el operador %; la entrada no se parametriza.",
+      "modelos": {
+        "base": {
+          "veredicto": "SOSPECHOSA",
+          "cwe": "CWE-89",
+          "severidad": "media",
+          "valido": false,
+          "origen": "error",
+          "explicacion": "Ollama respondio 500: {\"error\":\"prediction aborted, token repeat limit reached\"}"
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-89",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-89 en código Python."
+        }
+      },
+      "severidad_sast": "media",
+      "confianza_sast": "LOW"
+    },
+    {
+      "id": "S03",
+      "archivo": "S03_b602_shell.py",
+      "regla": "B602",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "etiqueta": "real",
+      "justificacion": "shell=True con un comando que concatena el host recibido; permite inyeccion de comandos.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-78",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta B602 indica que se está utilizando subprocess.call con shell=True, lo cual es una práctica no segura que puede permitir la ejecución de comandos arbitrarios. Esto puede ser un riesgo si el comando que se ejecuta contiene argumentos maliciosos."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-78",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-78 en código Python."
+        }
+      },
+      "severidad_sast": "alta",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S04",
+      "archivo": "S04_b605_os_system.py",
+      "regla": "B605",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "etiqueta": "real",
+      "justificacion": "os.system concatena una ruta externa en una orden de shell; permite inyeccion de comandos.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-78",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta B605 indica que se está utilizando `os.system` para ejecutar comandos de sistema, lo que puede permitir un ataque de inyección de comandos si el usuario proporciona un argumento malicioso."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-78",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-78 en código Python."
+        }
+      },
+      "severidad_sast": "alta",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S05",
+      "archivo": "S05_b307_eval.py",
+      "regla": "B307",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "etiqueta": "real",
+      "justificacion": "eval sobre una expresion externa ejecuta codigo arbitrario.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-78",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta B307 indica que el uso de la función `eval()` puede ser inseguro si se proporciona una expresión no confiable. En este caso, la función `eval()` es usada para evaluar una expresión proporcionada por el usuario, lo que puede permitir ataques de ejecución de código malicioso."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-78",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-78 en código Python."
+        }
+      },
+      "severidad_sast": "media",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S06",
+      "archivo": "S06_b301_pickle.py",
+      "regla": "B301",
+      "cwe": "CWE-502",
+      "owasp": "A08",
+      "etiqueta": "real",
+      "justificacion": "pickle.loads sobre datos externos permite ejecucion de codigo durante la deserializacion.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-502",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código utiliza pickle para deserializar datos, lo cual puede ser un riesgo si los datos provienen de un origen no confiable. Esto puede permitir a un atacante deserializar y ejecutar código malicioso."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-502",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-502 en código Python."
+        }
+      },
+      "severidad_sast": "media",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S07",
+      "archivo": "S07_b324_md5.py",
+      "regla": "B324",
+      "cwe": "CWE-327",
+      "owasp": "A02",
+      "etiqueta": "real",
+      "justificacion": "MD5 se usa para almacenar un hash de contrasena; es un digest debil para seguridad.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-327",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El uso de MD5 para encriptar contraseñas es considerado una vulnerabilidad debido a su vulnerabilidad a ataques de fuerza bruta. MD5 es un algoritmo de hash inseguro que no es adecuado para encriptar contraseñas."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-327",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-327 en código Python."
+        }
+      },
+      "severidad_sast": "alta",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S08",
+      "archivo": "S08_b311_token.py",
+      "regla": "B311",
+      "cwe": "CWE-330",
+      "owasp": "A02",
+      "etiqueta": "real",
+      "justificacion": "El token se genera con random, que no es criptograficamente seguro y es predecible.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-330",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El uso de pseudo-random generators sin considerar la seguridad puede permitir la generación de tokens no seguros. Esto puede ser un riesgo para aplicaciones que requieren tokens de autenticación."
+        },
+        "d": {
+          "veredicto": "SAFE",
+          "cwe": "Ninguno",
+          "severidad": "Info",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código no presenta el patrón vulnerable indicado."
+        }
+      },
+      "severidad_sast": "baja",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S09",
+      "archivo": "S09_b105_password.py",
+      "regla": "B105",
+      "cwe": "CWE-259",
+      "owasp": "A07",
+      "etiqueta": "real",
+      "justificacion": "Credencial de base de datos embebida en el codigo fuente de produccion.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-259",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta B105 indica que se detectó una vulnerabilidad de seguridad en el código, ya que se encontró una cadena de texto hardcodeada en la variable DB_PASSWORD. Esto puede ser un riesgo si el código se comparte o se ejecuta en un entorno no controlado."
+        },
+        "d": {
+          "veredicto": "SAFE",
+          "cwe": "Ninguno",
+          "severidad": "Info",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código no presenta el patrón vulnerable indicado."
+        }
+      },
+      "severidad_sast": "baja",
+      "confianza_sast": "MEDIUM"
+    },
+    {
+      "id": "S10",
+      "archivo": "S10_b310_ssrf.py",
+      "regla": "B310",
+      "cwe": "CWE-22",
+      "owasp": "A01",
+      "etiqueta": "real",
+      "justificacion": "urlopen recibe una URL externa sin validar el esquema; permite SSRF y lectura de archivos con file://.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-22",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta indica que el código permite la ejecución de URLs que no están permitidas por el sistema. Esto puede ser un riesgo si el sistema no controla adecuadamente las URLs que se reciben."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-22",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-22 en código Python."
+        }
+      },
+      "severidad_sast": "media",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S11",
+      "archivo": "S11_b603_sh.py",
+      "regla": "B603",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "etiqueta": "real",
+      "justificacion": "Se invoca sh -c con un comando externo; la lista de argumentos no evita la inyeccion.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-78",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta B603 indica que el uso de subprocess.run con un comando proporcionado por el usuario puede llevar a un ataque de ejecución de código malicioso. El comando proporcionado por el usuario puede ser manipulado para ejecutar cualquier comando, lo que puede resultar en un ataque de ejecución de código malicioso."
+        },
+        "d": {
+          "veredicto": "SAFE",
+          "cwe": "Ninguno",
+          "severidad": "Info",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código no presenta el patrón vulnerable indicado."
+        }
+      },
+      "severidad_sast": "baja",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S12",
+      "archivo": "S12_b201_debug.py",
+      "regla": "B201",
+      "cwe": "CWE-94",
+      "owasp": "A03",
+      "etiqueta": "real",
+      "justificacion": "La aplicacion Flask arranca con debug=True; el depurador expone ejecucion de codigo en produccion.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-94",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta indica que el Flask app está configurado para ejecutar el debugger, lo que permite la ejecución de código arbitrario. Esto es un riesgo alto que puede permitir a un atacante ejecutar cualquier código que se envíe a la aplicación."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-94",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-94 en código Python."
+        }
+      },
+      "severidad_sast": "alta",
+      "confianza_sast": "MEDIUM"
+    },
+    {
+      "id": "S13",
+      "archivo": "S13_b101_assert.py",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "etiqueta": "real",
+      "justificacion": "El control de privilegios se hace con assert; con python -O la comprobacion desaparece y el borrado se ejecuta.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-703",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta B101 indica que se detectó un uso de assert, lo que es considerado una vulnerabilidad en el código. El assert se utiliza para verificar condiciones, pero si se utiliza de manera incorrecta, puede llevar a errores en tiempo de ejecución."
+        },
+        "d": {
+          "veredicto": "SAFE",
+          "cwe": "Ninguno",
+          "severidad": "Info",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código no presenta el patrón vulnerable indicado."
+        }
+      },
+      "severidad_sast": "baja",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S14",
+      "archivo": "S14_b110_login.py",
+      "regla": "B110",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "etiqueta": "real",
+      "justificacion": "El fallo de verificacion de credenciales se silencia y la funcion devuelve True; omite la autenticacion.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-703",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código utiliza un bloque try-except para manejar excepciones, pero no se maneja adecuadamente. Esto puede permitir que un atacante explote la vulnerabilidad de la excepción, lo que puede llevar a un ataque de fuerza bruta o un ataque de inyección SQL."
+        },
+        "d": {
+          "veredicto": "SAFE",
+          "cwe": "Ninguno",
+          "severidad": "Info",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código no presenta el patrón vulnerable indicado."
+        }
+      },
+      "severidad_sast": "baja",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S15",
+      "archivo": "S15_b608_whitelist.py",
+      "regla": "B608",
+      "cwe": "CWE-89",
+      "owasp": "A03",
+      "etiqueta": "falso_positivo",
+      "justificacion": "El valor interpolado sale de un diccionario cerrado de columnas permitidas; no hay entrada arbitraria.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-89",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta indica que se puede realizar un SQL injection si se utiliza una cadena basada en el query sin realizar las validaciones necesarias. Esto se debe a que la función `listar` no verifica si la columna `orden` es una columna válida en la tabla `users` antes de usarla en la consulta SQL."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-89",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-89 en código Python."
+        }
+      },
+      "severidad_sast": "media",
+      "confianza_sast": "LOW"
+    },
+    {
+      "id": "S16",
+      "archivo": "S16_b602_const.py",
+      "regla": "B602",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "etiqueta": "falso_positivo",
+      "justificacion": "El comando es una constante sin entrada externa; shell=True no aporta un vector de inyeccion.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-78",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta se considera real porque el uso de `subprocess.call` con `shell=True` puede cambiar en el futuro, lo que puede permitir un ataque de ejecución de comandos maliciosos. Es recomendable reescribir el código para evitar este riesgo."
+        },
+        "d": {
+          "veredicto": "SAFE",
+          "cwe": "Ninguno",
+          "severidad": "Info",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código no presenta el patrón vulnerable indicado."
+        }
+      },
+      "severidad_sast": "baja",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S17",
+      "archivo": "S17_b605_const.py",
+      "regla": "B605",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "etiqueta": "falso_positivo",
+      "justificacion": "La orden de shell es una constante fija; no se concatena entrada del usuario.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-78",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta indica que el código está usando `os.system("
+        },
+        "d": {
+          "veredicto": "SAFE",
+          "cwe": "Ninguno",
+          "severidad": "Info",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código no presenta el patrón vulnerable indicado."
+        }
+      },
+      "severidad_sast": "baja",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S18",
+      "archivo": "S18_b307_const.py",
+      "regla": "B307",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "etiqueta": "falso_positivo",
+      "justificacion": "eval recibe una expresion literal controlada por el programador; no hay entrada externa.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-78",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta B307 indica que se utiliza la función eval() para evaluar una cadena que contiene código Python. Este es un riesgo alto porque eval() puede ejecutar cualquier código que se le proporcione, lo que puede permitir ataques de seguridad."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-78",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-78 en código Python."
+        }
+      },
+      "severidad_sast": "media",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S19",
+      "archivo": "S19_b301_const.py",
+      "regla": "B301",
+      "cwe": "CWE-502",
+      "owasp": "A08",
+      "etiqueta": "falso_positivo",
+      "justificacion": "pickle.loads deserializa una constante interna definida en el propio modulo; el dato no es externo.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-502",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código utiliza pickle para deserializar datos desafiantes, lo que puede permitir ataques de deserialización de objetos. Esto es un riesgo alto que puede permitir a un atacante manipular datos desafiantes para ejecutar código malicioso."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-502",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-502 en código Python."
+        }
+      },
+      "severidad_sast": "media",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S20",
+      "archivo": "S20_b324_cache.py",
+      "regla": "B324",
+      "cwe": "CWE-327",
+      "owasp": "A02",
+      "etiqueta": "falso_positivo",
+      "justificacion": "MD5 se usa como suma de verificacion de contenido para una cache, no como primitiva de seguridad.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-327",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El uso de un hash MD5 es considerado débil debido a su vulnerabilidad a ataques de ataque por fuerza bruta. El analizador está alertando sobre este problema."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-327",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-327 en código Python."
+        }
+      },
+      "severidad_sast": "alta",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S21",
+      "archivo": "S21_b311_jitter.py",
+      "regla": "B311",
+      "cwe": "CWE-330",
+      "owasp": "A02",
+      "etiqueta": "falso_positivo",
+      "justificacion": "random solo introduce una espera variable; no genera secretos ni valores de seguridad.",
+      "modelos": {
+        "base": {
+          "veredicto": "SOSPECHOSA",
+          "cwe": "CWE-330",
+          "severidad": "Baja",
+          "valido": false,
+          "origen": "respaldo",
+          "explicacion": "No se pudo validar la respuesta del modelo: respuesta no es JSON valido. La alerta se conserva."
+        },
+        "d": {
+          "veredicto": "SAFE",
+          "cwe": "Ninguno",
+          "severidad": "Info",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código no presenta el patrón vulnerable indicado."
+        }
+      },
+      "severidad_sast": "baja",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S22",
+      "archivo": "S22_b105_test.py",
+      "regla": "B105",
+      "cwe": "CWE-259",
+      "owasp": "A07",
+      "etiqueta": "falso_positivo",
+      "justificacion": "El valor es un marcador de pruebas sin privilegios, no una credencial real.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-259",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta indica que se detectó una vulnerabilidad de seguridad en el código, ya que se encontró una cadena de texto hardcoded en la variable TEST_PASSWORD. Esto puede ser un riesgo si el código se comparte o se utiliza en un entorno público."
+        },
+        "d": {
+          "veredicto": "SAFE",
+          "cwe": "Ninguno",
+          "severidad": "Info",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código no presenta el patrón vulnerable indicado."
+        }
+      },
+      "severidad_sast": "baja",
+      "confianza_sast": "MEDIUM"
+    },
+    {
+      "id": "S23",
+      "archivo": "S23_b310_const.py",
+      "regla": "B310",
+      "cwe": "CWE-22",
+      "owasp": "A01",
+      "etiqueta": "falso_positivo",
+      "justificacion": "La URL es una constante https de un dominio fijo; no hay entrada externa ni esquema peligroso.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-22",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código permite abrir URLs de manera no segura, permitiendo el uso de 'file://' y otros esquemas. Esto puede ser un riesgo si el sistema no tiene medidas de seguridad adicionales."
+        },
+        "d": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-22",
+          "severidad": "Media",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "Se detecta un patrón asociado a CWE-22 en código Python."
+        }
+      },
+      "severidad_sast": "media",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S24",
+      "archivo": "S24_b603_const.py",
+      "regla": "B603",
+      "cwe": "CWE-78",
+      "owasp": "A03",
+      "etiqueta": "falso_positivo",
+      "justificacion": "subprocess recibe una lista constante y shell=False; no hay interpolacion de entrada.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-78",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El uso de subprocess.run() sin verificar la entrada puede permitir ejecutar comandos no deseados, lo que puede resultar en un ataque de ejecución de comandos."
+        },
+        "d": {
+          "veredicto": "SAFE",
+          "cwe": "Ninguno",
+          "severidad": "Info",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código no presenta el patrón vulnerable indicado."
+        }
+      },
+      "severidad_sast": "baja",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S25",
+      "archivo": "S25_b101_test.py",
+      "regla": "B101",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "etiqueta": "falso_positivo",
+      "justificacion": "El assert verifica el resultado de una prueba unitaria; no protege una decision de seguridad.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-703",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta B101 indica que se detectó un uso de assert, que es una práctica de programación que no debe ser utilizada en producción debido a su potencial de vulnerabilidad. El código proporcionado utiliza assert para verificar que 2 + 2 sea igual a 4, lo cual es una prueba de igualdad que no debe ser utilizada en producción."
+        },
+        "d": {
+          "veredicto": "SAFE",
+          "cwe": "Ninguno",
+          "severidad": "Info",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código no presenta el patrón vulnerable indicado."
+        }
+      },
+      "severidad_sast": "baja",
+      "confianza_sast": "HIGH"
+    },
+    {
+      "id": "S26",
+      "archivo": "S26_b110_cleanup.py",
+      "regla": "B110",
+      "cwe": "CWE-703",
+      "owasp": "sin_categoria",
+      "etiqueta": "falso_positivo",
+      "justificacion": "El except silencia el fallo al borrar un archivo temporal que puede no existir; la limpieza es best-effort.",
+      "modelos": {
+        "base": {
+          "veredicto": "VULNERABLE",
+          "cwe": "CWE-703",
+          "severidad": "Alta",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "La alerta B110 indica que se detectaron Try, Except, y Pass en la función limpiar. Esto es considerado un código malicioso porque permite que el programa ignore errores y continúe ejecutando, lo que puede llevar a la eliminación de archivos sin verificar si son válidos. Esto es un riesgo alto para la seguridad de la aplicación."
+        },
+        "d": {
+          "veredicto": "SAFE",
+          "cwe": "Ninguno",
+          "severidad": "Info",
+          "valido": true,
+          "origen": "llm",
+          "explicacion": "El código no presenta el patrón vulnerable indicado."
+        }
+      },
+      "severidad_sast": "baja",
+      "confianza_sast": "HIGH"
+    }
+  ],
+  "atajo_severidad": {
+    "regla": "SAFE si la severidad del SAST es baja; VULNERABLE en otro caso",
+    "coincidencias": 26,
+    "total": 26,
+    "porcentaje": 100.0,
+    "discrepancias": []
+  }
+}

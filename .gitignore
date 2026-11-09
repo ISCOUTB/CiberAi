@@ -39,6 +39,7 @@ llama.cpp/
 eval/tmp_py/
 eval/tmp_py_holdout/
 eval/pruebas/out_*/
+eval/repos_reales/
 
 # Frontend
 frontend/node_modules/
