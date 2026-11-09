@@ -138,10 +138,12 @@ de que la decisión se reproduce con una regla sobre la severidad.
 ## 8.5 Trabajo futuro
 
 - **Casi-duplicados entre train y holdout.** La comparación exacta de hashes
-  normalizados dio 0 coincidencias, pero falta medir similitud difusa. El
-  dataset no tiene identificador de repositorio, así que una partición agrupada
-  de verdad no es posible con los datos actuales; hay que declararlo como
-  limitación o conseguir metadatos de origen.
+  normalizados dio 0 coincidencias, pero el análisis de similitud de tokens
+  (`eval/casi_duplicados.py`) encontró que el **70,3 % de las funciones del
+  holdout tienen un vecino ≥ 0,8** en train/val, y 45/111 tienen similitud ≥ 0,9.
+  Hay que determinar si esos pares son realmente variantes del mismo proyecto o
+  solo coinciden de patrón, y construir una partición agrupada por repositorio si
+  se consiguen los metadatos.
 - **Auditoría humana de explicaciones** con la rúbrica de cuatro criterios y
   kappa de Cohen entre dos revisores ciegos. Debe reportar también la diversidad
   de salidas, porque D colapsó a plantillas.
@@ -203,6 +205,9 @@ mecanismo. Agregaron cuatro hechos que la memoria debe conservar:
    4 medias o altas, sin eliminar ninguna alerta.
 4. Las explicaciones de D son dos plantillas también con el prompt del producto,
    no solo en el arnés de evaluación.
+5. La validez externa está debilitada: el 70,3 % de las funciones del holdout
+   tienen un vecino ≥ 0,8 en train/val; la partición aleatoria por función no
+   garantiza independencia.
 
 También dejaron una advertencia de alcance: el banco es pequeño, adversarial y de
 un solo anotador, y la corrida real no está etiquetada. Sirven para explicar por

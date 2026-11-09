@@ -149,6 +149,16 @@ alcanza para demostrar estadísticamente que el FNR sea ≤ 5 %; solo permite
 descartar tasas mucho peores. Esa frase debe quedar en la memoria y no
 reemplazarse por el valor puntual.
 
+La segunda limitación es más grave: la similitud entre funciones del holdout y
+funciones de train/val. `eval/casi_duplicados.py` mide casi-duplicados por
+tokens: el **70,3 % de las funciones del holdout tiene un vecino con similitud
+≥ 0,8** en train o val, y 45/111 tienen similitud ≥ 0,9. Los pares más altos son
+variantes del mismo patrón (`pickle.__reduce__`, Flask + `sqlite3`). El
+proyecto no puede demostrar que esas similitudes sean fuga real, porque el
+dataset no tiene identificador de repositorio, pero sí puede decir que la
+partición aleatoria por función no garantiza independencia. Esa amenaza debe
+aparecer junto con las métricas de generalización.
+
 ## 7.5 La pérdida no mide calidad de triage
 
 La pérdida de entrenamiento cayó de 1,11 a 0,36 y se estancó. Ese descenso prueba
@@ -230,8 +240,9 @@ final en el analista.
 
 - **Validez interna:** partición aleatoria por función, posible filtración entre
   repositorios y etiquetas a nivel de función sin alcanzabilidad. El holdout se
-  ejecutó sin reagrupar; la comparación exacta de hashes dio 0 coincidencias,
-  pero faltan los casi-duplicados.
+  ejecutó sin reagrupar; la comparación exacta de hashes dio 0 coincidencias, y
+  el análisis de casi-duplicados encontró que el 70,3 % de las funciones del
+  holdout tienen un vecino ≥ 0,8 en train/val.
 - **Validez externa:** un solo lenguaje (Python), un solo SAST (Bandit), un
   corpus con 94,1 % de código C y un modelo de 1,5B. Los resultados no
   generalizan a Java, a SAST comerciales ni a modelos más grandes.
@@ -271,6 +282,8 @@ No confirmó:
 - Que el CWE predicho sea correcto de forma independiente.
 - Que el modelo detecte vulnerabilidades que Bandit no reporta.
 - Que el resultado se sostenga en otros lenguajes o SAST.
+- Que la partición sea independiente: el 70,3 % de las funciones del holdout
+  tienen un vecino ≥ 0,8 en train/val, lo que deja abierta la hipótesis de fuga.
 
 El holdout no es una prueba de producción; es la última medición no contaminada
 de una hipótesis acotada. El resultado honesto es que D reduce el ruido de forma

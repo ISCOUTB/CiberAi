@@ -31,8 +31,11 @@ incluye identificador de proyecto, de modo que dos funciones del mismo
 repositorio pueden caer en particiones distintas. Esa limitación se declara como
 amenaza a la validez. No se rehizo la partición agrupada porque el dataset no
 tiene metadatos de repositorio; la comparación exacta de hashes normalizados
-contra `train_80` y `val_total` dio 0 coincidencias, pero los casi-duplicados
-quedan pendientes.
+contra `train_80` y `val_total` dio 0 coincidencias, pero el análisis de
+casi-duplicados (`eval/casi_duplicados.py`) encontró que el **70,3 % de las
+funciones del holdout tienen un vecino con similitud de tokens ≥ 0,8** en train o
+val, y 45/111 alcanzan ≥ 0,9. Eso no demuestra fuga, pero sí debilita la
+interpretación del holdout como medición pura de generalización.
 
 ## 5.2 Construcción de los ejemplos de ajuste
 
@@ -254,6 +257,7 @@ python eval\cobertura_owasp.py                                 # matriz OWASP
 python eval\banco_sintetico.py --validar                       # banco: solo Bandit
 python eval\banco_sintetico.py                                 # banco: base y D
 python eval\corrida_repos_reales.py                            # repos pinneados
+python eval\casi_duplicados.py                                 # amenaza de validez
 python scripts\check_consistencia.py                           # auditoría de cifras
 python -m unittest discover -s agente\tests                    # pruebas del producto
 ```
