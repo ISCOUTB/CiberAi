@@ -56,12 +56,12 @@ alertas bajas y 0 de 4 medias o altas. La severidad entra en el prompt y el
 modelo la usa como atajo. El FPRR alto no es evidencia de que lea el contexto del
 código.
 
-**El error de omisión se concentra en reglas de importación.** Confirmada con un
-matiz importante. En desarrollo las cinco alertas reales descartadas eran B403.
-En el holdout son 4 B403 y **2 B311**; el error sigue concentrado en reglas de
-importación y aleatoriedad, pero ya no en una sola. B403 es la parte mitigable;
-B311 aparece como riesgo nuevo y no se convierte en regla después de ver el
-holdout.
+**El error de omisión se concentra en reglas de baja severidad.** Confirmada con
+un matiz importante. En desarrollo las cinco alertas reales descartadas eran
+B403. En el holdout son 4 B403 y **2 B311**; el banco sintético añade B105, B110,
+B101 y B603. El patrón común no es la importación, sino la severidad baja del
+SAST. B403 es la parte mitigable; B311 aparece como riesgo nuevo y no se
+convierte en regla después de ver el holdout.
 
 **El coste permite ejecutar el modelo en una GPU de 4 GB.** Confirmada. El
 Q4_K_M ocupa 1.115 MB de VRAM y el proceso `llama-server` unos 700 MB de RAM; la
@@ -94,13 +94,14 @@ crudo es 9,2 %; con ella, 3,1 % (IC95 0,8–10,5 %) y el FPRR baja de 30,4 % a
 B311 llevaría el FNR a 0 %; **no se adopta** porque la regla se elegiría después
 de ver el holdout. Queda como trabajo futuro para un conjunto independiente.
 
-El banco sintético agrega el caso que la corrida real no puede dar: con etiqueta
-por alerta, D descarta 5 de 14 reales (FNR 35,7 %, IC95 16,3–61,2 %) y acierta 7
-de 12 falsos positivos (FPRR 58,3 %, IC95 32,0–80,7 %). El ahorro alto no es señal de comprensión. Por eso el
-modo asesor se mantiene aunque la corrida sobre repositorios reales no muestre
-descartes incorrectos: esa corrida no tiene verdad de referencia y no puede
-demostrar acierto. La conclusión de producto no depende del 35,7 % puntual, sino
-de que la decisión se reproduce con una regla sobre la severidad.
+El banco sintético agrega el caso adversarial que la corrida real no pone a
+prueba: con etiqueta por alerta, D descarta 5 de 14 reales (FNR 35,7 %, IC95
+16,3–61,2 %) y acierta 7 de 12 falsos positivos (FPRR 58,3 %, IC95
+32,0–80,7 %). La auditoría manual de repos reales es favorable (FPRR 100 %, FNR
+0 %), pero su muestra es pequeña y elegida; el banco muestra que, fuera de ese
+caso favorable, el ahorro se apoya en la severidad y no en el contexto. Por eso
+el modo asesor se mantiene. La conclusión de producto no depende del 35,7 %
+puntual, sino de que la decisión se reproduce con una regla sobre la severidad.
 
 ## 8.4 Aportes del proyecto
 
@@ -128,22 +129,23 @@ de que la decisión se reproduce con una regla sobre la severidad.
    Applications 2025, donde ocho riesgos tienen evidencia propia, y con una
    checklist parcial de ASVS 5.0.0. El aporte metodológico es la distinción entre
    «lo que el producto cubre» y «lo que la norma incluye».
-7. **Un banco adversarial y una corrida real como control del mecanismo.** El
-   banco etiquetado (26 alertas, 13 reglas) muestra que la decisión de D se
-   explica por la severidad del SAST y no por el contexto; la corrida sobre tres
-   repositorios pinneados confirma el mismo patrón sobre código real sin eliminar
-   ninguna alerta. Juntas separan «ahorro de revisión» de «comprensión del
-   código», que es la distinción que el FPRR por sí solo no puede hacer.
+7. **Un banco adversarial y una auditoría de repos reales como control del
+   mecanismo.** El banco etiquetado (26 alertas, 13 reglas) muestra que la
+   decisión de D se explica por la severidad del SAST y no por el contexto; la
+   auditoría manual de 38 alertas sobre tres repositorios pinneados confirma el
+   comportamiento sobre código real fuera del dataset. Juntas separan «ahorro de
+   revisión» de «comprensión del código», que es la distinción que el FPRR por sí
+   solo no puede hacer.
 
 ## 8.5 Trabajo futuro
 
-- **Casi-duplicados entre train y holdout.** La comparación exacta de hashes
-  normalizados dio 0 coincidencias, pero el análisis de similitud de tokens
-  (`eval/casi_duplicados.py`) encontró que el **70,3 % de las funciones del
-  holdout tienen un vecino ≥ 0,8** en train/val, y 45/111 tienen similitud ≥ 0,9.
-  Hay que determinar si esos pares son realmente variantes del mismo proyecto o
-  solo coinciden de patrón, y construir una partición agrupada por repositorio si
-  se consiguen los metadatos.
+- **Validar los casi-duplicados entre train y holdout.** La comparación exacta
+  de hashes normalizados dio 0 coincidencias, pero el análisis de similitud de
+  tokens (`eval/casi_duplicados.py`) encontró que el **70,3 % de las funciones
+  del holdout tienen un vecino ≥ 0,8** en train/val, y 45/111 tienen similitud ≥
+  0,9. Hay que determinar si esos pares son realmente variantes del mismo
+  proyecto o solo coinciden de patrón, y construir una partición agrupada por
+  repositorio si se consiguen los metadatos.
 - **Auditoría humana de explicaciones** con la rúbrica de cuatro criterios y
   kappa de Cohen entre dos revisores ciegos. Debe reportar también la diversidad
   de salidas, porque D colapsó a plantillas.
@@ -194,7 +196,7 @@ es la última medición no contaminada de una hipótesis acotada.
 ## 8.7 Qué agregaron el banco y los repositorios
 
 El holdout midió generalización; el banco y la corrida real midieron el
-mecanismo. Agregaron cuatro hechos que la memoria debe conservar:
+mecanismo. Agregaron seis hechos que la memoria debe conservar:
 
 1. La decisión de D se reproduce 26/26 con una regla sobre la severidad del SAST.
 2. Con etiquetas por alerta, D descarta 5 de 14 reales (FNR 35,7 %, IC95
@@ -213,8 +215,9 @@ mecanismo. Agregaron cuatro hechos que la memoria debe conservar:
    garantiza independencia.
 
 También dejaron una advertencia de alcance: el banco es pequeño, adversarial y de
-un solo anotador, y la corrida real no está etiquetada. Sirven para explicar por
-qué el modo asesor es necesario, no para estimar el FPRR o el FNR de producción.
+un solo anotador; la corrida real está etiquetada por un solo auditor y sus
+repos fueron elegidos por el autor. Sirven para explicar por qué el modo asesor
+es necesario, no para estimar el FPRR o el FNR de producción.
 Esa estimación sigue dependiendo del holdout y de su intervalo. Ninguna de las dos
 pruebas se usó para ajustar prompts, reglas ni umbrales, y el holdout permaneció
 intacto.

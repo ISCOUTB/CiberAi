@@ -351,8 +351,9 @@ prompt injection).
 
 - La partición es aleatoria por función, no por repositorio; el dataset no tiene
   identificador de proyecto. El holdout se evaluó sin reagrupar. La comparación
-  exacta de hashes normalizados contra train y validación dio 0 coincidencias,
-  pero no se midieron casi-duplicados.
+  exacta de hashes normalizados contra train y validación dio 0 coincidencias, y
+  el análisis de similitud de tokens encontró que el 70,3 % de las funciones del
+  holdout tiene un vecino ≥ 0,8 en train/val.
 - El CWE que devuelve el modelo copia el CWE reportado por el SAST: 59 de 59
   alertas reales conservadas en el holdout. No se debe usar como clasificador
   independiente; el producto conserva el CWE del SAST.

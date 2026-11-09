@@ -143,7 +143,9 @@ explicaciones de D como un aporte de calidad sin ese resultado.
 1. **Partición por función, no por proyecto.** El dataset no tiene identificador
    de repositorio, así que no se puede agrupar de verdad. La comparación exacta
    de hashes normalizados contra `train_80` y `val_total` dio **0 coincidencias**,
-   pero no se midieron casi-duplicados.
+   pero el análisis de similitud de tokens (`eval/casi_duplicados.py`) encontró
+   que el **70,3 % de las funciones del holdout tiene un vecino ≥ 0,8** en
+   train/val, y 45/111 tienen similitud ≥ 0,9. Esa amenaza ya está medida.
 2. **Dependencia interna del holdout.** 111 alertas, 71 códigos únicos y 98
    funciones: 40 filas repiten código. El tamaño efectivo es menor que 111 y los
    IC de Wilson no lo reflejan; por eso se agrega el bootstrap por archivo.

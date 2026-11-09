@@ -134,8 +134,11 @@ ni hiperparámetros y se evaluó **una sola vez**. Aun así, la partición sigue
 siendo aleatoria por función: el dataset no incluye identificador de repositorio,
 de modo que dos funciones del mismo proyecto pueden haber caído en train y en
 test. La comparación exacta de hashes normalizados contra `train_80` y
-`val_total` dio **0 coincidencias**, pero no se midieron casi-duplicados. Esa
-medición queda pendiente y se declara como amenaza a la validez.
+`val_total` dio **0 coincidencias**, pero el análisis de similitud de tokens
+(`eval/casi_duplicados.py`) encontró que el **70,3 % de las funciones del
+holdout tiene un vecino ≥ 0,8** en train o val, y 45/111 tienen similitud ≥ 0,9.
+Esa amenaza ya no es pendiente: está medida y debe reportarse junto con las
+métricas de generalización.
 
 El holdout tuvo 111 alertas sobre 71 archivos y 98 funciones, con solo 71 códigos
 únicos: 40 filas repiten exactamente el mismo código. Las observaciones no son
@@ -149,15 +152,12 @@ alcanza para demostrar estadísticamente que el FNR sea ≤ 5 %; solo permite
 descartar tasas mucho peores. Esa frase debe quedar en la memoria y no
 reemplazarse por el valor puntual.
 
-La segunda limitación es más grave: la similitud entre funciones del holdout y
-funciones de train/val. `eval/casi_duplicados.py` mide casi-duplicados por
-tokens: el **70,3 % de las funciones del holdout tiene un vecino con similitud
-≥ 0,8** en train o val, y 45/111 tienen similitud ≥ 0,9. Los pares más altos son
-variantes del mismo patrón (`pickle.__reduce__`, Flask + `sqlite3`). El
-proyecto no puede demostrar que esas similitudes sean fuga real, porque el
-dataset no tiene identificador de repositorio, pero sí puede decir que la
-partición aleatoria por función no garantiza independencia. Esa amenaza debe
-aparecer junto con las métricas de generalización.
+La segunda limitación es el significado de esa similitud. Los pares más altos
+son variantes del mismo patrón (`pickle.__reduce__`, Flask + `sqlite3`). El
+proyecto no puede demostrar que sean fuga real, porque el dataset no tiene
+identificador de repositorio, pero sí puede decir que la partición aleatoria por
+función no garantiza independencia. Esa amenaza debe aparecer junto con las
+métricas de generalización.
 
 ## 7.5 La pérdida no mide calidad de triage
 
@@ -214,7 +214,7 @@ demuestra resistencia general, pero confirma que los delimitadores y el formato
 JSON no colapsan ante una instrucción obvia.
 
 El costo operativo es medible: 4,8 s por alerta en la corrida de integración y
-4,9 s de media (4,1 s de mediana) en un banco de 10 alertas sobre una GTX 1650.
+4,9 s de media (4,1 s de mediana) en el piloto de 10 alertas sobre una GTX 1650.
 C promedia ~4,3 s por alerta, salvo una B102 patológica que agotó el timeout de
 180 s antes de acotar la generación. El modelo ocupa 1.115 MB de VRAM y unos 700
 MB de RAM. En una GPU de 4 GB cabe una instancia, pero no hay margen para
@@ -376,17 +376,22 @@ severidad baja; los repos reales no tienen esa adversarialidad. Ambas mediciones
 son necesarias: el banco mide el peor caso mecánico; la auditoría de repos mide
 el caso favorable real.
 
-Esa distinción es la que el banco resuelve. La corrida real sola sugeriría que D
-acierta porque descarta casi todo; el banco, con etiquetas, muestra que descarta
-también 5 reales. La conjunción de ambas pruebas es el argumento más fuerte
-contra el descarte automático: el ahorro es real y barato, pero se apoya en una
-señal que no distingue contexto.
+Esa distinción es la que separan el banco y la auditoría de repos. La auditoría
+manual de repos reales es favorable (FPRR 100 %, FNR 0 %), pero su muestra es
+pequeña, elegida por el autor y dominada por B101 en tests; el banco, con la
+misma estructura regla×contexto, muestra que D descarta también 5 reales cuando
+la severidad es baja. La conjunción de ambas pruebas es el argumento más fuerte
+contra el descarte automático: el ahorro es real y barato en el caso favorable,
+pero se apoya en una señal que no distingue contexto y que falla en el caso
+adversarial.
 
 Límites que deben citarse junto con estas cifras: el banco tiene 26 alertas y un
 solo anotador; es adversarial y no representa la prevalencia del corpus; usa el
-prompt del producto y no el de entrenamiento, de modo que el cambio de plantilla
-puede explicar parte del colapso de las explicaciones; y la corrida real no está
-etiquetada. Ninguna de las dos se usó para ajustar prompts, reglas ni umbrales, y
-el holdout permaneció intacto. El detalle reproducible está en
-`docs/BANCO_SINTETICO.md`, `docs/ANALISIS_BANCO_SINTETICO.md` y
-`docs/CORRIDA_REPOS_REALES.md`.
+prompt del producto y no el de entrenamiento. La corrida real está etiquetada
+por un solo auditor y sus repos fueron seleccionados por nosotros. El colapso de
+las explicaciones aparece tanto con el prompt de entrenamiento como con el del
+producto, así que la causa más probable está en los datos de ajuste, no en la
+plantilla. Ninguna de las dos pruebas se usó para ajustar prompts, reglas ni
+umbrales, y el holdout permaneció intacto. El detalle reproducible está en
+`docs/BANCO_SINTETICO.md`, `docs/ANALISIS_BANCO_SINTETICO.md`,
+`docs/CORRIDA_REPOS_REALES.md` y `docs/AUDITORIA_REPOS.md`.

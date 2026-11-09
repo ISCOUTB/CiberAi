@@ -75,10 +75,11 @@ Puntos que la evidencia ya permite argumentar:
   en 86 de 86 alertas reales conservadas en desarrollo y 59 de 59 en el holdout;
   la exactitud CWE no debe interpretarse como capacidad de clasificación. El
   producto conserva el CWE del SAST.
-- **El FNR se concentra en reglas de importación, pero no solo en B403.** En
-  desarrollo las 5 alertas reales descartadas eran `import pickle`; en el
-  holdout son 4 B403 y 2 B311. B403 es obligatoria como política, pero no
-  suficiente: el FNR baja a 3,1 % (IC95 0,8–10,5 %), no a 0 %.
+- **El FNR se concentra en reglas de baja severidad, no solo en importaciones.**
+  En desarrollo las 5 alertas reales descartadas eran `import pickle`; en el
+  holdout son 4 B403 y 2 B311; el banco sintético añade B105, B110, B101 y
+  B603. B403 es obligatoria como política, pero no suficiente: el FNR baja a
+  3,1 % (IC95 0,8–10,5 %), no a 0 %.
 - **La comparación que aísla el ajuste es D contra C0**, porque comparten el
   formato de alerta; C agrega few-shot y D no. La comparación D contra C mide el
   resultado práctico frente a un prompt cuidado, pero mezcla modelo y prompt.
