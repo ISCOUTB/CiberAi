@@ -87,7 +87,7 @@ export function Discarded() {
           <option>Uso no sensible</option>
           <option>Ejemplo aislado</option>
         </select>
-        <span className="cnt">Total descartadas: {rows.length}</span>
+        <span className="cnt">Total recomendadas: {rows.length}</span>
       </div>
 
       <table>
@@ -161,7 +161,7 @@ export function Discarded() {
       </table>
 
       <Pager
-        label={`Mostrando ${rows.length} de ${total} descartadas · ${summary.scanId}`}
+        label={`Mostrando ${rows.length} de ${total} recomendadas para descarte · ${summary.scanId}`}
         pages={['1']}
       />
 

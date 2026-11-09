@@ -7,7 +7,7 @@ export const VIEWS = [
   { id: 'progreso', n: '02', label: 'Progreso' },
   { id: 'hallazgos', n: '03', label: 'Hallazgos' },
   { id: 'detalle', n: '04', label: 'Detalle' },
-  { id: 'descartadas', n: '05', label: 'Descartadas' },
+  { id: 'descartadas', n: '05', label: 'Para descarte' },
   { id: 'informe', n: '06', label: 'Informe' },
 ] as const;
 
