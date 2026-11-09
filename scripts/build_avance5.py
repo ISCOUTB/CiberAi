@@ -898,7 +898,7 @@ body(doc,
      "La corrida D sobre las 141 alertas obtuvo FPRR 48,0 % (24 de 50 falsos positivos), FNR "
      "5,5 % (5 de 91 alertas reales), FOR 17,2 %, precisión 76,8 % y exactitud CWE 43,0 %, "
      "sin respuestas inválidas. El FNR queda 0,5 puntos por encima de la meta. Las cinco "
-     "alertas reales descartadas son todas B403 (import pickle, CWE-502): tres deserializan y "
+     "alertas reales recomendadas para descarte son todas B403 (import pickle, CWE-502): tres deserializan y "
      "dos solo serializan, de modo que el error está concentrado en una regla y en parte es "
      "discutible. El modelo copió el CWE del SAST en las 86 alertas reales conservadas, así "
      "que esa exactitud no mide clasificación independiente: el producto debe conservar el "

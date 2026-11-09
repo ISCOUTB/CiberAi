@@ -179,7 +179,7 @@ dentro de una corrida, no entre corridas.
 | Riesgo | Impacto | Mitigación actual | Trabajo pendiente |
 |---|---|---|---|
 | Prompt de evaluación distinto al de producto | Las métricas no describen exactamente la CLI | Declarado en `docs/BORRADOR_ANEXOS.md` | Alinear y medir sin reutilizar el holdout. |
-| Frontend rotula los SAFE como «descartadas» | Percepción de supresión | El JSON y el SARIF conservan todo | Rotular como «recomendadas» y distinguir SOSPECHOSA. |
+| Frontend rotula los SAFE como «descartadas» | Percepción de supresión | El JSON y el SARIF conservan todo | Resuelto: las etiquetas visibles dicen «recomendadas para descarte» (commit `2f4d589`). |
 | Sin autenticación ni control de acceso | Cualquiera con acceso al equipo lee reportes | Ejecución local | Política de retención y permisos de carpeta. |
 | Dependencia de una etiqueta de Ollama | El modelo puede cambiar sin cambiar el código | `training/out/SHA256SUMS.txt` | Fijar el modelo base por `revision` y verificar el hash al desplegar. |
 | Escaneo secuencial | Repos grandes tardan | `--max-alerts` | Medir paralelismo con la GPU objetivo. |

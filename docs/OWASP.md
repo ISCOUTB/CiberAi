@@ -185,16 +185,17 @@ riesgos excluidos o de riesgo bajo se declaran, no se omiten.
 
 ### 5.1 Riesgo residual detectado en la capa de presentación
 
-`frontend/src/lib/reportParser.ts` clasifica como «descartadas» todas las
-alertas con veredicto SAFE, sin mirar `valido`. En el producto, un SAFE es solo
-una recomendación: la alerta sigue en el JSON y en el SARIF. La vista puede
-transmitir la idea de que el agente suprimió el hallazgo aunque no lo haya hecho.
+Antes, `frontend/src/lib/reportParser.ts` y las vistas rotulaban como
+«descartadas» todas las alertas con veredicto SAFE. En el producto, un SAFE es
+solo una recomendación: la alerta sigue en el JSON y en el SARIF. La vista podía
+transmitir la idea de que el agente suprimió el hallazgo aunque no lo hubiera
+hecho.
 
-No se corrige en este sprint porque el cambio es de interfaz y no de contrato,
-pero se registra como riesgo de **LLM06 Excessive Agency** en la percepción del
-usuario: un control que existe en el reporte puede desaparecer en la lectura. La
-corrección mínima es rotular la vista como «recomendadas para descarte» y
-distinguir SAFE válido de SOSPECHOSA.
+Riesgo de **LLM06 Excessive Agency** en la percepción del usuario, ya corregido.
+Las etiquetas visibles dicen ahora «recomendadas para descarte» (commit
+`2f4d589`). El parser sigue distinguiendo SAFE válido de SOSPECHOSA en el modelo
+de datos. Los identificadores internos (`descartadas`) se mantienen para no
+romper enlaces.
 
 ## 6. ASVS 5.0.0 como checklist parcial
 
