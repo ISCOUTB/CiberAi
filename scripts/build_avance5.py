@@ -1328,7 +1328,7 @@ for ref in [
     "Bhandari, G., Naseer, A., y Moonen, L. (2021). CVEfixes: automated collection of "
     "vulnerabilities and their fixes from open-source software. PROMISE 2021. "
     "https://doi.org/10.1145/3475960.3475985",
-    "Brown, S. (2018). The C4 Model for Visualising Software Architecture. https://c4model.com",
+    "Brown, S. (2022). The C4 model for visualising software architecture. https://c4model.com",
     "Chen, Y. et al. (2023). DiverseVul: A New Vulnerable Source Code Dataset for Deep "
     "Learning Based Vulnerability Detection. RAID 2023. https://arxiv.org/abs/2304.00409",
     "Dettmers, T. et al. (2023). QLoRA: Efficient Finetuning of Quantized LLMs. "
@@ -1351,8 +1351,8 @@ for ref in [
     "Siddiq, M. L., y Santos, J. C. (2022). SecurityEval dataset: mining vulnerability "
     "examples to evaluate machine learning-based code generation techniques. MSR4P&S 2022. "
     "https://doi.org/10.1145/3549035.3561184",
-    "Starke, G., y Hruschka, P. (2023). arc42: Template for Architecture Communication and "
-    "Documentation, versión 9.1. https://arc42.org",
+    "Starke, G., y Hruschka, P. (2026). arc42: Template for Architecture Communication and "
+    "Documentation, versión 9.1 (release 2026.10.19). https://arc42.org",
     "Zhang, T. et al. (2020). BERTScore: Evaluating Text Generation with BERT. ICLR 2020. "
     "https://arxiv.org/abs/1904.09675",
 ]:

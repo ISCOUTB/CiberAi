@@ -1,11 +1,10 @@
 # Borrador — Estado del arte (Sprint 8)
 
-> Documento de trabajo. Las referencias académicas están verificadas contra
-> arXiv, Crossref o el sitio del proyecto al 3 de noviembre de 2026, y la sede de
-> Du et al. (2026) se confirmó el 8 de noviembre de 2026 con el DOI de ACM. Las
-> entradas de herramientas y normas (Bandit, llama.cpp, Ollama, MITRE, arc42, C4,
-> dataset) se citan pero no se revisaron en esa pasada. La lista es la misma que
-> en `scripts/build_avance5.py` (§11). Falta
+> Documento de trabajo. Las referencias se verificaron el 8 de noviembre de 2026:
+> las URL responden y coinciden con la fuente, los DOI se contrastaron en Crossref
+> y las sedes de Du et al. (2026), IRIS (ICLR 2025) y DiverseVul (RAID 2023) se
+> confirmaron en su publicación. Corrigieron arc42 (versión 9.1 de 2026, no 2023) y
+> C4 (2022). La lista es la misma que en `scripts/build_avance5.py` (§11). Falta
 > integrarlo al formato institucional y ampliar la discusión de trabajos
 > relacionados con SAST comercial.
 
@@ -217,7 +216,7 @@ triage local, con un modelo de 1,5B que cabe en una GPU de 4 GB.
 - Bhandari, G., Naseer, A., y Moonen, L. (2021). CVEfixes: automated collection
   of vulnerabilities and their fixes from open-source software. PROMISE 2021.
   https://doi.org/10.1145/3475960.3475985
-- Brown, S. (2018). The C4 Model for Visualising Software Architecture.
+- Brown, S. (2022). The C4 model for visualising software architecture.
   https://c4model.com
 - Chen, Y. et al. (2023). DiverseVul: A New Vulnerable Source Code Dataset for
   Deep Learning Based Vulnerability Detection. RAID 2023.
@@ -247,7 +246,8 @@ triage local, con un modelo de 1,5B que cabe en una GPU de 4 GB.
 - Siddiq, M. L., y Santos, J. C. (2022). SecurityEval dataset: mining
   vulnerability examples to evaluate machine learning-based code generation
   techniques. MSR4P&S 2022. https://doi.org/10.1145/3549035.3561184
-- Starke, G., y Hruschka, P. (2023). arc42: Template for Architecture
-  Communication and Documentation, versión 9.1. https://arc42.org
+- Starke, G., y Hruschka, P. (2026). arc42: Template for Architecture
+  Communication and Documentation, versión 9.1 (release 2026.10.19).
+  https://arc42.org
 - Zhang, T. et al. (2020). BERTScore: Evaluating Text Generation with BERT.
   ICLR 2020. https://arxiv.org/abs/1904.09675
