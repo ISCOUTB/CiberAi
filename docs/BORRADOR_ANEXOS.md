@@ -37,6 +37,15 @@ python eval\analisis_c0_vs_d.py
 # 7. Pruebas y consistencia de cifras
 python -m unittest discover -s agente\tests -v
 python scripts\check_consistencia.py
+
+# 8. Validaciones out-of-distribution
+python eval\banco_sintetico.py --validar
+python eval\banco_sintetico.py
+python eval\corrida_repos_reales.py
+python eval\auditoria_repos.py --preparar
+# editar eval\auditoria_repos.jsonl
+python eval\auditoria_repos.py --calcular
+python eval\casi_duplicados.py
 ```
 
 El entrenamiento se ejecutó en una RTX 4070 Super con `training\entrenar_windows.ps1`.
@@ -127,11 +136,11 @@ de los resultados y las reglas de lectura están en `docs/ANALISIS_HOLDOUT.md` y
 ## Anexo E. Pruebas
 
 `agente/tests/test_agente.py` cubre contexto por AST, deduplicación, SARIF,
-parseo de la respuesta, política conservadora, modo asesor, ejecución de Bandit
-y el límite de generación del cliente: 13 pruebas, todas correctas. La batería
-funcional y de robustez está en `eval/pruebas/LEEME.md`: repositorio vacío,
-archivo vacío, sintaxis inválida, otro lenguaje, repositorio grande, Ollama
-caído, JSON inválido y prompt injection.
+parseo de la respuesta, política conservadora, modo asesor, ejecución de Bandit,
+mapeo OWASP y el límite de generación del cliente: **22 pruebas**, todas
+correctas. La batería funcional y de robustez está en `eval/pruebas/LEEME.md`:
+repositorio vacío, archivo vacío, sintaxis inválida, otro lenguaje, repositorio
+grande, Ollama caído, JSON inválido y prompt injection.
 
 ## Anexo F. Tablas por regla
 

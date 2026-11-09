@@ -157,9 +157,9 @@ python eval\run_eval.py --config C0 --model qwen2.5-coder:1.5b
 python eval\run_eval.py --config D --model qwen2.5-coder-triage
 ```
 
-Métricas: FPRR (falsos positivos descartados), FNR (alertas reales
-descartadas), FOR (falsos positivos entre los descartes), precisión y
-exactitud CWE. La meta principal es **FNR ≤ 5 %**; FPRR mide el ahorro de
+Métricas: FPRR (falsos positivos recomendados para descarte), FNR (alertas
+reales recomendadas para descarte), FOR (falsos positivos entre las
+recomendadas para descarte), precisión y exactitud CWE. La meta principal es **FNR ≤ 5 %**; FPRR mide el ahorro de
 revisión.
 
 Resultados sobre las 141 alertas:

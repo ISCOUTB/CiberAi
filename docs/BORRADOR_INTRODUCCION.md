@@ -64,8 +64,8 @@ Hipótesis:
 Hipótesis secundarias:
 
 - El modelo copia el CWE del SAST y no aporta una clasificación independiente.
-- El error de omisión se concentra en reglas de importación (B403, B404), no en
-  reglas de sink explícito (B301, B602, B608).
+- El error de omisión aparece en reglas de baja severidad (B403, B311, B101,
+  B105, B110, B603), no solo en importaciones de deserialización.
 - El coste de inferencia permite ejecutar el modelo en una GPU de 4 GB.
 
 ## 1.4 Objetivos
@@ -90,8 +90,11 @@ medición pareada que separe el efecto del prompt del efecto del entrenamiento.
 6. Validar la robustez del producto ante repositorios vacíos, sintaxis inválida,
    otros lenguajes, Ollama caído, JSON inválido y prompt injection.
 7. Reservar un conjunto de verificación para una evaluación única en el Sprint
-   7 y documentar las amenazas a la validez.
-8. Ubicar las alertas y los riesgos del componente inteligente en el OWASP Top 10
+   7 y documentar las amenazas a la validez, incluida la similitud con el
+   entrenamiento.
+8. Construir un banco sintético etiquetado y auditar repositorios reales como
+   validaciones out-of-distribution del modo asesor.
+9. Ubicar las alertas y los riesgos del componente inteligente en el OWASP Top 10
    2021, el OWASP Top 10 for LLM Applications 2025 y ASVS 5.0.0, y declarar la
    cobertura medida con sus exclusiones.
 
@@ -123,6 +126,11 @@ local, con cinco contribuciones concretas:
    dataset documentadas; el agente se analiza además con el Top 10 for LLM
    Applications 2025 y una checklist parcial de ASVS 5.0.0. El proyecto declara
    qué categorías cubre y cuáles no puede cubrir con un SAST de reglas.
+6. **Validaciones out-of-distribution.** Un banco sintético etiquetado (26
+   alertas, 13 reglas) y una auditoría manual sobre tres repositorios reales
+   pinneados (38 alertas) complementan al holdout. No reemplazan la evidencia de
+   generalización, pero muestran el comportamiento del producto fuera del dataset
+   de entrenamiento y fortalecen la justificación del modo asesor.
 
 ## 1.6 Alcance y exclusiones
 
@@ -154,11 +162,16 @@ local, con cinco contribuciones concretas:
   diseñada, pero no aplicada).
 - Entrenamiento con el split de test: se reservó y se usó una sola vez para la
   evaluación del Sprint 7.
+- Reconstrucción del split agrupado por repositorio: el dataset no tiene
+  identificador de proyecto, y el análisis de casi-duplicados encontró 70,3 % de
+  funciones del holdout con vecino ≥ 0,8 en train/val.
 
 La exclusión del descarte automático no es una limitación técnica sino una
 decisión basada en la evidencia: con FNR 9,2 % en el holdout (3,1 % con la
-política B403, pero IC95 hasta 10,5 %), el producto no cumple la meta de omisión
-y no puede eliminar alertas sin supervisión.
+política B403, pero IC95 hasta 10,5 %), con FNR 35,7 % en el banco sintético
+adversarial (IC95 16,3–61,2 %) y con FNR 0 % en la auditoría de repos reales
+(muestra pequeña y elegida), el producto no cumple la meta de omisión de forma
+generalizada y no puede eliminar alertas sin supervisión.
 
 ## 1.7 Estructura de la memoria
 
@@ -170,7 +183,8 @@ metodología: dataset, particiones, entrenamiento, exportación y métricas. El
 capítulo 6 presenta los experimentos y resultados (entrenamiento, A/B/C/C0/D,
 comparación con Qwen base, holdout, latencia, pruebas). El capítulo 7 discute el
 intercambio entre ahorro y omisión, el CWE copiado, el sesgo de B403 y B311, el
-colapso de las explicaciones y las amenazas a la validez. El capítulo 8 responde
+colapso de las explicaciones, las amenazas a la validez y las validaciones
+out-of-distribution (banco sintético y auditoría de repos reales). El capítulo 8 responde
 a la hipótesis y enumera el trabajo futuro. El capítulo 9 reúne las referencias y
 los anexos de reproducción.
 

@@ -21,7 +21,7 @@ que ya está validado. Este archivo es un mapa de trabajo, no el documento.
 | 3. Requisitos y alcance | Funcionales, no funcionales, recorte Python/Bandit/CWE, modo asesor | Avance 5 §1.1 y §5 | Reutilizable |
 | 4. Arquitectura | Pipeline, modelo de datos, CLI, resiliencia, contrato de decisión; arc42 con vistas C4 | `docs/ARQUITECTURA_ARC42.md` + Avance 5 §2–§4 | Por escribir |
 | 5. Metodología | Dataset, particiones, SFT, QLoRA, exportación, evaluación A/B/C/C0/D, métricas, cobertura OWASP | `docs/BORRADOR_METODOLOGIA.md` | Borrador listo |
-| 6. Experimentos y resultados | Entrenamiento, D, C, comparativa, C0 vs Qwen base, holdout, latencia, robustez, smoke test con repos | Avance 5 §6–§7 + D/C + `docs/ANALISIS_HOLDOUT.md` + `docs/ANALISIS_C0_VS_D.md` | En actualización |
+| 6. Experimentos y resultados | Entrenamiento, D, C, comparativa, C0 vs Qwen base, holdout, latencia, robustez, banco sintético, auditoría de repos reales, casi-duplicados | Avance 5 §6–§7 + D/C + `docs/ANALISIS_HOLDOUT.md` + `docs/ANALISIS_C0_VS_D.md` + `docs/BANCO_SINTETICO.md` + `docs/AUDITORIA_REPOS.md` + `docs/CASI_DUPLICADOS.md` | En actualización |
 | 7. Discusión | FPRR vs. FNR, CWE copiado, B403/B311, límites de la partición, explicaciones, validez, lectura OWASP | `docs/BORRADOR_DISCUSION.md` | Borrador actualizado |
 | 8. Conclusiones | Respuesta a la hipótesis, aportes, trabajo futuro | `docs/BORRADOR_CONCLUSIONES.md` | Borrador actualizado |
 | 9. Referencias | 15–20 fuentes verificables, incluida la normativa OWASP | Avance 5 §11 + `docs/BORRADOR_ESTADO_ARTE.md` | Ampliar |
@@ -105,8 +105,10 @@ Responder explícitamente:
 2. ¿Sirve para descarte automático? (No: FNR crudo 9,2 %; con B403, 3,1 % pero
    IC95 hasta 10,5 %; modo asesor).
 3. ¿Aporta en CWE? (No; conservar el del SAST).
-4. ¿Qué falta para producción? (casi-duplicados, rúbrica de explicaciones,
-   auditoría humana, regla B311 validada en un conjunto nuevo).
+4. ¿Qué falta para producción? (rúbrica de explicaciones con referencias
+   humanas, segundo anotador para el banco, reentrenamiento con contraejemplos
+   de severidad, regla B311 validada en un conjunto nuevo, partición agrupada
+   por repositorio).
 
 ## Cifras que deben coincidir
 
@@ -160,7 +162,8 @@ Responder explícitamente:
   CWE del SAST y el modelo lo copia (59/59 en el holdout).
 - **No presentar el piloto B como resultado definitivo.** n=10.
 - **No afirmar resistencia a prompt injection** sin la batería completa.
-- **No afirmar que el test está limpio** sin medir casi-duplicados; la partición
+- **No afirmar que el test está limpio.** Se midieron casi-duplicados: el 70,3 %
+  de las funciones del holdout tienen vecino ≥ 0,8 en train/val. La partición
   agrupada no es posible porque el dataset no tiene identificador de repositorio.
 - **No usar BERTScore sin referencias humanas.** Si no hay referencias,
   declararlo como limitación.
@@ -179,8 +182,8 @@ Responder explícitamente:
 
 1. Cerrar la rúbrica de explicaciones o declararla pendiente con la evidencia de
    diversidad.
-2. Medir casi-duplicados entre train y holdout y documentar el resultado.
+2. ~~Medir casi-duplicados entre train y holdout y documentar el resultado.~~ Hecho.
 3. Integrar 6, 7 y 8 en la memoria con las cifras del holdout.
-4. Revisar 1, 3, 4 y 5 sobre los Avances.
+4. Revisar 1, 3, 4, 5 y anexos sobre los Avances.
 5. Unificar referencias y numeración.
 6. Auditoría de coherencia contra `eval/`, `reportes/` y `scripts/check_consistencia.py`.
