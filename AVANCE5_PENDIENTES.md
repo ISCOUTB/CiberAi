@@ -270,14 +270,21 @@ es sintética y va al final del prompt, y la mitad de los ejemplos no tienen
 alerta. Orden propuesto:
 
 1. [x] Auditar los falsos negativos y separar omisión real de ruido de etiqueta.
-2. [ ] Derivar la política por regla **solo de desarrollo**: ninguna regla donde
-   el modelo haya descartado una alerta real puede producir `SAFE`. En
-   desarrollo eso selecciona B403; debe pre-registrarse antes de volver a mirar
-   el holdout.
-3. [ ] Reentrenar el SFT con alertas reales de Bandit en el formato de
-   producción: sin ejemplos sin alerta, target sin `finding_id`, peso en
-   `veredicto`/`cwe` y balance 2:1 o 3:1. Validar solo en desarrollo.
-4. [ ] Añadir pérdida centrada en la decisión (veredicto y CWE antes que la
-   explicación) y diversificar las explicaciones, hoy casi únicas.
-5. [ ] Construir un conjunto de oro **a nivel de alerta** (no de fragmento) y
-   evaluar sobre un conjunto nuevo; el holdout actual queda cerrado.
+2. [x] Derivar la política por regla **solo de desarrollo** y pre-registrarla.
+   `docs/POLITICA_REGLAS.md` fija el criterio («ninguna regla con un descarte
+   real en desarrollo puede producir SAFE»), que selecciona B403 y excluye B311.
+3. [x] Construir el SFT con alertas reales de Bandit en formato de producción.
+   `training/build_bandit_sft.py` ejecuta Bandit sobre los fragmentos Python de
+   train_80 y val_total, usa el prompt de `prompt_d`, no incluye ejemplos sin
+   alerta, quita `finding_id`, aplica el criterio de patrón de la auditoría y
+   balancea las clases. Resultado: 554 ejemplos de entrenamiento (217
+   VULNERABLE / 337 SAFE) y 286 de validación, con verificación por hash de que
+   no hay fuga con el holdout. **Falta ejecutar el entrenamiento en la GPU.**
+4. [x] Pérdida centrada en la decisión. `training/train_qlora.py` acepta
+   `--decision-weight` (1.0 = pérdida estándar; 3.0 = los tokens de `veredicto`
+   y `cwe` pesan el triple). `training/verificar_ponderacion.py` lo prueba en
+   CPU con un modelo diminuto: 42 tokens ponderados, pérdida finita y dos pasos
+   de entrenamiento correctos.
+5. [ ] Entrenar, fusionar, exportar y evaluar **solo en desarrollo**. Después,
+   construir un conjunto de oro **a nivel de alerta** y validar en un conjunto
+   nuevo; el holdout actual queda cerrado.

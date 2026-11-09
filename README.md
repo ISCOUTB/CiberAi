@@ -115,11 +115,25 @@ ENTRENAR.bat
 También se puede ejecutar por partes:
 
 ```powershell
+# Pipeline anterior (alertas sinteticas; corrida registrada de 11.510 ejemplos)
 python training\prepare_sft.py
 python training\train_qlora.py --quant 4bit --epochs 1
+
+# Pipeline nuevo: alertas reales de Bandit, formato de produccion y perdida
+# centrada en la decision (requiere GPU; el adaptador anterior no se toca)
+python training\build_bandit_sft.py
+python training\train_qlora.py --quant 4bit --epochs 1 --decision-weight 3.0 `
+    --train training\data\train_sft_real.jsonl --val training\data\val_sft_real.jsonl `
+    --out training\out\qwen-coder-1.5b-lora-v2
+
 python training\export_gguf.py
 ollama create qwen2.5-coder-triage -f Modelfile
 ```
+
+El pipeline nuevo genera 554 ejemplos de entrenamiento y 286 de validación a
+partir de 554 y 286 alertas reales de Bandit (todas con alerta, sin
+`finding_id`), y aplica el criterio de patrón de `docs/AUDITORIA_FN.md`. La
+política de no descarte está pre-registrada en `docs/POLITICA_REGLAS.md`.
 
 Hiperparámetros de la corrida registrada: LoRA r=16, alpha=32, dropout=0,05,
 4 bits, lote efectivo 8, 1 época, 1.439 pasos, 11.510 ejemplos de

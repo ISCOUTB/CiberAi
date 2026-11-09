@@ -1,0 +1,56 @@
+{
+ "train_sft_real": {
+  "alertas_bandit": 554,
+  "criterio_patron": true,
+  "reclasificadas_safe": 12,
+  "antes_balance": {
+   "false": 337,
+   "true": 217
+  },
+  "despues_balance": {
+   "false": 337,
+   "true": 217
+  },
+  "ejemplos": 554,
+  "reglas_top": {
+   "B403": 105,
+   "B404": 98,
+   "B307": 96,
+   "B301": 89,
+   "B605": 35,
+   "B102": 27,
+   "B603": 26,
+   "B602": 21,
+   "B201": 21,
+   "B608": 11
+  },
+  "explicaciones_unicas": 111
+ },
+ "val_sft_real": {
+  "alertas_bandit": 286,
+  "criterio_patron": true,
+  "reclasificadas_safe": 3,
+  "antes_balance": {
+   "true": 135,
+   "false": 151
+  },
+  "despues_balance": {
+   "false": 151,
+   "true": 135
+  },
+  "ejemplos": 286,
+  "reglas_top": {
+   "B403": 52,
+   "B307": 48,
+   "B301": 46,
+   "B404": 42,
+   "B605": 19,
+   "B603": 16,
+   "B201": 15,
+   "B602": 13,
+   "B102": 13,
+   "B608": 7
+  },
+  "explicaciones_unicas": 93
+ }
+}
