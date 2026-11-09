@@ -22,14 +22,20 @@ o solo la regla y la severidad que reporta Bandit.
 
 ## 2. Resultados
 
-| Métrica | Base | D |
-|---|---:|---:|
-| SAFE (recomendaciones de descarte) | 0/26 | 12/26 (46,2 %) |
-| FPRR (FP descartados) | 0,0 % | 58,3 % (7/12) |
-| FNR (reales descartadas) | 0,0 % | 35,7 % (5/14) |
-| Exactitud de decisión | 53,8 % | 61,5 % |
-| Precisión de los descartes | n/a (no descartó nada) | 58,3 % |
-| Respuestas inválidas | 2 | 0 |
+| Métrica | Base | IC95 base | D | IC95 D |
+|---|---:|---:|---:|---:|
+| SAFE (recomendaciones de descarte) | 0/26 | — | 12/26 (46,2 %) | — |
+| FPRR (FP descartados) | 0,0 % | 0,0–24,3 % | 58,3 % (7/12) | 32,0–80,7 % |
+| FNR (reales descartadas) | 0,0 % | 0,0–21,5 % | 35,7 % (5/14) | 16,3–61,2 % |
+| Exactitud de decisión | 53,8 % | 35,5–71,2 % | 61,5 % | 42,5–77,6 % |
+| Precisión de los descartes | n/a (no descartó nada) | n/a | 58,3 % | 32,0–80,7 % |
+| Respuestas inválidas | 2 | — | 0 | — |
+
+Los IC95 son de Wilson sobre 14 reales y 12 falsos positivos; son amplios. Dos
+lecturas se desprenden de ellos. El FNR de D tiene límite inferior de 16,3 %, así
+que supera de forma clara la meta de 5 %. La exactitud de D (61,5 %) no es
+demostrablemente mayor que la del base (53,8 %): los intervalos se solapan. El +7,7
+puntos debe presentarse como diferencia puntual.
 
 El modelo base no hace triage: etiqueta casi todo como `VULNERABLE` y solo deja
 dos alertas en `SOSPECHOSA` por respuestas inválidas (S02, un error 500 de Ollama

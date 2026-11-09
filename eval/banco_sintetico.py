@@ -24,6 +24,7 @@ Uso:
 
 import argparse
 import json
+import math
 import sys
 from collections import Counter
 from datetime import date
@@ -106,6 +107,18 @@ def emparejar(casos):
     return pares, errores, ignoradas
 
 
+def wilson(k, n, z=1.96):
+    """Intervalo de Wilson para una proporcion, en porcentaje (mismo metodo que holdout)."""
+    if n == 0:
+        return None
+    p = k / n
+    den = 1 + z * z / n
+    centro = (p + z * z / (2 * n)) / den
+    media = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / den
+    return [round(100.0 * max(0.0, centro - media), 1),
+            round(100.0 * min(1.0, centro + media), 1)]
+
+
 def metricas(registros, clave):
     reales = [r for r in registros if r["etiqueta"] == "real"]
     fps = [r for r in registros if r["etiqueta"] == "falso_positivo"]
@@ -129,6 +142,12 @@ def metricas(registros, clave):
         "precision_descartes": round(100.0 * fp_desc / (fp_desc + real_desc), 1)
         if (fp_desc + real_desc) else None,
         "respuestas_invalidas": sum(1 for r in registros if not r["modelos"][clave]["valido"]),
+        "IC95_wilson": {
+            "FPRR": wilson(fp_desc, len(fps)),
+            "FNR": wilson(real_desc, len(reales)),
+            "exactitud_decision": wilson(real_keep + fp_desc, len(registros)),
+            "precision_descartes": wilson(fp_desc, fp_desc + real_desc),
+        },
     }
 
 
@@ -179,6 +198,12 @@ def fmt_delta(valor):
 
 def fmt_pct(valor, sufijo=" %"):
     return "n/a" if valor is None else fmt(valor) + sufijo
+
+
+def fmt_ic(intervalo):
+    if intervalo is None:
+        return "n/a"
+    return "{}–{} %".format(fmt(intervalo[0]), fmt(intervalo[1]))
 
 
 def analisis_atajo(registros):
@@ -269,6 +294,22 @@ def markdown(datos):
             nombre, c["TP"], c["FN"], c["TN"], c["FP"], m["respuestas_invalidas"]))
     lineas += [
         "",
+        "IC95 de Wilson para cada métrica (n pequeño: los intervalos son amplios):",
+        "",
+        "| Métrica | Base | IC95 base | D | IC95 D |",
+        "|---|---:|---:|---:|---:|",
+    ]
+    for etiqueta, clave in (
+        ("FPRR", "FPRR"),
+        ("FNR", "FNR"),
+        ("Exactitud de decisión", "exactitud_decision"),
+        ("Precisión de los descartes", "precision_descartes"),
+    ):
+        lineas.append("| {} | {} | {} | {} | {} |".format(
+            etiqueta, fmt_pct(base[clave]), fmt_ic(base["IC95_wilson"][clave]),
+            fmt_pct(d[clave]), fmt_ic(d["IC95_wilson"][clave])))
+    lineas += [
+        "",
         "## 4. Acuerdo entre modelos",
         "",
         "Los dos modelos coinciden en **{}/{} alertas ({} %)**.".format(
@@ -349,7 +390,21 @@ def main():
     parser.add_argument("--md", default=str(ROOT / "docs" / "BANCO_SINTETICO.md"))
     parser.add_argument("--validar", action="store_true",
                         help="Solo ejecuta Bandit y valida el emparejamiento")
+    parser.add_argument("--recalcular", action="store_true",
+                        help="Recalcula metricas e informe desde el JSON guardado, sin llamar a Ollama")
     args = parser.parse_args()
+
+    if args.recalcular:
+        datos = json.loads(Path(args.out).read_text(encoding="utf-8"))
+        registros = datos["registros"]
+        base = metricas(registros, "base")
+        d = metricas(registros, "d")
+        datos["metricas"] = {"base": base, "d": d}
+        datos["comparacion"] = comparar(base, d)
+        Path(args.out).write_text(json.dumps(datos, ensure_ascii=False, indent=2), encoding="utf-8")
+        Path(args.md).write_text(markdown(datos), encoding="utf-8")
+        print("Recalculado desde", args.out)
+        return 0
 
     casos = cargar_casos()
     pares, errores, ignoradas = emparejar(casos)

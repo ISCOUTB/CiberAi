@@ -95,8 +95,8 @@ B311 llevaría el FNR a 0 %; **no se adopta** porque la regla se elegiría despu
 de ver el holdout. Queda como trabajo futuro para un conjunto independiente.
 
 El banco sintético agrega el caso que la corrida real no puede dar: con etiqueta
-por alerta, D descarta 5 de 14 reales (FNR 35,7 %) y acierta 7 de 12 falsos
-positivos (FPRR 58,3 %). El ahorro alto no es señal de comprensión. Por eso el
+por alerta, D descarta 5 de 14 reales (FNR 35,7 %, IC95 16,3–61,2 %) y acierta 7
+de 12 falsos positivos (FPRR 58,3 %, IC95 32,0–80,7 %). El ahorro alto no es señal de comprensión. Por eso el
 modo asesor se mantiene aunque la corrida sobre repositorios reales no muestre
 descartes incorrectos: esa corrida no tiene verdad de referencia y no puede
 demostrar acierto. La conclusión de producto no depende del 35,7 % puntual, sino
@@ -195,8 +195,10 @@ El holdout midió generalización; el banco y la corrida real midieron el
 mecanismo. Agregaron cuatro hechos que la memoria debe conservar:
 
 1. La decisión de D se reproduce 26/26 con una regla sobre la severidad del SAST.
-2. Con etiquetas por alerta, D descarta 5 de 14 reales (FNR 35,7 %) y acierta 7
-   de 12 falsos positivos (FPRR 58,3 %); el ahorro no prueba comprensión.
+2. Con etiquetas por alerta, D descarta 5 de 14 reales (FNR 35,7 %, IC95
+   16,3–61,2 %) y acierta 7 de 12 falsos positivos (FPRR 58,3 %, IC95
+   32,0–80,7 %); el ahorro no prueba comprensión. La exactitud de D (61,5 %) no
+   supera de forma demostrable a la del base (53,8 %): sus intervalos se solapan.
 3. Sobre 38 alertas de tres repositorios reales, D descarta 34 de 34 bajas y 0 de
    4 medias o altas, sin eliminar ninguna alerta.
 4. Las explicaciones de D son dos plantillas también con el prompt del producto,

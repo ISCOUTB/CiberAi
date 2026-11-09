@@ -685,6 +685,12 @@ def _num_delta(valor):
     return ("{:+." + "1f}").format(valor).replace(".", ",")
 
 
+def _fmt_ic_check(intervalo):
+    if intervalo is None:
+        return "n/a"
+    return normalizar("{}–{} %".format(_num(intervalo[0]), _num(intervalo[1])))
+
+
 def _filas_banco_metricas(datos):
     base = datos["metricas"]["base"]
     d = datos["metricas"]["d"]
@@ -734,6 +740,25 @@ def revisar_banco(errores):
     else:
         comparar_filas("docs/BANCO_SINTETICO.md confusion", filas, esperadas, errores)
 
+    filas = tabla_md(texto, ["Métrica", "Base", "IC95 base", "D", "IC95 D"])
+    esperadas = []
+    for etiqueta, clave in (
+        ("FPRR", "FPRR"),
+        ("FNR", "FNR"),
+        ("Exactitud de decisión", "exactitud_decision"),
+        ("Precisión de los descartes", "precision_descartes"),
+    ):
+        base = datos["metricas"]["base"]
+        d = datos["metricas"]["d"]
+        esperadas.append([
+            etiqueta, _num_pct(base[clave]), _fmt_ic_check(base["IC95_wilson"][clave]),
+            _num_pct(d[clave]), _fmt_ic_check(d["IC95_wilson"][clave]),
+        ])
+    if filas is None:
+        errores.append("docs/BANCO_SINTETICO.md: no se encontro la tabla de IC95 Wilson")
+    else:
+        comparar_filas("docs/BANCO_SINTETICO.md IC95", filas, esperadas, errores)
+
     filas = tabla_md(texto, ["Regla", "CWE", "OWASP", "Reales", "FP",
                              "SAFE base", "SAFE D"])
     esperadas = [
@@ -766,19 +791,21 @@ def revisar_banco(errores):
 
     # README: misma tabla de metricas, con etiquetas ligeramente distintas.
     filas = tabla_md((ROOT / "README.md").read_text(encoding="utf-8"),
-                     ["Métrica", "Base", "D"])
+                     ["Métrica", "Base", "D", "IC95 de D"])
     esperadas = _filas_banco_metricas(datos)
+    ics_d = [_fmt_ic_check(datos["metricas"]["d"]["IC95_wilson"][c])
+             for c in ("FPRR", "FNR", "exactitud_decision", "precision_descartes")]
     if filas is None:
         errores.append("README.md: no se encontro la tabla del banco sintetico")
     else:
         if len(filas) != len(esperadas):
             errores.append("README.md banco: {} filas (esperadas {})".format(
                 len(filas), len(esperadas)))
-        for obtenido, esperado in zip(filas, esperadas):
-            if obtenido[1] != esperado[1] or obtenido[2] != esperado[2]:
+        for obtenido, esperado, ic in zip(filas, esperadas, ics_d):
+            if obtenido[1] != esperado[1] or obtenido[2] != esperado[2] or obtenido[3] != ic:
                 errores.append(
-                    "README.md banco '{}': esperado {} | documento {}".format(
-                        esperado[0], esperado[1:3], obtenido[1:3]))
+                    "README.md banco '{}': esperado {} {} | documento {}".format(
+                        esperado[0], esperado[1:3], ic, obtenido[1:4]))
 
 
 def revisar_corrida(errores):

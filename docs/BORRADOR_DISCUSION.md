@@ -318,18 +318,27 @@ regla siempre es real» que el corpus de entrenamiento no garantiza. Los dos
 modelos reciben el prompt del producto (`triage.build_prompt` y `triage.SYSTEM`),
 no el `prompt_d` del arnés de evaluación.
 
-| Métrica | Base | D |
-|---|---:|---:|
-| SAFE (recomendaciones de descarte) | 0/26 | 12/26 (46,2 %) |
-| FPRR | 0,0 % | 58,3 % (7/12) |
-| FNR | 0,0 % | 35,7 % (5/14) |
-| Exactitud de decisión | 53,8 % | 61,5 % |
-| Precisión de los descartes | n/a | 58,3 % |
-| Respuestas inválidas | 2 | 0 |
+| Métrica | Base | IC95 base | D | IC95 D |
+|---|---:|---:|---:|---:|
+| SAFE (recomendaciones de descarte) | 0/26 | — | 12/26 (46,2 %) | — |
+| FPRR | 0,0 % | 0,0–24,3 % | 58,3 % (7/12) | 32,0–80,7 % |
+| FNR | 0,0 % | 0,0–21,5 % | 35,7 % (5/14) | 16,3–61,2 % |
+| Exactitud de decisión | 53,8 % | 35,5–71,2 % | 61,5 % | 42,5–77,6 % |
+| Precisión de los descartes | n/a | n/a | 58,3 % | 32,0–80,7 % |
+| Respuestas inválidas | 2 | — | 0 | — |
 
-El resultado central no es el 35,7 %: es que la decisión de D se reproduce
+Los intervalos son de Wilson al 95 %. Con 14 reales y 12 falsos positivos son
+amplios, y cambian la lectura de dos formas. Primero, el FNR de D tiene un límite
+inferior de 16,3 %: incluso en el escenario más favorable supera la meta de 5 %,
+así que el incumplimiento es claro. Segundo, la exactitud de D no es demostrablemente
+mejor que la del base: los intervalos se solapan casi por completo (35,5–71,2 frente
+a 42,5–77,6). El +7,7 puntos se reporta como diferencia puntual, no como mejora
+estadística. Estos intervalos son independientes y no sustituyen una prueba pareada
+sobre las mismas 26 alertas.
+
+El resultado central no es el 35,7 % puntual: es que la decisión de D se reproduce
 **26/26** con la regla «`SAFE` si la severidad del SAST es baja; `VULNERABLE` en
-otro caso». Los 12 casos de severidad baja reciben `SAFE`; los 9 medios y 5
+otro caso». Esa coincidencia tiene un IC95 de Wilson de 87,1–100 %. Los 12 casos de severidad baja reciben `SAFE`; los 9 medios y 5
 altos, `VULNERABLE`. Los cinco falsos negativos son S08 (B311), S09 (B105), S11
 (B603), S13 (B101) y S14 (B110). No hay lectura del flujo ni del contexto: el
 modelo aprendió que severidad baja equivale a descarte.

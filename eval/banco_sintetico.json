@@ -38,7 +38,22 @@
       "FNR": 0.0,
       "exactitud_decision": 53.8,
       "precision_descartes": null,
-      "respuestas_invalidas": 2
+      "respuestas_invalidas": 2,
+      "IC95_wilson": {
+        "FPRR": [
+          0.0,
+          24.3
+        ],
+        "FNR": [
+          0.0,
+          21.5
+        ],
+        "exactitud_decision": [
+          35.5,
+          71.2
+        ],
+        "precision_descartes": null
+      }
     },
     "d": {
       "alertas": 26,
@@ -57,7 +72,25 @@
       "FNR": 35.7,
       "exactitud_decision": 61.5,
       "precision_descartes": 58.3,
-      "respuestas_invalidas": 0
+      "respuestas_invalidas": 0,
+      "IC95_wilson": {
+        "FPRR": [
+          32.0,
+          80.7
+        ],
+        "FNR": [
+          16.3,
+          61.2
+        ],
+        "exactitud_decision": [
+          42.5,
+          77.6
+        ],
+        "precision_descartes": [
+          32.0,
+          80.7
+        ]
+      }
     }
   },
   "comparacion": {

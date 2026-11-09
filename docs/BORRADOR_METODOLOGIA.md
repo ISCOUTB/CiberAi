@@ -167,6 +167,12 @@ y `triage.SYSTEM`), temperatura 0 y `num_predict = 512`, y conserva la política
 B403. Los resultados quedan en `eval/banco_sintetico.json` y se interpretan en
 `docs/ANALISIS_BANCO_SINTETICO.md`.
 
+Los intervalos de las métricas son de Wilson al 95 %, con el mismo método que el
+holdout (`wilson` en `eval/banco_sintetico.py`). Para que la inclusión de los
+intervalos no cambiara los veredictos, se recalcularon sobre el JSON guardado con
+`python eval/banco_sintetico.py --recalcular`, sin volver a llamar a los modelos.
+Los valores puntuales previos quedaron idénticos.
+
 Dos diferencias impiden comparar sus cifras con C0/D del holdout. Primero, el
 banco es adversarial: busca el contraejemplo de cada regla, no la prevalencia del
 corpus. Segundo, usa el prompt del producto y no `prompt_d`, el formato con el

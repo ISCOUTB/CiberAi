@@ -42,6 +42,15 @@ Matriz de decisión (positivo = alerta real):
 | Base | 14 | 0 | 0 | 12 | 2 |
 | D | 9 | 5 | 7 | 5 | 0 |
 
+IC95 de Wilson para cada métrica (n pequeño: los intervalos son amplios):
+
+| Métrica | Base | IC95 base | D | IC95 D |
+|---|---:|---:|---:|---:|
+| FPRR | 0,0 % | 0,0–24,3 % | 58,3 % | 32,0–80,7 % |
+| FNR | 0,0 % | 0,0–21,5 % | 35,7 % | 16,3–61,2 % |
+| Exactitud de decisión | 53,8 % | 35,5–71,2 % | 61,5 % | 42,5–77,6 % |
+| Precisión de los descartes | n/a | n/a | 58,3 % | 32,0–80,7 % |
+
 ## 4. Acuerdo entre modelos
 
 Los dos modelos coinciden en **13/26 alertas (50,0 %)**.

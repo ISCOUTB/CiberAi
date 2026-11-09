@@ -308,16 +308,18 @@ alerta: 14 reales y 12 falsos positivos, repartidas en 13 reglas de Bandit. Cada
 regla tiene casos reales y falsos para romper la correlación regla→veredicto. No
 se usa el holdout.
 
-| Métrica | Base | D |
-|---|---:|---:|
-| FPRR (FP recomendados para descarte) | 0,0 % | 58,3 % |
-| FNR (reales recomendados para descarte) | 0,0 % | 35,7 % |
-| Exactitud de decisión | 53,8 % | 61,5 % |
-| Precisión de los descartes | n/a | 58,3 % |
+| Métrica | Base | D | IC95 de D |
+|---|---:|---:|---:|
+| FPRR (FP recomendados para descarte) | 0,0 % | 58,3 % | 32,0–80,7 % |
+| FNR (reales recomendados para descarte) | 0,0 % | 35,7 % | 16,3–61,2 % |
+| Exactitud de decisión | 53,8 % | 61,5 % | 42,5–77,6 % |
+| Precisión de los descartes | n/a | 58,3 % | 32,0–80,7 % |
 
-El base no descarta nada y su FPRR de 0 % no es un mérito. D mejora la exactitud
-7,7 puntos y acierta 7 de 12 falsos positivos, pero descarta 5 de 14 alertas
-reales. Su decisión se reproduce al 100 % con la regla «`SAFE` si la severidad
+El base no descarta nada y su FPRR de 0 % no es un mérito. D acierta 7 de 12
+falsos positivos, pero descarta 5 de 14 alertas reales. Con n tan pequeño, sus
+intervalos son amplios: el FNR de D supera la meta de 5 % incluso en su límite
+inferior (16,3 %), pero la mejora de exactitud frente al base (+7,7 puntos) no es
+estadísticamente demostrable. Su decisión se reproduce al 100 % con la regla «`SAFE` si la severidad
 del SAST es baja», y sus explicaciones son plantillas idénticas: en este banco no
 usa el contexto del código. El resultado respalda el modo asesor y desaconseja el
 descarte automático. Detalle en `docs/BANCO_SINTETICO.md`, interpretación en
