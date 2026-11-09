@@ -203,9 +203,12 @@ mecanismo. Agregaron cuatro hechos que la memoria debe conservar:
    supera de forma demostrable a la del base (53,8 %): sus intervalos se solapan.
 3. Sobre 38 alertas de tres repositorios reales, D descarta 34 de 34 bajas y 0 de
    4 medias o altas, sin eliminar ninguna alerta.
-4. Las explicaciones de D son dos plantillas también con el prompt del producto,
+4. La auditoría manual de esos 38 casos da FPRR 100 % y FNR 0 %, con precisión
+   de descartes 91,2 %. La muestra es pequeña y elegida por el autor, pero es
+   código real fuera del dataset de entrenamiento.
+5. Las explicaciones de D son dos plantillas también con el prompt del producto,
    no solo en el arnés de evaluación.
-5. La validez externa está debilitada: el 70,3 % de las funciones del holdout
+6. La validez externa está debilitada: el 70,3 % de las funciones del holdout
    tienen un vecino ≥ 0,8 en train/val; la partición aleatoria por función no
    garantiza independencia.
 

@@ -359,9 +359,22 @@ modelo aprendió que severidad baja equivale a descarte.
 La corrida real apunta en la misma dirección. Sobre 38 alertas de `itsdangerous`,
 `pyjwt` y `httpie`, D recomienda descartar 34 (89,5 %) y el modelo base 4
 (10,5 %); D descarta **34 de 34** alertas de severidad baja y **0 de 4** medias o
-altas. Las 38 alertas se conservan en ambos casos y D no produjo errores. La
-corrida no tiene verdad de referencia, así que no produce FPRR ni FNR: mide
-cuánto ahorraría una revisión, no si el ahorro es correcto.
+altas. Las 38 alertas se conservan en ambos casos y D no produjo errores.
+
+Para salir de la correlación, se auditó manualmente las 38 alertas con verdad de
+referencia a nivel de alerta (`docs/AUDITORIA_REPOS.md`). El resultado es
+favorable pero no generalizable: de 31 falsos positivos, D descarta 31 (FPRR
+100 %); de 7 alertas reales, D no descarta ninguna (FNR 0 %). La precisión de
+los descartes es 91,2 % (3 de 34 SAFE son reales). Esa muestra es pequeña,
+está elegida por nosotros y está dominada por B101 en tests; no contradice el
+FNR del 9,2 % del holdout, pero sí muestra que, en proyectos reales con mucho
+ruido de test, el modo asesor puede ahorrar revisión sin pérdidas observadas.
+
+La diferencia con el banco sintético (FNR 35,7 %) es esperable: el banco fue
+construido para romper la correlación regla→veredicto con casos reales de
+severidad baja; los repos reales no tienen esa adversarialidad. Ambas mediciones
+son necesarias: el banco mide el peor caso mecánico; la auditoría de repos mide
+el caso favorable real.
 
 Esa distinción es la que el banco resuelve. La corrida real sola sugeriría que D
 acierta porque descarta casi todo; el banco, con etiquetas, muestra que descarta

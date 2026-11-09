@@ -194,9 +194,14 @@ política; ninguna alerta se elimina.
 La corrida es una prueba de humo, no una evaluación etiquetada: no hay verdad de
 referencia por línea y por eso no produce FPRR ni FNR. Mide cuántas alertas
 recomienda descartar cada modelo y en qué coincide. Sus resultados están en
-`eval/corrida_repos_reales.json` y `docs/CORRIDA_REPOS_REALES.md`. La ausencia de
-etiquetas es deliberada: la corrección se mide en el banco sintético y en la
-auditoría manual de `docs/SMOKE_REPOS.md`.
+`eval/corrida_repos_reales.json` y `docs/CORRIDA_REPOS_REALES.md`.
+
+Además, las 38 alertas se auditieron manualmente a nivel de alerta con
+`eval/auditoria_repos.py` para obtener una medida out-of-distribution. El
+resultado (FPRR 100 %, FNR 0 %, precisión 91,2 %) está en
+`eval/auditoria_repos_metricas.json` y `docs/AUDITORIA_REPOS.md`. La muestra es
+pequeña y elegida por el autor, así que no reemplaza al holdout, pero sí aporta
+una validación sobre código real fuera del dataset de entrenamiento.
 
 ## 5.6 Métricas
 
@@ -257,6 +262,9 @@ python eval\cobertura_owasp.py                                 # matriz OWASP
 python eval\banco_sintetico.py --validar                       # banco: solo Bandit
 python eval\banco_sintetico.py                                 # banco: base y D
 python eval\corrida_repos_reales.py                            # repos pinneados
+python eval\auditoria_repos.py --preparar                      # plantilla auditoría
+# editar eval\auditoria_repos.jsonl
+python eval\auditoria_repos.py --calcular                      # métricas auditoría
 python eval\casi_duplicados.py                                 # amenaza de validez
 python scripts\check_consistencia.py                           # auditoría de cifras
 python -m unittest discover -s agente\tests                    # pruebas del producto
