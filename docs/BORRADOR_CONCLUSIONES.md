@@ -3,7 +3,10 @@
 > Documento de trabajo. Las cifras de desarrollo provienen de
 > `eval/resultados_{A,C,C0,D}.json`; las de generalización, del holdout
 > ejecutado una sola vez en el Sprint 7 (`eval/resultados_holdout_{A,C0,D}.json`
-> y `docs/ANALISIS_HOLDOUT.md`). Las dos mediciones se reportan por separado.
+> y `docs/ANALISIS_HOLDOUT.md`). La evidencia posterior del banco sintético
+> (`eval/banco_sintetico.json`) y de los repositorios reales
+> (`eval/corrida_repos_reales.json`) se reporta aparte y no se mezcla con las
+> anteriores.
 
 ## 8.1 Respuesta a la pregunta de investigación
 
@@ -32,6 +35,12 @@ seguridad. El ajuste fino vuelve al modelo más decidido, no más certero: apren
 a decir `SAFE` con más frecuencia y esa frecuencia produce a la vez el ahorro y
 el riesgo.
 
+La evidencia posterior del banco sintético refuerza la segunda parte. Medido con
+verdad de referencia por alerta, D descarta 5 de 14 alertas reales (FNR 35,7 %) y
+su decisión se reproduce 26/26 con una regla sobre la severidad del SAST. El
+holdout sigue siendo la referencia de generalización; el banco explica el
+mecanismo y confirma que el ahorro no equivale a comprensión del contexto.
+
 ## 8.2 Respuesta a las hipótesis secundarias
 
 **El modelo copia el CWE del SAST.** Confirmada. En desarrollo, el CWE predicho
@@ -39,6 +48,13 @@ coincide con el del SAST en 86 de 86 alertas reales conservadas por D; en el
 holdout, en 59 de 59. La exactitud CWE (43,0 % en desarrollo, 32,2 % en el
 holdout) mide la concordancia entre la etiqueta del SAST y la del dataset, no
 capacidad de clasificación. El producto debe conservar el CWE del SAST.
+
+**D decide por la severidad del SAST.** Confirmada en el banco sintético y en los
+repositorios reales. En el banco, la regla «`SAFE` si la severidad es baja»
+reproduce **26 de 26** veredictos; en la corrida real, D descarta 34 de 34
+alertas bajas y 0 de 4 medias o altas. La severidad entra en el prompt y el
+modelo la usa como atajo. El FPRR alto no es evidencia de que lea el contexto del
+código.
 
 **El error de omisión se concentra en reglas de importación.** Confirmada con un
 matiz importante. En desarrollo las cinco alertas reales descartadas eran B403.
@@ -78,6 +94,14 @@ crudo es 9,2 %; con ella, 3,1 % (IC95 0,8–10,5 %) y el FPRR baja de 30,4 % a
 B311 llevaría el FNR a 0 %; **no se adopta** porque la regla se elegiría después
 de ver el holdout. Queda como trabajo futuro para un conjunto independiente.
 
+El banco sintético agrega el caso que la corrida real no puede dar: con etiqueta
+por alerta, D descarta 5 de 14 reales (FNR 35,7 %) y acierta 7 de 12 falsos
+positivos (FPRR 58,3 %). El ahorro alto no es señal de comprensión. Por eso el
+modo asesor se mantiene aunque la corrida sobre repositorios reales no muestre
+descartes incorrectos: esa corrida no tiene verdad de referencia y no puede
+demostrar acierto. La conclusión de producto no depende del 35,7 % puntual, sino
+de que la decisión se reproduce con una regla sobre la severidad.
+
 ## 8.4 Aportes del proyecto
 
 1. **Una tubería local completa y reproducible.** Bandit, normalización,
@@ -104,6 +128,12 @@ de ver el holdout. Queda como trabajo futuro para un conjunto independiente.
    Applications 2025, donde ocho riesgos tienen evidencia propia, y con una
    checklist parcial de ASVS 5.0.0. El aporte metodológico es la distinción entre
    «lo que el producto cubre» y «lo que la norma incluye».
+7. **Un banco adversarial y una corrida real como control del mecanismo.** El
+   banco etiquetado (26 alertas, 13 reglas) muestra que la decisión de D se
+   explica por la severidad del SAST y no por el contexto; la corrida sobre tres
+   repositorios pinneados confirma el mismo patrón sobre código real sin eliminar
+   ninguna alerta. Juntas separan «ahorro de revisión» de «comprensión del
+   código», que es la distinción que el FPRR por sí solo no puede hacer.
 
 ## 8.5 Trabajo futuro
 
@@ -121,6 +151,17 @@ de ver el holdout. Queda como trabajo futuro para un conjunto independiente.
 - **Regla B403 basada en el punto de uso**: no descartar por el `import`, sino
   por la ausencia de un `pickle.load` alcanzable. Requiere análisis de flujo que
   Bandit no ofrece.
+- **Reentrenar contra el atajo de severidad.** El banco mostró que D decide por la
+  severidad del SAST. Un conjunto nuevo con contraejemplos de la misma regla y
+  severidad permitiría comprobar si el modelo puede aprender el contexto. No se
+  hace con el banco actual porque se contaminaría.
+- **Alinear el prompt del producto con el de entrenamiento.** El banco usa
+  `triage.build_prompt` y D se entrenó con `prompt_d`; medir esa diferencia con
+  un conjunto independiente separaría el efecto del cambio de plantilla del
+  colapso de las explicaciones.
+- **Segundo anotador y kappa para el banco.** Sus 26 etiquetas las puso el autor.
+  Un segundo revisor ciego convertiría el acuerdo en una cifra reportable y
+  reduciría el sesgo del evaluador.
 - **Medir el efecto de la cuantización**: comparar el Q4_K_M contra el modelo
   fusionado en f16 para separar ajuste de cuantización.
 - **Ampliar la batería de prompt injection** con más patrones y documentar la
@@ -148,7 +189,27 @@ no reporta, que el CWE predicho es correcto de forma independiente ni que el
 resultado se sostiene en otros lenguajes o SAST. No es una prueba de producción;
 es la última medición no contaminada de una hipótesis acotada.
 
-## 8.7 Cierre
+## 8.7 Qué agregaron el banco y los repositorios
+
+El holdout midió generalización; el banco y la corrida real midieron el
+mecanismo. Agregaron cuatro hechos que la memoria debe conservar:
+
+1. La decisión de D se reproduce 26/26 con una regla sobre la severidad del SAST.
+2. Con etiquetas por alerta, D descarta 5 de 14 reales (FNR 35,7 %) y acierta 7
+   de 12 falsos positivos (FPRR 58,3 %); el ahorro no prueba comprensión.
+3. Sobre 38 alertas de tres repositorios reales, D descarta 34 de 34 bajas y 0 de
+   4 medias o altas, sin eliminar ninguna alerta.
+4. Las explicaciones de D son dos plantillas también con el prompt del producto,
+   no solo en el arnés de evaluación.
+
+También dejaron una advertencia de alcance: el banco es pequeño, adversarial y de
+un solo anotador, y la corrida real no está etiquetada. Sirven para explicar por
+qué el modo asesor es necesario, no para estimar el FPRR o el FNR de producción.
+Esa estimación sigue dependiendo del holdout y de su intervalo. Ninguna de las dos
+pruebas se usó para ajustar prompts, reglas ni umbrales, y el holdout permaneció
+intacto.
+
+## 8.8 Cierre
 
 El proyecto demuestra que un modelo pequeño, ajustado de forma eficiente y
 ejecutado localmente, puede ahorrar revisión en un conjunto acotado de alertas de

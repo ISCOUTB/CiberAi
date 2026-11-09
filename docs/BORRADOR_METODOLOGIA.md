@@ -1,8 +1,10 @@
 # Borrador — Metodología (Sprint 8)
 
 > Documento de trabajo. Consolida el dataset, el ajuste, la exportación y el
-> protocolo de evaluación del Sprint 6. Las cifras de resultados viven en
-> `docs/ANALISIS_C.md`, `docs/ANALISIS_D.md` y `eval/resultados_*.json`.
+> protocolo de evaluación del Sprint 6, el holdout del Sprint 7 y las pruebas
+> posteriores con banco sintético y repositorios reales. Las cifras de resultados
+> viven en `docs/ANALISIS_C.md`, `docs/ANALISIS_D.md`,
+> `docs/ANALISIS_HOLDOUT.md` y `eval/*.json`.
 
 ## 5.1 Dataset y verdad de referencia
 
@@ -148,6 +150,45 @@ el análisis reporta un bootstrap agrupado por archivo. El holdout se ejecutó u
 sola vez y no se reutiliza para ajustar prompts, hiperparámetros ni reglas. Las
 reglas y los comandos quedan registrados en `docs/PROTOCOLO_HOLDOUT.md`.
 
+### 5.5.2 Banco sintético etiquetado
+
+Para probar si el modelo lee el contexto o solo la regla y la severidad se
+construyó un banco nuevo, independiente del holdout. `eval/sinteticas/casos.jsonl`
+declara **26 alertas** (14 reales, 12 falsos positivos) sobre 13 reglas; cada
+caso es un archivo Python con una sola alerta y una justificación escrita. Doce
+de las trece reglas tienen al menos un caso real y uno falso, de modo que la
+regla por sí sola no predice la etiqueta. La construcción y el detalle están en
+`docs/BANCO_SINTETICO.md`.
+
+La validación previa ejecuta solo Bandit (`python eval/banco_sintetico.py
+--validar`) y comprueba que cada caso dispara la regla esperada: **26/26**. La
+corrida llama a los dos modelos con el prompt del producto (`triage.build_prompt`
+y `triage.SYSTEM`), temperatura 0 y `num_predict = 512`, y conserva la política
+B403. Los resultados quedan en `eval/banco_sintetico.json` y se interpretan en
+`docs/ANALISIS_BANCO_SINTETICO.md`.
+
+Dos diferencias impiden comparar sus cifras con C0/D del holdout. Primero, el
+banco es adversarial: busca el contraejemplo de cada regla, no la prevalencia del
+corpus. Segundo, usa el prompt del producto y no `prompt_d`, el formato con el
+que se entrenó y evaluó D. El banco mide el producto, no el arnés de evaluación.
+Con 26 casos y un solo anotador tampoco produce una estimación poblacional: sirve
+para detectar regresiones y para probar una hipótesis mecánica.
+
+### 5.5.3 Repositorios reales pinneados
+
+`eval/corrida_repos_reales.py` clona tres repositorios en un commit fijo y
+escanea solo el paquete fuente: `itsdangerous` 2.2.0 (`096c8d4`), `pyjwt` 2.10.1
+(`3ebbb22`) y `httpie` 3.2.4 (`2105caa`). Bandit produce **38 alertas** (2, 1 y
+35). Los dos modelos se ejecutan con el mismo prompt del producto y la misma
+política; ninguna alerta se elimina.
+
+La corrida es una prueba de humo, no una evaluación etiquetada: no hay verdad de
+referencia por línea y por eso no produce FPRR ni FNR. Mide cuántas alertas
+recomienda descartar cada modelo y en qué coincide. Sus resultados están en
+`eval/corrida_repos_reales.json` y `docs/CORRIDA_REPOS_REALES.md`. La ausencia de
+etiquetas es deliberada: la corrección se mide en el banco sintético y en la
+auditoría manual de `docs/SMOKE_REPOS.md`.
+
 ## 5.6 Métricas
 
 - **FPRR** (*false positive reduction rate*): falsos positivos recomendados para
@@ -194,6 +235,28 @@ Los resultados crudos, el conjunto de evaluación y los prompts viven en `eval/`
 `scripts/check_consistencia.py` compara las tablas publicadas contra los JSON y
 falla si una cifra no coincide. Cualquier número del documento se rastrea hasta
 un archivo y un comando.
+
+La cadena de evaluación, en orden:
+
+```powershell
+python eval\build_eval_set.py                                  # conjunto de desarrollo
+python eval\run_eval.py --config A
+python eval\run_eval.py --config C0 --model qwen2.5-coder:1.5b
+python eval\run_eval.py --config D --model qwen2.5-coder-triage
+python eval\analisis_c0_vs_d.py                                # pareado C0/D
+python eval\cobertura_owasp.py                                 # matriz OWASP
+python eval\banco_sintetico.py --validar                       # banco: solo Bandit
+python eval\banco_sintetico.py                                 # banco: base y D
+python eval\corrida_repos_reales.py                            # repos pinneados
+python scripts\check_consistencia.py                           # auditoría de cifras
+python -m unittest discover -s agente\tests                    # pruebas del producto
+```
+
+El holdout no se reejecuta: `eval/resultados_holdout_*.json` es el registro de la
+corrida única del Sprint 7 y sus comandos están en `docs/PROTOCOLO_HOLDOUT.md`.
+El banco y los repositorios se añadieron después y no participaron en el ajuste
+ni en la elección de reglas. `eval/corrida_repos_reales.py --refrescar` vuelve a
+clonar los commits fijados si hace falta reconstruir el entorno.
 
 ## 5.9 Marco OWASP y cobertura declarada
 

@@ -1,9 +1,11 @@
 # Borrador — Discusión (Sprint 8)
 
 > Documento de trabajo basado en `eval/resultados_{A,C,C0,D}.json`, en los
-> resultados del holdout (`eval/resultados_holdout_{A,C0,D}.json`) y en
-> `docs/ANALISIS_D.md` y `docs/ANALISIS_HOLDOUT.md`. Las cifras de desarrollo y
-> las del holdout se reportan por separado; no se mezclan.
+> resultados del holdout (`eval/resultados_holdout_{A,C0,D}.json`), en
+> `docs/ANALISIS_D.md` y `docs/ANALISIS_HOLDOUT.md`, y en la evidencia posterior
+> del banco sintético (`eval/banco_sintetico.json`) y de los repositorios reales
+> (`eval/corrida_repos_reales.json`). Las cifras de desarrollo, las del holdout y
+> las del banco se reportan por separado; no se mezclan.
 
 ## 7.1 El intercambio entre ahorro y omisión
 
@@ -52,6 +54,14 @@ Pero la precisión no captura el costo del error: una alerta real descartada pes
 más que una falsa conservada. Por eso la meta principal es FNR y por eso D, con
 9,2 % crudo, no habilita descarte automático aunque su FPRR sea apreciable.
 
+La evidencia posterior del banco sintético (§7.12) refuerza esta lectura desde
+otro ángulo: cuando el conjunto contiene la misma regla con casos reales y
+falsos, D descarta 5 de 14 alertas reales (FNR 35,7 %) y acierta 7 de 12 falsos
+positivos (FPRR 58,3 %). El ahorro que en el corpus parece comprensión del
+contexto se reproduce con una regla trivial sobre la severidad. El banco no
+reemplaza al holdout —es adversarial, pequeño y de un solo anotador—, pero
+explica el mecanismo que el holdout solo puede medir.
+
 ## 7.2 El FNR ya no está solo en B403
 
 En desarrollo las cinco alertas reales que D descartaba eran todas B403
@@ -83,6 +93,14 @@ independiente. Una alternativa más fina para B403 sigue siendo mover la decisi�
 al punto de uso: no descartar por el `import`, sino por la ausencia de un
 `pickle.load` alcanzable. Eso requiere análisis de flujo, que Bandit no ofrece y
 que el modelo de 1,5B no puede reconstruir con fiabilidad.
+
+El banco sintético confirma que el problema no se limita a las reglas de
+importación. Sus cinco falsos negativos son B311, B105, B603, B101 y B110, todos
+de severidad baja; ninguno es B403. La coincidencia con el holdout es que B311
+vuelve a aparecer, pero el banco añade reglas que el corpus de evaluación no
+había puesto a prueba. El patrón común no es la regla: es la severidad baja. Eso
+desplaza la política de «excluir B403» hacia una pregunta más incómoda: el modelo
+no está leyendo el contexto que justifica cada excepción.
 
 ## 7.3 El CWE no es una clasificación independiente
 
@@ -162,6 +180,14 @@ por esta falta de diversidad: no se puede evaluar la calidad técnica de una
 plantilla repetida como si fuera análisis individual. La memoria debe reportar
 la diversidad junto con el kappa.
 
+El banco sintético reproduce el fenómeno con el prompt del producto: D usa
+exactamente dos explicaciones, una para `SAFE` («El código no presenta el patrón
+vulnerable indicado.») y otra para `VULNERABLE` («Se detecta un patrón asociado a
+CWE-XX en código Python.»). No es un artefacto del arnés de evaluación: también
+aparece en la ruta que usa la CLI. Cambiar el prompt no revirtió el colapso, así
+que la causa más probable sigue estando en los datos de ajuste y no solo en la
+plantilla de inferencia.
+
 ## 7.7 Robustez operativa
 
 La política conservadora absorbe los fallos del modelo. Con Ollama apuntado a una
@@ -217,6 +243,11 @@ final en el analista.
   producen intervalos amplios. El piloto B (n=10) no permite inferencia. El
   bootstrap por archivo es más conservador que Wilson y debe citarse junto con
   él.
+- **Validez del banco sintético:** 26 alertas, un solo anotador (el autor) y
+  construcción adversarial. No es una estimación de producción; sirve para
+  probar una hipótesis mecánica —si D lee el contexto o la severidad—, no para
+  estimar FPRR ni FNR poblacionales. Además usa el prompt del producto y no
+  `prompt_d`, así que sus cifras no son directamente comparables con C0/D.
 - **Sesgo del evaluador:** el equipo conoce el conjunto y diseñó el prompt. La
   rúbrica ciega con dos revisores y el holdout reservado son las salvaguardas
   previstas; la rúbrica aún no se aplicó.
@@ -250,7 +281,7 @@ modesta y que el costo en omisión sigue impidiendo el descarte automático.
 El mapeo por CWE muestra que el proyecto no cubre el Top 10 de forma uniforme:
 A03 (Injection) y A08 (Software and Data Integrity Failures) concentran el 96,5 %
 de las alertas de desarrollo y el 95,5 % del holdout. A01 y A02 aparecen de forma
-marginal (1 y 1 alerta en desarrollo; 0 y 3 en el holdout), y A04, A05, A06, A07,
+marginal (3 y 1 alerta en desarrollo; 1 y 3 en el holdout), y A04, A05, A06, A07,
 A09 y A10 no tienen ninguna alerta medida.
 
 Esa concentración explica por qué la política B403 tiene tanto efecto: B403 y
@@ -272,3 +303,55 @@ riesgo bajo y solo LLM08 queda excluido porque no hay RAG. Ese mapeo no mejora
 las métricas; hace visible qué controles ya existían y cuáles faltan. El detalle
 está en `docs/OWASP.md` y la matriz se regenera con
 `python eval/cobertura_owasp.py`.
+
+## 7.12 Evidencia posterior: banco sintético y repositorios reales
+
+Después de cerrar el holdout se construyeron dos pruebas que no lo reutilizan y
+que no ajustaron el modelo, los prompts ni las reglas: un banco sintético
+etiquetado de 26 alertas y una corrida sobre tres repositorios reales pinneados.
+Ninguna de las dos reemplaza al holdout; agregan evidencia sobre el mecanismo, no
+sobre la tasa poblacional.
+
+El banco contiene 14 alertas reales y 12 falsos positivos, con al menos un caso
+de cada tipo para 12 de las 13 reglas. Esa simetría rompe la correlación «esta
+regla siempre es real» que el corpus de entrenamiento no garantiza. Los dos
+modelos reciben el prompt del producto (`triage.build_prompt` y `triage.SYSTEM`),
+no el `prompt_d` del arnés de evaluación.
+
+| Métrica | Base | D |
+|---|---:|---:|
+| SAFE (recomendaciones de descarte) | 0/26 | 12/26 (46,2 %) |
+| FPRR | 0,0 % | 58,3 % (7/12) |
+| FNR | 0,0 % | 35,7 % (5/14) |
+| Exactitud de decisión | 53,8 % | 61,5 % |
+| Precisión de los descartes | n/a | 58,3 % |
+| Respuestas inválidas | 2 | 0 |
+
+El resultado central no es el 35,7 %: es que la decisión de D se reproduce
+**26/26** con la regla «`SAFE` si la severidad del SAST es baja; `VULNERABLE` en
+otro caso». Los 12 casos de severidad baja reciben `SAFE`; los 9 medios y 5
+altos, `VULNERABLE`. Los cinco falsos negativos son S08 (B311), S09 (B105), S11
+(B603), S13 (B101) y S14 (B110). No hay lectura del flujo ni del contexto: el
+modelo aprendió que severidad baja equivale a descarte.
+
+La corrida real apunta en la misma dirección. Sobre 38 alertas de `itsdangerous`,
+`pyjwt` y `httpie`, D recomienda descartar 34 (89,5 %) y el modelo base 4
+(10,5 %); D descarta **34 de 34** alertas de severidad baja y **0 de 4** medias o
+altas. Las 38 alertas se conservan en ambos casos y D no produjo errores. La
+corrida no tiene verdad de referencia, así que no produce FPRR ni FNR: mide
+cuánto ahorraría una revisión, no si el ahorro es correcto.
+
+Esa distinción es la que el banco resuelve. La corrida real sola sugeriría que D
+acierta porque descarta casi todo; el banco, con etiquetas, muestra que descarta
+también 5 reales. La conjunción de ambas pruebas es el argumento más fuerte
+contra el descarte automático: el ahorro es real y barato, pero se apoya en una
+señal que no distingue contexto.
+
+Límites que deben citarse junto con estas cifras: el banco tiene 26 alertas y un
+solo anotador; es adversarial y no representa la prevalencia del corpus; usa el
+prompt del producto y no el de entrenamiento, de modo que el cambio de plantilla
+puede explicar parte del colapso de las explicaciones; y la corrida real no está
+etiquetada. Ninguna de las dos se usó para ajustar prompts, reglas ni umbrales, y
+el holdout permaneció intacto. El detalle reproducible está en
+`docs/BANCO_SINTETICO.md`, `docs/ANALISIS_BANCO_SINTETICO.md` y
+`docs/CORRIDA_REPOS_REALES.md`.
