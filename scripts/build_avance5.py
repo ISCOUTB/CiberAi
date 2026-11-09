@@ -88,7 +88,7 @@ EVIDENCIAS = [
      "McNemar p=0,0004 (desarrollo) y p=0,0015 (holdout); Δ FPRR +26,0 y +19,6 puntos",
      "Completa (Sprint 8)"],
     ["Cobertura OWASP Top 10 2021",
-     "Desarrollo: A01 1, A02 1, A03 83, A08 53, sin categoría 3. Holdout: A02 3, A03 76, A08 30, sin categoría 2",
+     "Desarrollo: A01 3, A02 1, A03 83, A08 53, sin categoría 1. Holdout: A01 1, A02 3, A03 76, A08 30, sin categoría 1",
      "Completa (Sprint 8)"],
     ["Arquitectura arc42 y vistas C4",
      "12 secciones arc42 y 5 diagramas Mermaid versionados en docs/diagramas/",
@@ -1020,7 +1020,7 @@ body(doc,
      "deserialización.", keep=True)
 table(doc,
       ["Categoría", "Nombre", "Desarrollo (141)", "Holdout (111)"],
-      [["A01", "Broken Access Control", "1", "0"],
+      [["A01", "Broken Access Control", "3", "1"],
        ["A02", "Cryptographic Failures", "1", "3"],
        ["A03", "Injection", "83", "76"],
        ["A04", "Insecure Design", "0", "0"],
@@ -1030,12 +1030,13 @@ table(doc,
        ["A08", "Software and Data Integrity Failures", "53", "30"],
        ["A09", "Security Logging and Monitoring Failures", "0", "0"],
        ["A10", "Server Side Request Forgery (SSRF)", "0", "0"],
-       ["—", "Fuera del Top 10 2021", "3", "2"]],
+       ["—", "Fuera del Top 10 2021", "1", "1"]],
       widths=[2.0, 9.6, 3.2, 3.2])
 body(doc,
-     "Los tres CWE sin categoría en desarrollo son CWE-377 (archivo temporal inseguro), "
-     "CWE-605 (múltiples binds al mismo puerto) y CWE-703 (verificación de estado incorrecta); "
-     "en el holdout son CWE-377 y CWE-703. Ninguno forma parte del Top 10 2021. A04, A05, A06, "
+     "Los CWE sin categoría son CWE-605 (múltiples binds al mismo puerto) en desarrollo y "
+     "CWE-703 (verificación de estado incorrecta) en el holdout; ninguno forma parte del "
+     "Top 10 2021. CWE-377 (archivo temporal inseguro) figura en la lista oficial de A01 "
+     "como entrada obsoleta y por eso cuenta como A01. A04, A05, A06, "
      "A07, A09 y A10 no tienen alertas medidas: requieren diseño y flujo, configuración de "
      "despliegue, inventario de dependencias, credenciales fuera del corpus, telemetría de "
      "runtime o seguimiento de red. El producto es un triage de alertas de Bandit organizado "

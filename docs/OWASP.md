@@ -40,11 +40,30 @@ completa y no la línea que Bandit señala. En el holdout, por ejemplo, dos aler
 B311 (CWE-330, A02) están etiquetadas como CWE-94 (A03). Mapear por la etiqueta
 del dataset habría puesto esas alertas en Injection.
 
+### 1.1 OWASP en el producto
+
+La misma función de mapeo que usa la evaluación está en el producto
+(`agente/src/agente_seguridad/owasp.py`). No es una tabla duplicada: el campo
+`Finding.owasp` se calcula en `bandit_runner.py` al construir el hallazgo y viaja
+con la alerta hasta las tres salidas:
+
+- **JSON**: cada hallazgo incluye `owasp`; `resumen.por_owasp` cuenta las alertas
+  por categoría y `resumen.owasp_nombres` da el nombre legible.
+- **SARIF**: la regla y cada resultado llevan `properties.owasp`; los tags
+  incluyen `OWASP-Axx` y el CWE, de modo que cualquier visor puede filtrar por
+  categoría sin perder la trazabilidad.
+- **Consola**: se imprime el resumen `OWASP Top 10 2021: A03=..., A08=...` y una
+  columna de categoría por hallazgo.
+
+Las pruebas de `agente/tests/test_agente.py` cubren el mapeo, el campo en el
+reporte, el SARIF y los hallazgos reales de Bandit. La integración no cambia el
+modo asesor: la categoría organiza la alerta, no decide su descarte.
+
 ## 2. Cobertura medida del Top 10 2021
 
 | Categoría | Nombre | Desarrollo (141) | Holdout (111) |
 |---|---|---:|---:|
-| A01 | Broken Access Control | 1 | 0 |
+| A01 | Broken Access Control | 3 | 1 |
 | A02 | Cryptographic Failures | 1 | 3 |
 | A03 | Injection | 83 | 76 |
 | A04 | Insecure Design | 0 | 0 |
@@ -54,7 +73,7 @@ del dataset habría puesto esas alertas en Injection.
 | A08 | Software and Data Integrity Failures | 53 | 30 |
 | A09 | Security Logging and Monitoring Failures | 0 | 0 |
 | A10 | Server Side Request Forgery (SSRF) | 0 | 0 |
-| — | Fuera del Top 10 2021 | 3 | 2 |
+| — | Fuera del Top 10 2021 | 1 | 1 |
 
 Dos categorías concentran el 96,5 % de las alertas de desarrollo (83 + 53 de
 141) y el 95,5 % del holdout (76 + 30 de 111): **A03 Injection** y **A08 Software
@@ -79,15 +98,16 @@ Reglas por categoría:
 | B310 | CWE-22 | A01 | 1 | 0 |
 | B311 | CWE-330 | A02 | 1 | 3 |
 | B104 | CWE-605 | sin categoría | 1 | 0 |
-| B108 | CWE-377 | sin categoría | 2 | 1 |
+| B108 | CWE-377 | A01 | 2 | 1 |
 | B110 | CWE-703 | sin categoría | 0 | 1 |
 
-Los tres CWE sin categoría son reales y hay que explicarlos: CWE-377 (archivo
-temporal inseguro), CWE-605 (múltiples binds al mismo puerto) y CWE-703 (verificación
-de estado incorrecta) **no forman parte del Top 10 2021**. Decir que el agente
-«cubre el Top 10» sería falso; decir que cubre cuatro categorías con evidencia
-medida —A03 y A08 de forma dominante, A01 y A02 de forma marginal— es
-verificable.
+Los CWE sin categoría son reales y hay que explicarlos: CWE-605 (múltiples binds
+al mismo puerto) en desarrollo y CWE-703 (verificación de estado incorrecta) en el
+holdout **no forman parte del Top 10 2021**. CWE-377 (archivo temporal inseguro)
+figura en la lista oficial de A01 como entrada obsoleta, de modo que se clasifica
+como A01 y no como `sin_categoria`. Decir que el agente «cubre el Top 10» sería
+falso; decir que cubre cuatro categorías con evidencia medida —A03 y A08 de forma
+dominante, A01 y A02 de forma marginal— es verificable.
 
 ## 3. Discrepancias entre el dataset y las listas oficiales
 
@@ -124,7 +144,7 @@ amenaza real para el componente entrenado, no una nota al pie.
 
 | Categoría | ¿Bandit puede? | Motivo |
 |---|---|---|
-| A01 | Parcial | Solo CWE-22 vía B310; el control de acceso no se infiere del AST. |
+| A01 | Parcial | CWE-22 (B310) y CWE-377 (B108); el control de acceso no se infiere del AST. |
 | A02 | Parcial | Solo aleatoriedad débil (B311) y criptografía rota (B303/B304/B324). |
 | A03 | Sí | Núcleo de Bandit: comandos, `eval`, SQL, plantillas. |
 | A04 | Marginal | Requiere diseño y flujo; B201 no distingue intención. |

@@ -151,7 +151,7 @@ la columna `owasp` del dataset. Las tablas siguientes se regeneran desde ese JSO
 
 | Categoría | Nombre | Desarrollo (141) | Holdout (111) |
 |---|---|---:|---:|
-| A01 | Broken Access Control | 1 | 0 |
+| A01 | Broken Access Control | 3 | 1 |
 | A02 | Cryptographic Failures | 1 | 3 |
 | A03 | Injection | 83 | 76 |
 | A04 | Insecure Design | 0 | 0 |
@@ -161,7 +161,7 @@ la columna `owasp` del dataset. Las tablas siguientes se regeneran desde ese JSO
 | A08 | Software and Data Integrity Failures | 53 | 30 |
 | A09 | Security Logging and Monitoring Failures | 0 | 0 |
 | A10 | Server Side Request Forgery (SSRF) | 0 | 0 |
-| — | Fuera del Top 10 2021 | 3 | 2 |
+| — | Fuera del Top 10 2021 | 1 | 1 |
 
 **Regla, CWE del SAST y categoría**
 
@@ -180,7 +180,7 @@ la columna `owasp` del dataset. Las tablas siguientes se regeneran desde ese JSO
 | B310 | CWE-22 | A01 | 1 | 0 |
 | B311 | CWE-330 | A02 | 1 | 3 |
 | B104 | CWE-605 | sin categoría | 1 | 0 |
-| B108 | CWE-377 | sin categoría | 2 | 1 |
+| B108 | CWE-377 | A01 | 2 | 1 |
 | B110 | CWE-703 | sin categoría | 0 | 1 |
 
 **Discrepancias entre el mapeo del dataset y las listas oficiales**

@@ -54,8 +54,10 @@ CATEGORIAS = {
 # 2026; el resto de las listas se tomo de la misma fuente.
 CWE_A_OWASP = {
     # A01 Broken Access Control
+    # CWE-377 (archivo temporal inseguro) figura en la lista oficial de A01 como
+    # entrada obsoleta; se clasifica como A01 y no como `sin_categoria`.
     "CWE-22": "A01", "CWE-200": "A01", "CWE-264": "A01", "CWE-276": "A01",
-    "CWE-284": "A01", "CWE-352": "A01", "CWE-601": "A01",
+    "CWE-284": "A01", "CWE-352": "A01", "CWE-377": "A01", "CWE-601": "A01",
     # A02 Cryptographic Failures
     "CWE-310": "A02", "CWE-327": "A02", "CWE-330": "A02",
     # A03 Injection

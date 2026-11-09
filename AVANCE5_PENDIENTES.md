@@ -225,11 +225,13 @@ hacer obligatoria B403 y no agregar B311 después de ver el holdout.
   publica completo. Datos en `eval/analisis_c0_vs_d.json` y lectura en
   `docs/ANALISIS_C0_VS_D.md`.
 - [x] **OWASP como eje.** `eval/cobertura_owasp.py` mide la cobertura por el CWE
-  del SAST. Desarrollo: A01 1, A02 1, A03 83, A08 53, sin categoría 3. Holdout:
-  A02 3, A03 76, A08 30, sin categoría 2. Se documentan 10 discrepancias de 30
+  del SAST. Desarrollo: A01 3, A02 1, A03 83, A08 53, sin categoría 1. Holdout:
+  A01 1, A02 3, A03 76, A08 30, sin categoría 1. Se documentan 10 discrepancias de 30
   etiquetas del dataset, el LLM Top 10 2025 del agente y ASVS 5.0.0 como
   checklist parcial con exclusiones. Datos en `eval/cobertura_owasp.json` y
-  lectura en `docs/OWASP.md`.
+  lectura en `docs/OWASP.md`. El mapeo también está en el producto: campo `owasp`
+  por hallazgo, `resumen.por_owasp` en JSON, propiedades y tags en SARIF, y
+  columna/resumen en consola, con 22/22 pruebas en `agente/tests`.
 - [x] **Arquitectura arc42/C4.** `docs/ARQUITECTURA_ARC42.md` cubre las 12
   secciones de arc42 9.1; las vistas C4 de contexto y contenedores se
   renderizan desde `docs/diagramas/*.mmd` con Mermaid CLI 12.2.0.

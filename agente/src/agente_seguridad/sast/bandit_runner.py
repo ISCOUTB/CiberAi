@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from ..context import extract_context
 from ..models import SEVERITY_MAP, Finding, ToolRun, utcnow
+from ..owasp import etiqueta as owasp_etiqueta
 
 
 def bandit_version() -> str:
@@ -59,10 +60,11 @@ def run_bandit(target: Path) -> List[Finding]:
         end_line = int(item.get("end_col_offset") or line)
         code = item.get("code") or ""
         snippet, function = extract_context(str(Path(raw_path).resolve()), line)
+        cwe = _cwe_of(item)
         findings.append(Finding(
             finding_id="",
             rule_id=str(item.get("test_id") or ""),
-            cwe=_cwe_of(item),
+            cwe=cwe,
             severity=SEVERITY_MAP.get(str(item.get("issue_severity")), "media"),
             confidence=str(item.get("issue_confidence", "")),
             message=str(item.get("issue_text", "")).strip(),
@@ -72,6 +74,7 @@ def run_bandit(target: Path) -> List[Finding]:
             code=code,
             function=function,
             fingerprint="",
+            owasp=owasp_etiqueta(cwe),
             context=snippet,
         ))
     return findings

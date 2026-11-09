@@ -251,11 +251,11 @@ CWE que no pertenecen a ninguna lista oficial.
 
 | Categoría | Desarrollo (141) | Holdout (111) |
 |---|---:|---:|
-| A01 Broken Access Control | 1 | 0 |
+| A01 Broken Access Control | 3 | 1 |
 | A02 Cryptographic Failures | 1 | 3 |
 | A03 Injection | 83 | 76 |
 | A08 Software and Data Integrity Failures | 53 | 30 |
-| Fuera del Top 10 2021 | 3 | 2 |
+| Fuera del Top 10 2021 | 1 | 1 |
 
 A03 y A08 concentran más del 95 % de las alertas. A04–A07, A09 y A10 no tienen
 alertas medidas porque requieren diseño, configuración de despliegue, inventario
@@ -264,6 +264,13 @@ triage de Bandit organizado por OWASP, no un escáner del Top 10 completo. El
 modelo de amenaza del agente (OWASP LLM Top 10 2025 y ASVS 5.0.0) y las
 discrepancias del mapeo del dataset están en `docs/OWASP.md`; la matriz se
 regenera con `python eval/cobertura_owasp.py`.
+
+OWASP también viaja con cada alerta en el producto: `Finding.owasp` guarda la
+categoría derivada del CWE del SAST; `reporte.json` incluye `resumen.por_owasp` y
+`owasp_nombres`; SARIF añade `properties.owasp` y los tags `OWASP-Axx` y `CWE-xx`;
+y la consola muestra el resumen por categoría y una columna por hallazgo. El
+mapeo vive en `agente/src/agente_seguridad/owasp.py` y se cubre con pruebas en
+`agente/tests/test_agente.py`.
 
 ## Arquitectura arc42/C4
 

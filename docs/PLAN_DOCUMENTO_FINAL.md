@@ -149,8 +149,8 @@ Responder explícitamente:
 
 **Cobertura OWASP (CWE del SAST):**
 
-- Desarrollo (141): A01 1, A02 1, A03 83, A08 53, sin categoría 3.
-- Holdout (111): A01 0, A02 3, A03 76, A08 30, sin categoría 2.
+- Desarrollo (141): A01 3, A02 1, A03 83, A08 53, sin categoría 1.
+- Holdout (111): A01 1, A02 3, A03 76, A08 30, sin categoría 1.
 - A04–A07, A09 y A10 sin alertas medidas.
 - Mapeo del dataset: 10 de 30 etiquetas no coinciden; 7 forzadas a A03.
 

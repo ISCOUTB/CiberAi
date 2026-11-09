@@ -160,11 +160,14 @@ parcial con exclusiones.
 
 | Conjunto | A01 | A02 | A03 | A08 | Sin categoría |
 |---|---:|---:|---:|---:|---:|
-| Desarrollo (141) | 1 | 1 | 83 | 53 | 3 |
-| Holdout (111) | 0 | 3 | 76 | 30 | 2 |
+| Desarrollo (141) | 3 | 1 | 83 | 53 | 1 |
+| Holdout (111) | 1 | 3 | 76 | 30 | 1 |
 
 Se documentan 10 discrepancias de 30 etiquetas del dataset. Detalle en
-`docs/OWASP.md`.
+`docs/OWASP.md`. El mapeo también está en el producto
+(`agente/src/agente_seguridad/owasp.py`): cada hallazgo lleva `owasp`, el reporte
+incluye `resumen.por_owasp`, SARIF añade propiedades y tags, y la consola muestra
+la categoría por alerta.
 
 ### 5.7 Smoke test con repositorios reales
 
@@ -185,7 +188,7 @@ fijados por commit y limitados al paquete fuente.
 - Probados: cliente nulo, JSON malformado, veredicto inválido, SAFE sin
   justificación, Ollama caído, repo vacío, archivo vacío, sintaxis inválida,
   otro lenguaje, repo de 40 archivos/360 alertas y prompt injection.
-- `agente/tests`: 13/13 pruebas OK (requiere Bandit instalado).
+- `agente/tests`: 22/22 pruebas OK (requiere Bandit instalado).
 
 ## 6. Lo que está hecho pero **no ejecutado**
 

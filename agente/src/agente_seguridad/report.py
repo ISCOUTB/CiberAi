@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from .models import Finding, Scan
+from .owasp import nombre as owasp_nombre
 from .sast.sarif import to_sarif
 
 
@@ -22,6 +23,12 @@ def summary(scan: Scan) -> Dict[str, Any]:
         "archivos": len({f.file for f in findings}),
         "por_cwe": _count(findings, lambda f: f.cwe),
         "por_severidad": _count(findings, lambda f: f.severity),
+        # Categoria OWASP Top 10 2021 derivada del CWE del SAST. Un CWE fuera
+        # de las listas oficiales se cuenta como `sin_categoria`, igual que en
+        # la evaluacion de cobertura.
+        "por_owasp": _count(findings, lambda f: f.owasp or "sin_categoria"),
+        "owasp_nombres": {k: owasp_nombre(k) for k in
+                          _count(findings, lambda f: f.owasp or "sin_categoria")},
     }
 
 
@@ -60,6 +67,9 @@ def console(scan: Scan, limit: int = 40) -> str:
         "Hallazgos: {} | conservadas: {} | recomendadas para descarte: {} | sospechosas: {} | errores modelo: {}".format(
             data["total"], data["conservadas"], data["recomendadas_descarte"],
             data["sospechosas"], data["errores_modelo"]),
+        "OWASP Top 10 2021: {}".format(
+            ", ".join("{}={}".format(k, v) for k, v in data["por_owasp"].items())
+            or "sin alertas"),
         "",
     ]
     ordered = sorted(scan.findings, key=lambda f: (_verdict(f) == "SAFE", f.file, f.line))
@@ -67,8 +77,9 @@ def console(scan: Scan, limit: int = 40) -> str:
         triage = finding.triage or {}
         verdict = triage.get("veredicto", "SIN_TRIAGE")
         explanation = str(triage.get("explicacion", "")).strip().replace("\n", " ")
-        lines.append("{:<11} {:<12} {} {}:{}  {}".format(
-            verdict, finding.cwe, finding.file, finding.line, finding.severity, finding.function))
+        lines.append("{:<11} {:<12} {:<14} {} {}:{}  {}".format(
+            verdict, finding.cwe, finding.owasp or "sin_categoria",
+            finding.file, finding.line, finding.severity, finding.function))
         if explanation:
             lines.append("            " + explanation[:160])
     if len(ordered) > limit:

@@ -25,6 +25,7 @@ class Finding:
     code: str
     function: str
     fingerprint: str
+    owasp: str = ""
     context: Optional[str] = None
     triage: Optional[Dict[str, Any]] = None
 
