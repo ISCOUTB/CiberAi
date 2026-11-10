@@ -73,6 +73,12 @@ docs/INFORME_FINAL.pdf
 eval/Avance*.pdf
 eval/page*.png
 
+# Avances historicos (solo Avance 5.docx se conserva como entregable)
+Avance 1.docx
+Avance 2.docx
+Avance 3.docx
+Avance 4.docx
+
 # Frontend
 frontend/node_modules/
 frontend/dist/
