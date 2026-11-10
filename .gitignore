@@ -26,20 +26,52 @@ env/
 venv/
 ENV/
 
-# Modelos y pesos pesados de entrenamiento
+# Modelos, pesos y artefactos pesados de entrenamiento
 *.gguf
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
 training/out/*.gguf
 training/out/gguf/
 training/out/qwen-coder-1.5b-lora/
 training/out/qwen-coder-1.5b-merged/
 training/out/checkpoint-*/
+training/out/*.log
+training/llama-bin/
+training/tmp_bandit/
 llama.cpp/
+
+# Dataset pesado y splits regenerables
+dataset/data/*.parquet
+dataset/splits/*.jsonl
+training/data/*.jsonl
 
 # Carpetas temporales de evaluacion
 eval/tmp_py/
 eval/tmp_py_holdout/
 eval/pruebas/out_*/
 eval/repos_reales/
+eval/sinteticas/casos/*_cache.py
+
+# Reportes generados (regenerables con scripts)
+reportes/*.png
+reportes/*.json
+reportes/*.sarif
+reportes/*.html
+
+# Documentos historicos y temporales de Office
+~$*.docx
+~$*.xlsx
+~$*.pptx
+respaldo/
+
+# Documentos de salida regenerables
+docs/INFORME_FINAL.html
+docs/INFORME_FINAL.pdf
+eval/Avance*.pdf
+eval/page*.png
 
 # Frontend
 frontend/node_modules/
@@ -50,7 +82,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# IDE y Sistema Operativo
+# IDE, sistema operativo y configuracion local
 .vscode/
 .idea/
 *.swp
@@ -59,4 +91,5 @@ yarn-error.log*
 Thumbs.db
 Desktop.ini
 .DS_Store
-training/tmp_bandit/
+.env
+.env.local
