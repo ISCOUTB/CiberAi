@@ -52,8 +52,8 @@ COMPARATIVA = [
 # Evidencias de integración y pruebas. Reemplazar "Por registrar" / "Por medir"
 # con los resultados reales antes de la entrega.
 EVIDENCIAS = [
-    ["Pruebas unitarias (contexto, dedup, SARIF, parseo, política, Bandit)",
-     "13 de 13 correctas", "Completa (Sprint 7)"],
+    ["Pruebas unitarias (contexto, dedup, SARIF, parseo, política, Bandit, OWASP)",
+     "22 de 22 correctas", "Completa (Sprint 8)"],
     ["Corrida sin modelo (--no-llm) sobre examples/sample_repo",
      "9 alertas, 9 conservadas, 9 SOSPECHOSA", "Completa (Avance 4)"],
     ["Corrida con modelo base sobre examples/sample_repo",
@@ -886,6 +886,10 @@ table(doc,
       ["Configuración", "Alertas", "FPRR", "FNR", "FOR", "Exactitud CWE", "Estado"],
       COMPARATIVA,
       widths=[4.4, 1.6, 1.8, 1.6, 1.6, 3.0, 2.5])
+figure(doc,
+       Path(__file__).resolve().parents[1] / "reportes" / "grafica_comparativa_desarrollo.png",
+       "Figura 1. Comparativa de FPRR y FNR en desarrollo. La línea roja marca la meta de "
+       "FNR ≤ 5 %. D reduce el ruido respecto a C0, pero supera la meta de omisión.")
 body(doc,
      "La corrida C, con el modelo base y dos ejemplos resueltos, recomendó descartar una sola "
      "de las 50 alertas falsas (FPRR 2,0 %), conservó las 91 reales (FNR 0 %, FOR 0 %), "
@@ -938,6 +942,10 @@ table(doc,
        ["D + política B403", "111", "19,6 %", "3,1 %", "18,2 %", "63,0 %", "30,2 %"],
        ["D + B403 y B311", "111", "19,6 %", "0,0 %", "0,0 %", "63,7 %", "29,2 %"]],
       widths=[4.5, 1.5, 1.8, 1.6, 1.6, 2.2, 1.8])
+figure(doc,
+       Path(__file__).resolve().parents[1] / "reportes" / "grafica_comparativa_holdout.png",
+       "Figura 2. Comparativa de FPRR y FNR en el holdout. A no decide; C0 es conservador; "
+       "D gana ahorro pero pierde alertas reales. La política B403 mitiga parte del FNR.")
 body(doc,
      "D crudo descarta 14 de 46 falsos positivos y 6 de 65 alertas reales. Frente a C0, que "
      "descarta 5 falsos positivos y ninguna real, D suma 9 descartes correctos y 6 errores. El "
@@ -1032,6 +1040,10 @@ table(doc,
        ["A10", "Server Side Request Forgery (SSRF)", "0", "0"],
        ["—", "Fuera del Top 10 2021", "1", "1"]],
       widths=[2.0, 9.6, 3.2, 3.2])
+figure(doc,
+       Path(__file__).resolve().parents[1] / "reportes" / "grafica_cobertura_owasp.png",
+       "Figura 3. Cobertura OWASP Top 10 2021 por categoría. A03 y A08 concentran más del "
+       "95 % de las alertas; el resto del Top 10 queda fuera del alcance de Bandit.")
 body(doc,
      "Los CWE sin categoría son CWE-605 (múltiples binds al mismo puerto) en desarrollo y "
      "CWE-703 (verificación de estado incorrecta) en el holdout; ninguno forma parte del "
@@ -1075,6 +1087,50 @@ body(doc,
      "eval/rubrica/auditoria_fn_ciega.csv y el acuerdo entre revisores se calculará con el kappa "
      "de Cohen.")
 
+h2(doc, "6.5 Validaciones out-of-distribution")
+body(doc,
+     "El holdout mide generalización sobre el corpus académico, pero no explica el mecanismo "
+     "que usa D para decidir. Después de cerrar el holdout se construyeron dos pruebas que no lo "
+     "reutilizan y no ajustaron el modelo, los prompts ni las reglas: un banco sintético "
+     "etiquetado y una auditoría manual sobre tres repositorios reales pinneados.", keep=True)
+table(doc,
+      ["Prueba", "N", "FPRR", "FNR", "Precisión descartes", "Nota"],
+      [["Banco sintético (base)", "26", "0,0 %", "0,0 %", "n/a", "Prompt del producto"],
+       ["Banco sintético (D)", "26", "58,3 %", "35,7 %", "58,3 %", "13 reglas, 14 reales / 12 FP"],
+       ["Auditoría repos reales (D)", "38", "100,0 %", "0,0 %", "91,2 %", "itsdangerous, pyjwt, httpie"]],
+      widths=[4.0, 1.4, 2.0, 2.0, 3.0, 5.6])
+body(doc,
+     "El banco sintético rompe la correlación regla→veredicto: incluye casos reales y falsos "
+     "de la misma regla. Su resultado central no es el FNR del 35,7 %, sino que la decisión de D "
+     "se reproduce 26/26 con la regla «SAFE si la severidad del SAST es baja». Eso muestra que el "
+     "ahorro no equivale a comprensión del contexto.")
+figure(doc,
+       Path(__file__).resolve().parents[1] / "reportes" / "grafica_banco_sintetico.png",
+       "Figura 4. Banco sintético: D descarta más falsos positivos, pero también más alertas "
+       "reales. El intervalo inferior del FNR (16,3 %) supera la meta de ≤ 5 %.")
+body(doc,
+     "La auditoría de repos reales da un resultado favorable pero no generalizable: D acierta "
+     "todos los falsos positivos y no omite ninguna alerta real. La muestra es pequeña, elegida "
+     "por el autor y dominada por B101 en tests; no contradice el holdout, pero muestra que el "
+     "modo asesor puede ahorrar revisión sin pérdidas observadas en proyectos reales con mucho "
+     "ruido.")
+figure(doc,
+       Path(__file__).resolve().parents[1] / "reportes" / "grafica_auditoria_repos.png",
+       "Figura 5. Auditoría manual de repos reales. El resultado es favorable, pero la muestra "
+       "es pequeña y seleccionada por el autor.")
+
+h2(doc, "6.6 Amenaza a la validez: casi-duplicados")
+body(doc,
+     "La partición es aleatoria por función porque el dataset no tiene identificador de "
+     "repositorio. La comparación exacta de hashes normalizados dio 0 coincidencias, pero un "
+     "análisis de similitud de tokens encontró que el 70,3 % de las funciones del holdout tiene "
+     "un vecino ≥ 0,8 en train/val, y 45/111 tienen similitud ≥ 0,9. Eso no demuestra fuga, pero "
+     "debilita la afirmación de independencia.", keep=True)
+figure(doc,
+       Path(__file__).resolve().parents[1] / "reportes" / "grafica_casi_duplicados.png",
+       "Figura 6. Similitud máxima entre funciones del holdout y train/val. Los bins a la "
+       "derecha de la línea roja están sobre el umbral 0,8.")
+
 # 7. Pruebas
 h1(doc, "7. Pruebas y validación del producto")
 body(doc,
@@ -1088,7 +1144,7 @@ table(doc,
 body(doc,
      "Las pruebas unitarias cubren el contexto por AST, la deduplicación, el SARIF, el parseo "
      "de la respuesta del modelo, la política conservadora, el modo asesor y la ejecución de "
-     "Bandit y el límite de generación del cliente: 13 de 13 correctas. Las pruebas de "
+     "Bandit, el mapeo OWASP y el límite de generación del cliente: 22 de 22 correctas. Las pruebas de "
      "resiliencia verifican que un cliente nulo, un "
      "JSON malformado y un veredicto inválido conservan la alerta. La corrida de integración "
      "con el modelo afinado sobre examples/sample_repo conservó las 9 alertas, no produjo "
@@ -1150,9 +1206,9 @@ table(doc,
       widths=[5.6, 2.2, 2.6, 2.0, 2.6, 2.0])
 body(doc,
      "En los 38 escaneos por modelo, conservadas == total: ninguna alerta se eliminó. D "
-     "recomienda descartar 34 de 38 alertas (89,5 %) y el modelo base 3 de 38 (7,9 %). La "
-     "diferencia es consistente con el conjunto de evaluación, pero el smoke test no permite "
-     "generalizar: la muestra es pequeña y la auditoría la hizo una sola persona.")
+     "recomienda descartar 34 de 38 alertas (89,5 %) y el modelo base 4 de 38 (10,5 %). La "
+     "auditoría manual posterior da FPRR 100 % y FNR 0 %, pero la muestra es pequeña, "
+     "elegida por el autor y dominada por B101 en tests.")
 table(doc,
       ["Regla", "SAFE de D", "Qué es", "Veredicto"],
       [["B101", "21", "assert internos que verifican invariantes, no validación de entrada",
@@ -1194,9 +1250,10 @@ bullet(doc, "Independencia de la partición: la evaluación de desarrollo usa va
             "partición que alimentó la validación del ajuste. El holdout usa el test y se "
             "ejecutó una sola vez, pero el split sigue siendo aleatorio por función y el "
             "dataset no incluye identificador de proyecto. La comparación exacta de hashes "
-            "normalizados contra train y validación dio 0 coincidencias; los casi-duplicados "
-            "quedan pendientes y la partición agrupada no es posible con los metadatos "
-            "actuales.")
+            "normalizados contra train y validación dio 0 coincidencias; el análisis de "
+            "similitud de tokens encontró que el 70,3 % de las funciones del holdout tiene "
+            "un vecino ≥ 0,8 en train/val. La partición agrupada no es posible con los "
+            "metadatos actuales.")
 bullet(doc, "Falsos negativos bien formados: un SAFE con JSON válido y justificación puede ser "
             "incorrecto. En el holdout D descartó 6 de 65 alertas reales según la etiqueta de "
             "fragmento (9,2 %); la auditoría a nivel de alerta reduce la omisión real a 2 (3,1 %). "
