@@ -10,8 +10,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -19,6 +19,12 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
 
 # Entornos virtuales
 .venv/
@@ -44,8 +50,7 @@ training/tmp_bandit/
 llama.cpp/
 
 # Dataset pesado y splits regenerables
-dataset/data/*.parquet
-dataset/splits/*.jsonl
+dataset/
 training/data/*.jsonl
 
 # Carpetas temporales de evaluacion
@@ -60,6 +65,7 @@ reportes/*.png
 reportes/*.json
 reportes/*.sarif
 reportes/*.html
+reportes/*/
 
 # Documentos historicos y temporales de Office
 ~$*.docx
@@ -76,11 +82,19 @@ eval/page*.png
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/.vite/
 frontend/.env.local
 frontend/.env.*.local
+*.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Instrucciones de agentes y archivos sueltos de la raiz
+AGENTS.md
+checks.txt
+Documento_Proyecto_Seguridad_Ia.docx
+package-lock.json
 
 # IDE, sistema operativo y configuracion local
 .vscode/

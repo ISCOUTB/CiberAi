@@ -1,5 +1,0 @@
-“Implementar un agente inteligente que analice repositorios de código fuente para identificar vulnerabilidades de seguridad, proponiendo correcciones basadas en estándares de la industria.”
-
-Y al lado:
-
-“Una herramienta de línea de comandos (CLI) ejecutable que analiza el código fuente de un directorio local o URL, consulta un modelo de lenguaje y genera informes y recomendaciones para las vulnerabilidades vistas.”
