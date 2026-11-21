@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "agente-seguridad",
+          "informationUri": "https://owasp.org/Top10/",
+          "rules": [
+            {
+              "id": "B403",
+              "name": "B403",
+              "shortDescription": {
+                "text": "CWE-502 (Software and Data Integrity Failures)"
+              },
+              "properties": {
+                "cwe": "CWE-502",
+                "owasp": "A08",
+                "tags": [
+                  "security",
+                  "owasp-top10-2021",
+                  "OWASP-A08",
+                  "CWE-502"
+                ]
+              }
+            },
+            {
+              "id": "B404",
+              "name": "B404",
+              "shortDescription": {
+                "text": "CWE-78 (Injection)"
+              },
+              "properties": {
+                "cwe": "CWE-78",
+                "owasp": "A03",
+                "tags": [
+                  "security",
+                  "owasp-top10-2021",
+                  "OWASP-A03",
+                  "CWE-78"
+                ]
+              }
+            },
+            {
+              "id": "B105",
+              "name": "B105",
+              "shortDescription": {
+                "text": "CWE-259 (Identification and Authentication Failures)"
+              },
+              "properties": {
+                "cwe": "CWE-259",
+                "owasp": "A07",
+                "tags": [
+                  "security",
+                  "owasp-top10-2021",
+                  "OWASP-A07",
+                  "CWE-259"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "originalUriBaseIds": {
+        "SRCROOT": {
+          "uri": "C:\\Games\\u\\proyecto ing\\CiberAi\\agente\\examples\\sample_repo"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "B403",
+          "level": "note",
+          "message": {
+            "text": "Consider possible security implications associated with pickle module."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "vuln.py"
+                },
+                "region": {
+                  "startLine": 2,
+                  "endLine": 13
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "findingId": "3e80f2f8c789f9b7"
+          },
+          "properties": {
+            "cwe": "CWE-502",
+            "owasp": "A08",
+            "severity": "baja",
+            "confidence": "HIGH",
+            "function": "<modulo>"
+          }
+        },
+        {
+          "ruleId": "B404",
+          "level": "note",
+          "message": {
+            "text": "Consider possible security implications associated with the subprocess module."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "vuln.py"
+                },
+                "region": {
+                  "startLine": 3,
+                  "endLine": 17
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "findingId": "95afb559439ba42b"
+          },
+          "properties": {
+            "cwe": "CWE-78",
+            "owasp": "A03",
+            "severity": "baja",
+            "confidence": "HIGH",
+            "function": "<modulo>"
+          }
+        },
+        {
+          "ruleId": "B105",
+          "level": "note",
+          "message": {
+            "text": "Possible hardcoded password: 'SuperSecreto123'"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "vuln.py"
+                },
+                "region": {
+                  "startLine": 5,
+                  "endLine": 31
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "findingId": "a6323a73d09c9971"
+          },
+          "properties": {
+            "cwe": "CWE-259",
+            "owasp": "A07",
+            "severity": "baja",
+            "confidence": "MEDIUM",
+            "function": "<modulo>"
+          }
+        }
+      ]
+    }
+  ]
+}

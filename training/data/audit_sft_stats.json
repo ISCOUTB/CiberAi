@@ -1,0 +1,67 @@
+{
+ "train": {
+  "filas": 101878,
+  "descartadas_lenguaje": 100414,
+  "descartadas_sintaxis": 1054,
+  "antes_balance_vuln": 195,
+  "antes_balance_safe": 215,
+  "antes_balance_total": 410,
+  "despues_balance_vuln": 195,
+  "despues_balance_safe": 215,
+  "triage_mezclados": 0,
+  "ejemplos": 410,
+  "lenguajes": {
+   "Python": 410
+  },
+  "cwe_top": {
+   "CWE-94": 77,
+   "CWE-502": 40,
+   "CWE-787": 23,
+   "CWE-119": 18,
+   "CWE-20": 14,
+   "CWE-89": 9,
+   "CWE-78": 6,
+   "CWE-190": 2,
+   "CWE-200": 2,
+   "CWE-401": 1
+  }
+ },
+ "val": {
+  "filas": 42536,
+  "descartadas_lenguaje": 41887,
+  "descartadas_sintaxis": 435,
+  "antes_balance_vuln": 108,
+  "antes_balance_safe": 106,
+  "antes_balance_total": 214,
+  "despues_balance_vuln": 108,
+  "despues_balance_safe": 106,
+  "triage_mezclados": 0,
+  "ejemplos": 214,
+  "lenguajes": {
+   "Python": 214
+  },
+  "cwe_top": {
+   "CWE-94": 42,
+   "CWE-502": 27,
+   "CWE-787": 11,
+   "CWE-119": 8,
+   "CWE-20": 7,
+   "CWE-89": 5,
+   "CWE-200": 3,
+   "CWE-79": 2,
+   "CWE-78": 2,
+   "CWE-362": 1
+  }
+ },
+ "config": {
+  "languages": "Python",
+  "ratio": 2.0,
+  "limit": 0,
+  "min_chars": 40,
+  "max_chars": 8000,
+  "require_parse": true,
+  "triage_frac": 0.5,
+  "hashes_eval": 82,
+  "hashes_holdout": 69
+ }
+}

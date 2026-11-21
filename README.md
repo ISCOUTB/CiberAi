@@ -27,6 +27,9 @@ Todo corre en la máquina del usuario: no se envía código a ninguna API extern
   de 5,5 % a 3,3 % en desarrollo y de 9,2 % a 3,1 % en el holdout, y la
   diferencia frente a C0 deja de ser significativa. Se reporta como análisis de
   sensibilidad; el resultado pre-registrado del holdout no cambia.
+- Iteración actual: modo **LLM-first** (`--scanner llm|all`), SFT directo de
+  código a JSON, conjunto de evaluación propio y línea base preliminar con el
+  modelo base. El modo asesor y el holdout no cambian.
 
 El producto funciona en **modo asesor**: una recomendación `SAFE` marca la
 alerta para descarte, pero **nunca la elimina** del reporte. Ante una respuesta
@@ -37,11 +40,14 @@ dudosa, inválida o un servicio caído, la alerta se conserva como `SOSPECHOSA`.
 ```
 repositorio
    │
-   ├─ Bandit (SAST) ──> alertas normalizadas
+   ├─ modo modelo primero: fragmentos Python ──> Ollama ──> VULNERABLE + CWE
+   │                                                        (solo VULNERABLE crea hallazgo)
+   │
+   ├─ Bandit + escáner OWASP ──> alertas normalizadas
    │                        │
    │                        ├─ deduplicación por archivo/línea/regla
    │                        ├─ extracción de la función afectada
-   │                        └─ contexto para el modelo
+   │                        └─ contexto para el modelo (triage)
    │
    ├─ Ollama + qwen2.5-coder-triage ──> veredicto JSON
    │
@@ -82,6 +88,21 @@ python agente\run.py scan ruta\al\repo --max-alerts 20
 # Simular Ollama caído (debe conservar todo como SOSPECHOSA)
 python agente\run.py scan ruta\al\repo --ollama-url http://localhost:9
 ```
+
+### Modelo primero: detección directa sin alertas SAST
+
+El modo `--scanner llm` no ejecuta Bandit: el modelo lee funciones Python y emite
+por sí mismo el veredicto, el CWE, la severidad y la explicación. Solo los
+fragmentos `VULNERABLE` se convierten en hallazgos; la categoría OWASP se deriva
+de ese CWE. `--scanner all` ejecuta primero el modelo y después Bandit + OWASP.
+
+```powershell
+python agente\run.py scan ruta\al\repo --scanner llm --model qwen2.5-coder-triage
+python agente\run.py scan ruta\al\repo --scanner all --model qwen2.5-coder-triage
+```
+
+Los hallazgos del modelo aparecen como herramienta `llm-audit` y no se vuelven a
+triagear: su veredicto ya es la respuesta del detector.
 
 ## Modelo afinado
 
@@ -126,14 +147,26 @@ python training\train_qlora.py --quant 4bit --epochs 1 --decision-weight 3.0 `
     --train training\data\train_sft_real.jsonl --val training\data\val_sft_real.jsonl `
     --out training\out\qwen-coder-1.5b-lora-v2
 
-python training\export_gguf.py
+# Modelo primero: codigo crudo -> VULNERABLE/SAFE + CWE (SFT de auditoria)
+python training\build_audit_sft.py
+python training\train_qlora.py --quant 4bit --epochs 1 --decision-weight 3.0 `
+    --train training\data\train_audit.jsonl --val training\data\val_audit.jsonl `
+    --out training\out\qwen-coder-1.5b-lora-v3
+
+python training\export_gguf.py --adapter training\out\qwen-coder-1.5b-lora-v3
 ollama create qwen2.5-coder-triage -f Modelfile
 ```
 
-El pipeline nuevo genera 554 ejemplos de entrenamiento y 286 de validación a
-partir de 554 y 286 alertas reales de Bandit (todas con alerta, sin
+El pipeline de alertas genera 554 ejemplos de entrenamiento y 286 de validación
+a partir de 554 y 286 alertas reales de Bandit (todas con alerta, sin
 `finding_id`), y aplica el criterio de patrón de `docs/AUDITORIA_FN.md`. La
 política de no descarte está pre-registrada en `docs/POLITICA_REGLAS.md`.
+
+El SFT de auditoría usa solo `train_80` / `val_total`, valida con `ast.parse` los
+fragmentos marcados como Python (el dataset tiene etiquetas de lenguaje ruidosas)
+y escribe `training/data/train_audit.jsonl` y `val_audit.jsonl`. Con los filtros
+actuales produce unos 410 ejemplos de entrenamiento y 214 de validación; es una
+primera iteración incremental, no un modelo de detección general.
 
 Hiperparámetros de la corrida registrada: LoRA r=16, alpha=32, dropout=0,05,
 4 bits, lote efectivo 8, 1 época, 1.439 pasos, 11.510 ejemplos de
@@ -155,12 +188,28 @@ python eval\run_eval.py --config B --model qwen2.5-coder:1.5b
 python eval\run_eval.py --config C --model qwen2.5-coder:1.5b
 python eval\run_eval.py --config C0 --model qwen2.5-coder:1.5b
 python eval\run_eval.py --config D --model qwen2.5-coder-triage
+
+# Deteccion directa (modelo primero), sin alertas de Bandit
+python eval\build_audit_eval_set.py --per-class 300
+python eval\run_audit_eval.py --model qwen2.5-coder-triage
 ```
 
-Métricas: FPRR (falsos positivos recomendados para descarte), FNR (alertas
-reales recomendadas para descarte), FOR (falsos positivos entre las
-recomendadas para descarte), precisión y exactitud CWE. La meta principal es **FNR ≤ 5 %**; FPRR mide el ahorro de
-revisión.
+Métricas del triage: FPRR (falsos positivos recomendados para descarte), FNR
+(alertas reales recomendadas para descarte), FOR (falsos positivos entre las
+recomendadas para descarte), precisión y exactitud CWE. La meta principal es
+**FNR ≤ 5 %**; FPRR mide el ahorro de revisión. La auditoría LLM-first se mide
+con TP/FN/FP/TN, precisión, recall, F1, FPR, FNR y exactitud del CWE.
+
+Línea base preliminar de auditoría LLM-first, con el modelo base y los primeros
+40 fragmentos del conjunto de desarrollo (20 vulnerables / 20 seguros):
+
+| Modelo | Precisión | Recall | F1 | FPR | FNR | CWE | Inválidas |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `qwen2.5-coder:1.5b` | 55,2 % | 80,0 % | 65,3 % | 65,0 % | 20,0 % | 12,5 % | 5/40 |
+
+No es una medición del modelo afinado ni del holdout: sirve como línea base y
+como prueba de que el pipeline funciona. El detalle está en
+`eval/resultados_audit_qwen2.5-coder_1.5b.json`.
 
 Resultados sobre las 141 alertas:
 
@@ -245,9 +294,10 @@ y se detalla en `docs/AUDITORIA_FN.md`.
 
 ## Cobertura OWASP
 
-La cobertura se calcula con el CWE que reporta Bandit, no con la columna `owasp`
-del dataset. Se usa el OWASP Top 10 2021 y se reportan como `sin_categoria` los
-CWE que no pertenecen a ninguna lista oficial.
+La cobertura se calcula con el CWE que reporta el detector, no con la columna
+`owasp` del dataset. En el triage el detector es Bandit o el escáner OWASP; en
+`--scanner llm` es el CWE que emite el modelo. Se usa el OWASP Top 10 2021 y se
+reportan como `sin_categoria` los CWE que no pertenecen a ninguna lista oficial.
 
 | Categoría | Desarrollo (141) | Holdout (111) |
 |---|---:|---:|
@@ -260,14 +310,15 @@ CWE que no pertenecen a ninguna lista oficial.
 A03 y A08 concentran más del 95 % de las alertas. A04–A07, A09 y A10 no tienen
 alertas medidas porque requieren diseño, configuración de despliegue, inventario
 de dependencias, credenciales, telemetría o seguimiento de red. El producto es un
-triage de Bandit organizado por OWASP, no un escáner del Top 10 completo. El
-modelo de amenaza del agente (OWASP LLM Top 10 2025 y ASVS 5.0.0) y las
-discrepancias del mapeo del dataset están en `docs/OWASP.md`; la matriz se
-regenera con `python eval/cobertura_owasp.py`.
+triage de Bandit y una auditoría LLM-first organizados por OWASP, no un escáner
+del Top 10 completo. El modelo de amenaza del agente (OWASP LLM Top 10 2025 y
+ASVS 5.0.0) y las discrepancias del mapeo del dataset están en `docs/OWASP.md`;
+la matriz se regenera con `python eval/cobertura_owasp.py`.
 
 OWASP también viaja con cada alerta en el producto: `Finding.owasp` guarda la
-categoría derivada del CWE del SAST; `reporte.json` incluye `resumen.por_owasp` y
-`owasp_nombres`; SARIF añade `properties.owasp` y los tags `OWASP-Axx` y `CWE-xx`;
+categoría derivada del CWE del detector (SAST o modelo); `reporte.json` incluye
+`resumen.por_owasp` y `owasp_nombres`; SARIF añade `properties.owasp` y los tags
+`OWASP-Axx` y `CWE-xx`;
 y la consola muestra el resumen por categoría y una columna por hallazgo. El
 mapeo vive en `agente/src/agente_seguridad/owasp.py` y se cubre con pruebas en
 `agente/tests/test_agente.py`.
@@ -354,9 +405,12 @@ prompt injection).
   exacta de hashes normalizados contra train y validación dio 0 coincidencias, y
   el análisis de similitud de tokens encontró que el 70,3 % de las funciones del
   holdout tiene un vecino ≥ 0,8 en train/val.
-- El CWE que devuelve el modelo copia el CWE reportado por el SAST: 59 de 59
-  alertas reales conservadas en el holdout. No se debe usar como clasificador
-  independiente; el producto conserva el CWE del SAST.
+- En triage, el CWE que devuelve el modelo copia el CWE reportado por el SAST:
+  59 de 59 alertas reales conservadas en el holdout. No se debe usar como
+  clasificador independiente en ese modo; el producto conserva el CWE del SAST.
+  En `--scanner llm` el CWE del modelo sí es el del detector; la línea base de
+  40 fragmentos da solo 12,5 % de exactitud CWE, así que ese modo aún no es
+  confiable como clasificador independiente.
 - El FNR de D en desarrollo fue 5,5 % (5/91, todas B403). En el holdout subió a
   **9,2 % (6/65)**: 4 B403 y 2 B311. La política B403 lo baja a 3,1 % (IC95
   0,8–10,5 %), pero no alcanza para afirmar ≤ 5 %. El modo asesor se mantiene y

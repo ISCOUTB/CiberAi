@@ -4,7 +4,7 @@
 
 ## 1. Qué es este proyecto
 
-Trabajo de Fin de Grado que implementa un **agente local de triage** para alertas de Bandit sobre código Python. Usa un Qwen2.5-Coder-1.5B afinado con QLoRA, cuantizado a Q4_K_M y servido con Ollama.
+Trabajo de Fin de Grado que implementa un **agente local de triage** para alertas SAST sobre código Python. Usa un Qwen2.5-Coder-1.5B afinado con QLoRA, cuantizado a Q4_K_M y servido con Ollama. Además de Bandit, el producto incluye un **escaner propio de reglas OWASP Top 10 2021** y un modo **LLM-first** (`--scanner llm`) en el que el modelo lee el código y detecta vulnerabilidades por sí mismo, antes de ejecutar cualquier herramienta SAST.
 
 **Decisión clave de diseño:** el agente opera en **modo asesor**. Recomienda descartar alertas (`SAFE`), pero **nunca elimina la alerta del reporte**. La decisión final es del revisor humano.
 
@@ -16,7 +16,11 @@ Trabajo de Fin de Grado que implementa un **agente local de triage** para alerta
 agente/                 # Código del producto (CLI, parsing, SARIF, política, tests)
   run.py                # Punto de entrada de la CLI
   triage.py             # Prompt, veredicto, validación
-  tests/                # 22 pruebas unitarias
+  src/agente_seguridad/sast/bandit_runner.py   # Runner de Bandit
+  src/agente_seguridad/sast/owasp_runner.py    # Escaner propio OWASP
+  src/agente_seguridad/sast/owasp_rules.py     # Catalogo de reglas OWASP
+  src/agente_seguridad/llm/code_audit.py       # Auditoria LLM-first (modelo primero)
+  tests/                # Pruebas unitarias
 
 dataset/                # Dataset y splits
   scripts/build_splits.py
@@ -25,7 +29,9 @@ dataset/                # Dataset y splits
   splits/               # *.jsonl regenerables (ignorados por git)
 
 eval/                   # Evaluaciones, resultados JSON, bancos y auditorías
-  resultados_*.json     # Resultados A/B/C/C0/D y holdout
+  resultados_*.json     # Resultados A/B/C/C0/D, holdout y auditoria LLM
+  build_audit_eval_set.py  # Conjunto de codigo crudo para --scanner llm
+  run_audit_eval.py        # Precision/recall/F1/FPR/FNR de deteccion directa
   banco_sintetico.json
   auditoria_repos_metricas.json
   casi_duplicados.json
@@ -35,6 +41,7 @@ eval/                   # Evaluaciones, resultados JSON, bancos y auditorías
 training/               # Entrenamiento QLoRA y exportación GGUF
   train_qlora.py
   prepare_sft.py
+  build_audit_sft.py    # SFT para deteccion directa (codigo -> JSON)
   export_gguf.py
   data/                 # *.jsonl regenerables (ignorado)
   llama-bin/            # Binarios descargables (ignorado)
@@ -62,9 +69,10 @@ reportes/               # Salida de escaneos, gráficas, PDFs (ignorado)
 1. **NO tocar el holdout** (`eval/holdout_set.jsonl`). No se usa para entrenar, ajustar prompts, hiperparámetros ni reglas.
 2. **NO adoptar reglas post hoc**. B311 apareció como problema, pero no se añade a la política porque se descubrió después del holdout.
 3. **El modo asesor es obligatorio**. Un `SAFE` solo recomienda descarte; la alerta permanece visible.
-4. **OWASP se deriva del CWE del SAST**, no del CWE del modelo ni de la columna `owasp` del dataset.
+4. **OWASP se deriva del CWE del detector que originó el hallazgo**: del SAST en el triage y del CWE que emite el modelo en `--scanner llm`. Nunca se usa la columna `owasp` del dataset ni una categoría OWASP inventada por el modelo.
 5. **Mantener `DEFAULT_NEVER_DISCARD = {"B403"}`** en `triage.py`.
 6. **Las cifras del Avance 5 / informe deben coincidir** con `eval/resultados_*.json`. Antes de entregar, ejecutar `check_consistencia.py`.
+7. **El escaner OWASP es propio y heuristico.** Sus reglas viven en `sast/owasp_rules.py` y no llaman a Bandit. La categoria OWASP se sigue derivando del CWE con `owasp.py`.
 
 ## 4. Comandos esenciales
 
@@ -89,19 +97,32 @@ python dataset\scripts\download_dataset.py
 python dataset\scripts\build_splits.py
 ```
 
-### Entrenar (requiere GPU)
+### Entrenar (requiere GPU y `training/requirements.txt`)
 ```powershell
 python training\prepare_sft.py
-python training\train_qlora.py
+python training\build_audit_sft.py          # modo modelo primero
+python training\train_qlora.py --train training\data\train_audit.jsonl --val training\data\val_audit.jsonl
 python training\export_gguf.py --adapter training\out\qwen-coder-1.5b-lora --out training\out\qwen-coder-1.5b-merged --gguf-out training\out\gguf\qwen-coder-1.5b-q4_k_m.gguf
 ollama create qwen2.5-coder-triage -f Modelfile
 ```
 
+### Evaluar la deteccion directa (sin alertas SAST)
+```powershell
+python eval\build_audit_eval_set.py --per-class 300
+python eval\run_audit_eval.py --model qwen2.5-coder-triage
+```
+
 ### Escanear un repositorio
 ```powershell
-python agente\run.py scan examples\sample_repo --model qwen2.5-coder-triage --out reportes\sample
-python agente\run.py scan examples\sample_repo --no-llm --out reportes\sample_sast
+python agente\run.py scan agente\examples\sample_repo --model qwen2.5-coder-triage --out reportes\sample
+python agente\run.py scan agente\examples\sample_repo --scanner llm --model qwen2.5-coder-triage --out reportes\sample_llm
+python agente\run.py scan agente\examples\sample_repo --scanner all --model qwen2.5-coder-triage --out reportes\sample_all
+python agente\run.py scan agente\examples\sample_repo --no-llm --out reportes\sample_sast
+python agente\run.py scan agente\examples\sample_repo --scanner owasp --no-llm --out reportes\sample_owasp
+python agente\run.py scan agente\examples\sample_repo --scanner bandit --no-llm --out reportes\sample_bandit
 ```
+
+`--scanner` acepta `both` (por defecto: Bandit + escaner OWASP), `bandit`, `owasp`, `llm` (solo auditoria del modelo) o `all` (LLM primero y despues Bandit + OWASP).
 
 ## 5. Convenciones de código
 
@@ -119,6 +140,8 @@ python agente\run.py scan examples\sample_repo --no-llm --out reportes\sample_sa
 - **FNR:** alertas reales recomendadas para descarte / total de alertas reales.
 - **FOR:** falsos positivos entre las recomendaciones de descarte.
 - **Holdout:** `eval/holdout_set.jsonl`, evaluado una sola vez.
+- **Auditoría LLM-first:** `eval/audit_eval_set.jsonl` (solo desarrollo). Se miden TP/FN/FP/TN, precisión, recall, F1, FPR, FNR y exactitud del CWE. Una respuesta inválida cuenta como negativa y se reporta aparte.
+- **Línea base LLM-first (11/11/2026):** `qwen2.5-coder:1.5b`, primeros 40 fragmentos (20 vulnerables / 20 seguros): precisión 55,2 %, recall 80,0 %, F1 65,3 %, FPR 65,0 %, FNR 20,0 %, CWE 12,5 %, 5 respuestas inválidas. Es el modelo base, no el afinado; `qwen2.5-coder-triage` no está instalado en este entorno.
 - **Banco sintético:** 26 alertas, prompt del producto (`triage.build_prompt`), no comparable con C0/D del arnés.
 - **Auditoría de repos reales:** 38 alertas de `itsdangerous`, `pyjwt`, `httpie`.
 

@@ -38,5 +38,10 @@ def with_ids(findings: List[Finding]) -> List[Finding]:
     out = []
     for finding in findings:
         digest = fingerprint(finding)
-        out.append(replace(finding, fingerprint=digest, finding_id=digest[:16]))
+        finding_id = digest[:16]
+        triage = dict(finding.triage) if finding.triage else None
+        if triage is not None:
+            triage["finding_id"] = finding_id
+        out.append(replace(finding, fingerprint=digest, finding_id=finding_id,
+                           triage=triage))
     return out

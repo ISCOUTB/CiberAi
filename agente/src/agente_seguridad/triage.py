@@ -7,7 +7,7 @@ from .models import Finding, TriageResult
 
 SYSTEM = (
     "Eres un analista de seguridad de software. Recibes una alerta de un analizador "
-    "estatico (Bandit) y el codigo afectado. Decide si la alerta corresponde a una "
+    "estatico (SAST) y el codigo afectado. Decide si la alerta corresponde a una "
     "vulnerabilidad real (VULNERABLE) o a un falso positivo (SAFE). Responde SOLO con "
     "un objeto JSON con las claves: veredicto, cwe, severidad, explicacion, "
     "vector_ataque, correccion."
@@ -141,6 +141,11 @@ def triage_findings(findings, client: Optional[OllamaClient], never_discard: Opt
         client = None
     errors = 0
     for finding in findings:
+        # La auditoria LLM ya trae su propio veredicto y explicacion. Volver a
+        # pasarla por el triage duplicaria la llamada al modelo y podria
+        # contradecir el hallazgo original.
+        if finding.triage and finding.triage.get("origen") == "llm_audit":
+            continue
         if client is None:
             finding.triage = suspicious(finding, "modelo no disponible").to_dict()
             errors += 1

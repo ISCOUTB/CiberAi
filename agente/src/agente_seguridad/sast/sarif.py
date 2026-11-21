@@ -60,8 +60,8 @@ def to_sarif(findings: List[Finding], target: str) -> Dict[str, Any]:
         "runs": [{
             "tool": {
                 "driver": {
-                    "name": "bandit",
-                    "informationUri": "https://bandit.readthedocs.io",
+                    "name": "agente-seguridad",
+                    "informationUri": "https://owasp.org/Top10/",
                     "rules": list(rules.values()),
                 }
             },

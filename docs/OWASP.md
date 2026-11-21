@@ -21,7 +21,8 @@ con las etiquetas de entrenamiento.
 
 El mapeo se calcula, no se declara:
 
-1. Se toma el CWE que **Bandit** reporta para cada alerta (`cwe_sast`), no el CWE
+1. Se toma el CWE que reporta el **detector que originó el hallazgo**: Bandit,
+   el escáner OWASP propio o la auditoría directa del modelo. No se usa el CWE
    etiquetado en el dataset.
 2. Se ubica ese CWE en la lista oficial de CWE de cada categoría del Top 10 2021.
 3. Si el CWE no aparece en ninguna lista oficial, se reporta como
@@ -34,7 +35,7 @@ El cálculo está en `eval/cobertura_owasp.py` y el resultado en
 python eval/cobertura_owasp.py
 ```
 
-Se usa el CWE del SAST por una razón concreta: la columna `owasp` del dataset
+Se usa el CWE del detector por una razón concreta: la columna `owasp` del dataset
 asigna categoría al CWE **etiquetado** en el corpus, que describe la función
 completa y no la línea que Bandit señala. En el holdout, por ejemplo, dos alertas
 B311 (CWE-330, A02) están etiquetadas como CWE-94 (A03). Mapear por la etiqueta
@@ -44,8 +45,9 @@ del dataset habría puesto esas alertas en Injection.
 
 La misma función de mapeo que usa la evaluación está en el producto
 (`agente/src/agente_seguridad/owasp.py`). No es una tabla duplicada: el campo
-`Finding.owasp` se calcula en `bandit_runner.py` al construir el hallazgo y viaja
-con la alerta hasta las tres salidas:
+`Finding.owasp` se calcula al construir el hallazgo en `bandit_runner.py`,
+`sast/owasp_runner.py` o `llm/code_audit.py`, y viaja con la alerta hasta las tres
+salidas:
 
 - **JSON**: cada hallazgo incluye `owasp`; `resumen.por_owasp` cuenta las alertas
   por categoría y `resumen.owasp_nombres` da el nombre legible.
@@ -58,6 +60,52 @@ con la alerta hasta las tres salidas:
 Las pruebas de `agente/tests/test_agente.py` cubren el mapeo, el campo en el
 reporte, el SARIF y los hallazgos reales de Bandit. La integración no cambia el
 modo asesor: la categoría organiza la alerta, no decide su descarte.
+
+### 1.2 Escáner OWASP propio
+
+El producto también puede detectar vulnerabilidades sin Bandit. El runner
+`sast/owasp_runner.py` recorre el AST de los archivos Python y aplica el catálogo
+de `sast/owasp_rules.py`. Sus reglas cubren las clases del dataset que son
+inferibles del código Python: inyección SQL, comandos, código y XSS; path
+traversal, SSRF y open redirect; deserialización insegura; credenciales y
+autenticación con secretos embebidos; criptografía y aleatoriedad débiles;
+permisos, CSRF, control de acceso y carga de archivos. Las clases de seguridad
+de memoria del corpus (CWE-119, 125, 190, 401, 416, 476 y 787) son de C/C++ y se
+declaran fuera del alcance del runner.
+
+Cada hallazgo se construye como un `Finding` con su CWE propio y la categoría se
+calcula con `owasp.py`; no se usa la columna `owasp` del dataset. La CLI permite
+elegir motor con `--scanner both|bandit|owasp`; por defecto ejecuta ambos y
+deduplica cada motor por separado. El escáner es heurístico y conservador: no
+elimina hallazgos y sus alertas pasan por el mismo triage y modo asesor que las
+de Bandit.
+
+### 1.3 Auditoría LLM-first (`--scanner llm`)
+
+El modo **modelo primero** invierte el flujo del triage. En lugar de recibir una
+alerta y decidir si es real, el modelo recibe únicamente fragmentos de código
+Python (funciones o código de módulo) y emite por sí mismo un JSON con
+`veredicto`, `cwe`, `severidad`, `explicacion`, `vector_ataque` y `correccion`.
+Solo las respuestas `VULNERABLE` se convierten en `Finding`; las respuestas `SAFE`
+no crean hallazgo y las respuestas inválidas se descartan.
+
+La categoría OWASP se calcula con `owasp.etiqueta` a partir del CWE que declara el
+modelo. Es la única excepción a la regla de «CWE del SAST»: aquí no hay SAST,
+porque el detector es el propio modelo. La categoría nunca se toma de la columna
+`owasp` del dataset ni de un campo OWASP que el modelo pudiera inventar. Si el
+CWE no es numérico, la respuesta se considera inválida y no se crea el hallazgo.
+
+El pipeline de entrenamiento está en `training/build_audit_sft.py` y usa
+`train_80` / `val_total`. Para evitar etiquetas de lenguaje ruidosas, los
+fragmentos marcados como Python se validan con `ast.parse` antes de entrar en el
+SFT. El conjunto de evaluación se construye con
+`eval/build_audit_eval_set.py` y se mide con `eval/run_audit_eval.py`; nunca se
+usa el holdout para ajustar este modo.
+
+La CLI ejecuta este modo **antes** de Bandit y del escáner OWASP, y `--scanner all`
+combina los tres. En el reporte, los hallazgos del modelo llevan la herramienta
+`llm-audit` y no se vuelven a triagear: su veredicto y explicación ya son la
+respuesta del detector.
 
 ## 2. Cobertura medida del Top 10 2021
 
@@ -155,10 +203,12 @@ amenaza real para el componente entrenado, no una nota al pie.
 | A09 | No | Requiere observar el runtime y los logs. |
 | A10 | No | Bandit no sigue destinos de red. |
 
-Esto fija el alcance real del producto: **es un triage de alertas de Bandit
-organizado por OWASP, no un escáner del Top 10 completo**. Un producto que
-prometiera A01–A10 necesitaría, como mínimo, análisis de flujo, inventario de
-dependencias y telemetría de runtime.
+Esto fija el alcance real del producto: **es un triage de alertas SAST, un
+escáner heurístico de reglas OWASP y una auditoría LLM-first, no un escáner del
+Top 10 completo**. Un producto que prometiera A01–A10 necesitaría, como mínimo,
+análisis de flujo, inventario de dependencias y telemetría de runtime. El escáner
+propio y el modelo añaden detección directa de patrones en Python, pero no
+sustituyen esas capacidades.
 
 ## 5. OWASP LLM Top 10 2025 aplicado al agente
 
@@ -176,7 +226,7 @@ convierte a OWASP en eje y no en adorno.
 | LLM06 Excessive Agency | Sí | El agente podría suprimir alertas; el modo asesor lo impide. | `DEFAULT_NEVER_DISCARD`, SAFE solo como recomendación y todas las alertas en JSON y SARIF. Es el control central del producto. |
 | LLM07 System Prompt Leakage | Bajo | El prompt de sistema no contiene secretos ni rutas privadas. | Puede publicarse sin riesgo; no se trata como control de seguridad. |
 | LLM08 Vector and Embedding Weaknesses | No | No hay RAG ni base vectorial. | Se declara la exclusión. |
-| LLM09 Misinformation | Sí | D copia el CWE del SAST en 112 de 141 alertas y su exactitud CWE (43,0 %) no supera a la del SAST; en el holdout produce 11 explicaciones únicas para 111 alertas. | El CWE se conserva del SAST; el modelo solo aporta veredicto; la explicación se evalúa con rúbrica y se reporta su diversidad. |
+| LLM09 Misinformation | Sí | D copia el CWE del SAST en 112 de 141 alertas y su exactitud CWE (43,0 %) no supera a la del SAST; en el holdout produce 11 explicaciones únicas para 111 alertas. | En triage el CWE se conserva del SAST y el modelo solo aporta veredicto; en auditoría LLM-first se mide la exactitud de su CWE. La explicación se evalúa con rúbrica y se reporta su diversidad. |
 | LLM10 Unbounded Consumption | Sí | Una B102 de 1.818 caracteres agotó 180 s sin `num_predict`; con `num_predict: 512` se truncó y se conservó como SOSPECHOSA. Consumo medido: 1.115 MB de VRAM y ~4,8 s por alerta. | Límite de generación, timeout, degradación a SOSPECHOSA y ausencia de paralelismo sin medición. |
 
 Ocho de los diez riesgos aplican con evidencia propia y uno más (LLM07) aplica con
@@ -223,7 +273,8 @@ tiene un motivo y cada capítulo aplicable tiene una prueba asociada.
 |---|---|---|
 | Modo asesor, sin supresión | LLM06 Excessive Agency; A04 Insecure Design | `triage.py`, `report.py`, contrato de decisión |
 | Política B403 obligatoria con D | A08 Software and Data Integrity Failures | `DEFAULT_NEVER_DISCARD` |
-| CWE del SAST, no del modelo | LLM09 Misinformation | `report.py`, sección de resultados |
+| CWE del detector; en triage nunca el del modelo | LLM09 Misinformation | `report.py`, sección de resultados |
+| OWASP calculado desde el CWE, no desde el dataset | LLM04 Data and Model Poisoning | `owasp.py`, `llm/code_audit.py` |
 | Límite `num_predict` y timeout | LLM10 Unbounded Consumption | `ollama_client.py` |
 | Validación de JSON y de veredicto | LLM05 Improper Output Handling | `triage.py` |
 | Ejecución local sin API | LLM02 y LLM03 | `llm/ollama_client.py`, despliegue |
@@ -236,13 +287,14 @@ nombrarlos.
 
 ## 8. Lo que este documento no afirma
 
-- No afirma que el agente cubra el OWASP Top 10 2021. Cubre A01–A03 y A08 con
-  distinto grado de evidencia; A04–A07, A09 y A10 quedan fuera del alcance
-  medido.
+- No afirma que el agente cubra el OWASP Top 10 2021. La evidencia medida de las
+  herramientas se concentra en A01–A03 y A08; la auditoría LLM-first puede emitir
+  otras categorías cuando el CWE lo justifica, pero no se ha medido cobertura
+  completa. A04–A07, A09 y A10 quedan fuera del alcance medido.
 - No afirma cumplimiento de ASVS 5.0.0. Aplica 6 capítulos de 17, uno de ellos
   de forma parcial.
 - No afirma que el mapeo del dataset sea correcto. Documenta 10 discrepancias y
-  usa el CWE del SAST para el análisis primario.
+  usa el CWE del detector para el análisis primario.
 - No afirma que el agente sea resistente a prompt injection. Un caso de prueba
   no es una propiedad del sistema.
 - No usa OWASP como métrica de calidad del modelo. La calidad se mide con FPRR,

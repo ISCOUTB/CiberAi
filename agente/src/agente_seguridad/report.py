@@ -21,6 +21,7 @@ def summary(scan: Scan) -> Dict[str, Any]:
         "sospechosas": len(sospechosas),
         "errores_modelo": len(errores),
         "archivos": len({f.file for f in findings}),
+        "por_herramienta": {run.tool: len(run.findings) for run in getattr(scan, "tool_runs", [])},
         "por_cwe": _count(findings, lambda f: f.cwe),
         "por_severidad": _count(findings, lambda f: f.severity),
         # Categoria OWASP Top 10 2021 derivada del CWE del SAST. Un CWE fuera
@@ -67,6 +68,9 @@ def console(scan: Scan, limit: int = 40) -> str:
         "Hallazgos: {} | conservadas: {} | recomendadas para descarte: {} | sospechosas: {} | errores modelo: {}".format(
             data["total"], data["conservadas"], data["recomendadas_descarte"],
             data["sospechosas"], data["errores_modelo"]),
+        "Herramientas: {}".format(
+            ", ".join("{}={}".format(k, v) for k, v in data["por_herramienta"].items())
+            or "sin alertas"),
         "OWASP Top 10 2021: {}".format(
             ", ".join("{}={}".format(k, v) for k, v in data["por_owasp"].items())
             or "sin alertas"),

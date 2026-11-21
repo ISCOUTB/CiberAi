@@ -1,14 +1,14 @@
 """Mapeo del CWE que reporta el SAST a las categorias del OWASP Top 10 2021.
 
-El mapeo se calcula, no se declara: se toma el CWE que Bandit asigna a la
+El mapeo se calcula, no se declara: se toma el CWE que el SAST asigna a la
 alerta y se ubica en la lista oficial de CWE de cada categoria. Un CWE que no
 aparece en ninguna lista se devuelve como ``sin_categoria``; no se fuerza a la
 categoria mas parecida.
 
-El subconjunto de CWE de este modulo cubre las reglas de Bandit que el producto
-puede emitir. La fuente de las listas es la pagina oficial del OWASP Top 10
-2021; el analisis de cobertura de la evaluacion vive en
-``eval/cobertura_owasp.py``.
+El subconjunto de CWE de este modulo cubre las reglas de Bandit y las del
+escaner OWASP propio que el producto puede emitir. La fuente de las listas es
+la pagina oficial del OWASP Top 10 2021; el analisis de cobertura de la
+evaluacion vive en ``eval/cobertura_owasp.py``.
 """
 
 from typing import Optional

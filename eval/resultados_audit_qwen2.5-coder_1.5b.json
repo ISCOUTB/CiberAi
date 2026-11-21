@@ -1,0 +1,382 @@
+{
+  "model": "qwen2.5-coder:1.5b",
+  "eval_set": "audit_eval_set.jsonl",
+  "metricas": {
+    "total": 40,
+    "vulnerables": 20,
+    "seguras": 20,
+    "TP": 16,
+    "FN": 4,
+    "FP": 13,
+    "TN": 7,
+    "precision": 55.2,
+    "recall": 80.0,
+    "F1": 65.3,
+    "FPR": 65.0,
+    "FNR": 20.0,
+    "exactitud_cwe": 12.5,
+    "respuestas_invalidas": 5
+  },
+  "detalle": [
+    {
+      "id": "877a9553bae492fa",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-94",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código proporcionado permite la ejecución de código Python sin validación, lo que puede permitir ataques de seguridad como el código injection. El vector_ataque es la entrada del usuario que se utiliza para evaluar el código. La corrección sería implementar una validación adecuada del input antes de ejecutarlo."
+    },
+    {
+      "id": "920ccb0c97600608",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "SAFE",
+      "cwe_pred": "Ninguno",
+      "valido": true,
+      "explicacion": "El código proporcionado es seguro. No contiene ninguna vulnerabilidad real."
+    },
+    {
+      "id": "925a4b5c2f5115e8",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-94",
+      "veredicto": "SAFE",
+      "cwe_pred": "Ninguno",
+      "valido": true,
+      "explicacion": "El código proporcionado es seguro. No hay ninguna vulnerabilidad conocida que pueda ser utilizada para comprometer la seguridad del sistema."
+    },
+    {
+      "id": "ef51193d79cd9ce4",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "INVALIDO",
+      "cwe_pred": "Ninguno",
+      "valido": false,
+      "explicacion": "respuesta no valida"
+    },
+    {
+      "id": "98972575f7dca9f6",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-20",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código utiliza `os.system(command)` para ejecutar comandos proporcionados por el usuario. Esto puede ser vulnerable a ataques de comando injection si el usuario proporciona un comando malicioso."
+    },
+    {
+      "id": "e6e04da847f6b543",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "SAFE",
+      "cwe_pred": "Ninguno",
+      "valido": true,
+      "explicacion": "El código no contiene ninguna vulnerabilidad real. Es seguro y se puede ejecutar sin riesgo."
+    },
+    {
+      "id": "48cb23010bbc516e",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-94",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-789",
+      "valido": true,
+      "explicacion": "El código utiliza la función eval() para ejecutar el código proporcionado por el usuario. Esto puede permitir a un atacante ejecutar cualquier código, lo que podría ser una vulnerabilidad de seguridad."
+    },
+    {
+      "id": "02868684b6f96ef5",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-94",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código proporcionado permite la ejecución de expresiones Python utilizando el comando `eval()`. Esto puede ser un riesgo si se utiliza para evaluar entradas no controladas, ya que cualquier entrada podría contener código malicioso."
+    },
+    {
+      "id": "b61f147d91f463fd",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código proporcionado contiene una vulnerabilidad de ejecución de comandos. La función `run_command_vulnerable` verifica si el input no es alfabético antes de ejecutar la línea de comando, lo que permite a un atacante enviar cualquier entrada que sea válida para la función `shlex.quote()`, incluyendo comandos potencialmente peligrosos."
+    },
+    {
+      "id": "5c5464fc22a0c142",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-94",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código proporcionado contiene una vulnerabilidad de ejecución de código arbitrario (CVE-2014-9631). La función `eval()` permite que se evalúe cualquier cadena de texto como un código Python, lo cual puede permitir ataques de ejecución de código malicioso si el usuario ingresa un comando malicioso."
+    },
+    {
+      "id": "7c3d743339622ca3",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-20",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código proporcionado es vulnerable a la ejecución de comandos arbitrarios. El usuario puede ingresar cualquier comando que se ejecute en el sistema, lo cual podría permitir al atacante realizar acciones maliciosas."
+    },
+    {
+      "id": "6717f56d27e2dc33",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-787",
+      "veredicto": "SAFE",
+      "cwe_pred": "Ninguno",
+      "valido": true,
+      "explicacion": "El código proporcionado no contiene ninguna vulnerabilidad real. Es seguro y se puede ejecutar sin riesgo."
+    },
+    {
+      "id": "1e975a3a84f9a000",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-94",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-789",
+      "valido": true,
+      "explicacion": "El código utiliza la función eval() para ejecutar una expresión proporcionada por el usuario. Esto puede permitir ataques de inyección de código si el usuario proporciona un comando malicioso."
+    },
+    {
+      "id": "57713dde408b04f1",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código proporcionado contiene una vulnerabilidad de seguridad llamada 'Eval/Exec'. Esta vulnerabilidad se produce cuando el usuario puede ejecutar código arbitrario en el entorno del programa. El método `execute_user_input` permite que el usuario ingrese un comando y luego lo ejecuta, lo cual puede permitir a los usuarios ejecutar cualquier código que quieran."
+    },
+    {
+      "id": "117a71553c68489b",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "SAFE",
+      "cwe_pred": "Ninguno",
+      "valido": true,
+      "explicacion": "El código proporcionado es seguro y no contiene vulnerabilidades conocidas. No se utilizan técnicas de encriptación que puedan ser utilizadas para comprometer la seguridad de los datos."
+    },
+    {
+      "id": "3831305d90078c68",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-119",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-119",
+      "valido": true,
+      "explicacion": "El código permite agregar datos a un buffer de tamaño fijo (1024 bytes). Si se intenta agregar más de 1024 bytes, el programa lanza una excepción. Sin embargo, no hay ninguna verificación para evitar que los datos adicionales se escriban en posiciones fuera del rango válido del buffer."
+    },
+    {
+      "id": "e799855140cd2a8e",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-94",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código proporcionado contiene una vulnerabilidad de ejecución dinámica (CVE-2014-9221) conocida como 'Eval'. Este tipo de vulnerabilidad permite a un programa ejecutar cualquier código que se ingrese por el usuario, lo cual puede llevar a ataques de seguridad."
+    },
+    {
+      "id": "ef11c460410c7365",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-789",
+      "valido": true,
+      "explicacion": "El código proporcionado es vulnerable a la ejecución de expresiones matemáticas maliciosas. Esto se debe a que no hay ninguna validación o sanitización de las entradas, lo cual permite que el usuario pueda introducir código Python que sea evaluado como una expresión matemática."
+    },
+    {
+      "id": "7e9061b59721aaf0",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-502",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código utiliza la función pickle para serializar un objeto RCE que contiene una función __reduce__ que ejecuta el comando os.system. Esto permite a cualquier usuario ejecutar comandos en el sistema, lo cual es una vulnerabilidad de elevado riesgo."
+    },
+    {
+      "id": "aec1c7d4e901d010",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-119",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-139",
+      "valido": true,
+      "explicacion": "El código utiliza una interpolación de cadenas que es vulnerable a ataques de inyección SQL. El usuario puede ingresar cualquier cadena, y la interpolación de cadenas no realiza ningún tipo de sanitización o validación."
+    },
+    {
+      "id": "5935c4d23f5e3a2d",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-79",
+      "veredicto": "INVALIDO",
+      "cwe_pred": "Ninguno",
+      "valido": false,
+      "explicacion": "respuesta no valida"
+    },
+    {
+      "id": "cb006ad89a095981",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-790",
+      "valido": true,
+      "explicacion": "El código permite la ejecución de cualquier comando que el usuario ingrese, lo cual puede permitir ataques de seguridad."
+    },
+    {
+      "id": "785547a6cdc96b0d",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código proporcionado es vulnerable a la inyección de comandos shell. El usuario puede ingresar cualquier comando que se ejecutará en el sistema, lo cual puede ser peligroso si no se sanitiza adecuadamente."
+    },
+    {
+      "id": "c663665c97ea4bd0",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-790",
+      "valido": true,
+      "explicacion": "El código proporcionado contiene una vulnerabilidad de ejecución de comandos (Command Execution) debido a la utilización de pickle para serializar y deserializar un objeto que ejecuta /bin/sh. Esto permite a cualquier persona con acceso a este código ejecutar comandos en el sistema."
+    },
+    {
+      "id": "7384b72370702f3e",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-790",
+      "valido": true,
+      "explicacion": "El código proporcionado permite la ejecución de código Python sin restricciones, lo que puede permitir ataques de seguridad."
+    },
+    {
+      "id": "750e8ee9e9c559bb",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-78",
+      "veredicto": "INVALIDO",
+      "cwe_pred": "Ninguno",
+      "valido": false,
+      "explicacion": "respuesta no valida"
+    },
+    {
+      "id": "2ec3ef606c21253b",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-119",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-119",
+      "valido": true,
+      "explicacion": "El código crea un buffer de tamaño fijo y luego intenta escribir más bytes allí, provocando una desbordamiento de búfer. Esto puede permitir a un atacante manipular el contenido del buffer, incluyendo la escritura de datos que no se esperaban."
+    },
+    {
+      "id": "08659a352149502c",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-94",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-79",
+      "valido": true,
+      "explicacion": "El código proporcionado permite ejecutar código arbitrario utilizando la función `eval()`. Esto puede permitir ataques de ejecución de código malicioso si el usuario ingresa un comando que contenga instrucciones para ejecutar código."
+    },
+    {
+      "id": "d4779b3c8d4db2e6",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-059",
+      "valido": true,
+      "explicacion": "El código utiliza pickle para serializar un objeto EvilPickle que contiene una función subprocess.run. Esto permite ejecutar comandos arbitrarios en el sistema, lo cual es una vulnerabilidad de seguridad."
+    },
+    {
+      "id": "4409ac66d9af8a7e",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código proporcionado contiene una vulnerabilidad de ejecución de comandos (Command Injection) debido a la falta de validación y sanitización de los argumentos pasados al comando `ls`. El usuario puede ingresar cualquier comando que se ejecutará en el sistema, lo cual podría permitir un ataque malicioso."
+    },
+    {
+      "id": "10d60fb169354256",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-200",
+      "valido": true,
+      "explicacion": "El código proporcionado contiene una vulnerabilidad de desbordamiento de búfer. La función `overflow_string` permite escribir en un área de memoria que no es suficientemente grande para almacenar el valor especificado, lo cual puede llevar a la ejecución de código malicioso."
+    },
+    {
+      "id": "98b6fafa3641c40c",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "SAFE",
+      "cwe_pred": "Ninguno",
+      "valido": true,
+      "explicacion": "El código utiliza subprocess.run para ejecutar comandos de manera segura. No se usa os.system, que es menos seguro porque puede invocar comandos del shell."
+    },
+    {
+      "id": "548a020ea7c37ab7",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-94",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código proporcionado es vulnerable a la ejecución de comandos arbitrarios. El usuario puede ingresar cualquier comando que se ejecute en el sistema, lo cual puede llevar a daños graves si el comando contiene instrucciones maliciosas."
+    },
+    {
+      "id": "7a821872b29071e9",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "INVALIDO",
+      "cwe_pred": "Ninguno",
+      "valido": false,
+      "explicacion": "respuesta no valida"
+    },
+    {
+      "id": "789075ec6ff948ad",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "INVALIDO",
+      "cwe_pred": "Ninguno",
+      "valido": false,
+      "explicacion": "respuesta no valida"
+    },
+    {
+      "id": "c77e3df9e7460403",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-059",
+      "valido": true,
+      "explicacion": "El código utiliza pickle para serializar un objeto que contiene una función de ejecución. Esto puede permitir a un atacante ejecutar cualquier comando en el sistema, lo que es una vulnerabilidad grave."
+    },
+    {
+      "id": "c17535c68fde9a1e",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-78",
+      "valido": true,
+      "explicacion": "El código utiliza subprocess.run para ejecutar el comando 'dir' en la consola. Sin embargo, este comando es considerado un ataque de elevación de privilegio (Elevation of Privilege) debido a que no se especifica ningún argumento para limitar el acceso al sistema."
+    },
+    {
+      "id": "e5eb7371447ea104",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-502",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-259",
+      "valido": true,
+      "explicacion": "El código utiliza pickle para serializar una clase que contiene un método __reduce__ que ejecuta el comando os.system('echo"
+    },
+    {
+      "id": "8fa06adc39aedd31",
+      "truth": "safe",
+      "cwe_dataset": "Ninguno",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-789",
+      "valido": true,
+      "explicacion": "El código proporcionado contiene una vulnerabilidad de ejecución de comandos (Command Injection) debido a la falta de validación o sanitización de los datos ingresados por el usuario. El comando `self.command` se construye directamente desde un string sin validar, lo que permite que cualquier comando sea ejecutado en el sistema."
+    },
+    {
+      "id": "dc7d314e38a7dcd5",
+      "truth": "vulnerable",
+      "cwe_dataset": "CWE-502",
+      "veredicto": "VULNERABLE",
+      "cwe_pred": "CWE-259",
+      "valido": true,
+      "explicacion": "El código utiliza pickle para serializar una instancia de TestClass, que contiene un método __reduce__ que ejecuta el comando os.system('echo"
+    }
+  ]
+}

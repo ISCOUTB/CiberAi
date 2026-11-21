@@ -7,13 +7,20 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from agente_seguridad.cli import build_parser
 from agente_seguridad.context import extract_context
 from agente_seguridad.dedup import deduplicate, with_ids
+from agente_seguridad.llm.code_audit import (
+    iter_chunks,
+    parse_audit_response,
+    run_llm_audit,
+)
 from agente_seguridad.llm.ollama_client import OllamaClient
 from agente_seguridad.models import Finding
 from agente_seguridad.owasp import categoria, etiqueta, nombre, normalizar
 from agente_seguridad.report import summary
 from agente_seguridad.sast.bandit_runner import run_bandit
+from agente_seguridad.sast.owasp_runner import run_owasp
 from agente_seguridad.sast.sarif import to_sarif
 from agente_seguridad.triage import parse_response, triage_findings
 
@@ -50,6 +57,11 @@ class DedupTests(unittest.TestCase):
         b = with_ids([make_finding()])[0]
         self.assertEqual(a.finding_id, b.finding_id)
         self.assertEqual(len(a.finding_id), 16)
+
+    def test_triage_keeps_finding_id(self):
+        finding = make_finding(triage={"origen": "llm_audit", "veredicto": "VULNERABLE"})
+        out = with_ids([finding])[0]
+        self.assertEqual(out.triage["finding_id"], out.finding_id)
 
 
 class SarifTests(unittest.TestCase):
@@ -157,6 +169,14 @@ class TriageTests(unittest.TestCase):
         self.assertEqual(result.origen, "politica_seguridad")
         self.assertIn("B403", result.explicacion)
 
+    def test_audit_finding_is_not_retriaged(self):
+        finding = make_finding(triage={"origen": "llm_audit", "veredicto": "VULNERABLE",
+                                       "explicacion": "detectado"})
+        errors = triage_findings([finding], None)
+        self.assertEqual(errors, 0)
+        self.assertEqual(finding.triage["origen"], "llm_audit")
+        self.assertEqual(finding.triage["veredicto"], "VULNERABLE")
+
 
 class OllamaClientTests(unittest.TestCase):
     def test_generation_is_bounded(self):
@@ -190,6 +210,164 @@ class BanditTests(unittest.TestCase):
         self.assertEqual(por_regla["B324"], "A02")  # CWE-327 criptografia debil
         self.assertEqual(por_regla["B105"], "A07")  # CWE-259 credencial embebida
         self.assertEqual(por_regla["B101"], "sin_categoria")  # CWE-703 fuera del Top 10
+
+
+class OwaspRunnerTests(unittest.TestCase):
+    def test_sample_detecta_clases_del_dataset(self):
+        findings = run_owasp(SAMPLE.parent)
+        rules = {f.rule_id for f in findings}
+        self.assertTrue({"OW-798", "OW-287", "OW-89", "OW-327", "OW-502", "OW-78"} <= rules)
+
+    def test_consulta_parametrizada_no_es_alerta(self):
+        findings = [f for f in run_owasp(SAMPLE.parent) if f.rule_id == "OW-89"]
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].function, "buscar")
+
+    def test_owasp_derivado_del_cwe_propio(self):
+        findings = {f.rule_id: f for f in run_owasp(SAMPLE.parent)}
+        self.assertEqual(findings["OW-89"].owasp, "A03")
+        self.assertEqual(findings["OW-502"].owasp, "A08")
+        self.assertEqual(findings["OW-798"].owasp, "A07")
+        self.assertEqual(findings["OW-327"].owasp, "A02")
+
+    def test_detecta_patrones_web_y_sistema(self):
+        code = (
+            "import os, random, tempfile, requests\n"
+            "from flask import Flask, request, redirect, render_template_string\n"
+            "from flask_wtf.csrf import exempt\n"
+            "app = Flask(__name__)\n"
+            "@app.route('/admin')\n"
+            "def admin_panel():\n"
+            "    return 'panel'\n"
+            "@app.route('/upload', methods=['POST'])\n"
+            "def upload():\n"
+            "    f = request.files['file']\n"
+            "    f.save('/tmp/x')\n"
+            "    return 'ok'\n"
+            "@app.route('/form', methods=['POST'])\n"
+            "@exempt\n"
+            "def form():\n"
+            "    return 'ok'\n"
+            "def fetch(request):\n"
+            "    return requests.get(request.args.get('url')).text\n"
+            "def go(request):\n"
+            "    return redirect(request.args.get('next'))\n"
+            "def page(request):\n"
+            "    return render_template_string(f\"<h1>{request.args.get('q')}</h1>\")\n"
+            "def read(request):\n"
+            "    return open(request.args.get('path')).read()\n"
+            "def code(request):\n"
+            "    return eval(request.args.get('code'))\n"
+            "def token():\n"
+            "    return random.randint(1, 1000000)\n"
+            "def perms():\n"
+            "    os.chmod('/tmp/x', 0o777)\n"
+            "def tmp():\n"
+            "    return tempfile.mktemp()\n"
+            "def info(password):\n"
+            "    print(password)\n"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "web.py"
+            path.write_text(code, encoding="utf-8")
+            rules = {f.rule_id for f in run_owasp(Path(tmp))}
+        self.assertTrue({"OW-284", "OW-434", "OW-352", "OW-918", "OW-601", "OW-79",
+                         "OW-22", "OW-94", "OW-330", "OW-264", "OW-377", "OW-200"} <= rules)
+
+
+class AuditTests(unittest.TestCase):
+    def test_parse_vulnerable(self):
+        raw = ('{"veredicto":"VULNERABLE","cwe":"CWE-89","severidad":"Alta",'
+               '"explicacion":"concatena entrada","vector_ataque":"SQLi","correccion":"parametrizar"}')
+        data = parse_audit_response(raw)
+        self.assertIsNotNone(data)
+        self.assertEqual(data["veredicto"], "VULNERABLE")
+        self.assertEqual(data["cwe"], "CWE-89")
+        self.assertEqual(data["severidad"], "Alta")
+
+    def test_parse_safe(self):
+        data = parse_audit_response('{"veredicto":"SAFE","cwe":"Ninguno","explicacion":"sin riesgo"}')
+        self.assertIsNotNone(data)
+        self.assertEqual(data["veredicto"], "SAFE")
+        self.assertEqual(data["cwe"], "Ninguno")
+
+    def test_parse_invalid_cwe_is_none(self):
+        self.assertIsNone(parse_audit_response(
+            '{"veredicto":"VULNERABLE","cwe":"SQL injection","explicacion":"x"}'))
+
+    def test_parse_code_fence(self):
+        data = parse_audit_response(
+            '```json\n{"veredicto":"VULNERABLE","cwe":"78","explicacion":"x"}\n```')
+        self.assertEqual(data["cwe"], "CWE-78")
+        self.assertEqual(data["severidad"], "Media")
+
+    def test_chunks_keep_functions_and_module_code(self):
+        code = (
+            "import os\n"
+            "\n"
+            "TOKEN = 'x'\n"
+            "\n"
+            "def run(user):\n"
+            "    return eval(user)\n"
+            "\n"
+            "class Service:\n"
+            "    def call(self):\n"
+            "        return os.system('ls')\n"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "app.py"
+            path.write_text(code, encoding="utf-8")
+            chunks = list(iter_chunks(path))
+        functions = {chunk.function for chunk in chunks}
+        self.assertIn("run", functions)
+        self.assertIn("call", functions)
+        self.assertIn("<modulo>", functions)
+        run_chunk = [chunk for chunk in chunks if chunk.function == "run"][0]
+        self.assertEqual(run_chunk.line, 5)
+        self.assertIn("eval", run_chunk.code)
+
+    def test_run_audit_builds_finding_from_model(self):
+        class FakeClient:
+            def __init__(self, response):
+                self.response = response
+                self.prompts = []
+
+            def generate(self, prompt, system=None):
+                self.prompts.append(prompt)
+                return self.response
+
+        raw = ('{"veredicto":"VULNERABLE","cwe":"CWE-94","severidad":"Alta",'
+               '"explicacion":"eval sobre entrada","vector_ataque":"RCE","correccion":"evitar eval"}')
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "vuln.py"
+            path.write_text("def run(user):\n    return eval(user)\n", encoding="utf-8")
+            client = FakeClient(raw)
+            run = run_llm_audit(path, client)
+        self.assertEqual(run.tool, "llm-audit")
+        self.assertEqual(len(run.findings), 1)
+        finding = run.findings[0]
+        self.assertEqual(finding.rule_id, "LLM-CWE-94")
+        self.assertEqual(finding.owasp, "A03")
+        self.assertEqual(finding.file, "vuln.py")
+        self.assertEqual(finding.line, 1)
+        self.assertEqual(finding.triage["origen"], "llm_audit")
+        self.assertIn("<code_snippet>", client.prompts[0])
+
+    def test_run_audit_safe_does_not_create_finding(self):
+        class FakeClient:
+            def generate(self, prompt, system=None):
+                return '{"veredicto":"SAFE","cwe":"Ninguno","explicacion":"sin riesgo"}'
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "safe.py"
+            path.write_text("def run(user):\n    return int(user)\n", encoding="utf-8")
+            run = run_llm_audit(path, FakeClient())
+        self.assertEqual(run.findings, [])
+
+    def test_cli_accepts_llm_scanners(self):
+        parser = build_parser()
+        self.assertEqual(parser.parse_args(["scan", ".", "--scanner", "llm"]).scanner, "llm")
+        self.assertEqual(parser.parse_args(["scan", ".", "--scanner", "all"]).scanner, "all")
 
 
 if __name__ == "__main__":
