@@ -89,6 +89,27 @@ python agente\run.py scan ruta\al\repo --max-alerts 20
 python agente\run.py scan ruta\al\repo --ollama-url http://localhost:9
 ```
 
+### Interfaz interactiva
+
+Para no repetir el comando completo hay una interfaz de terminal:
+
+```powershell
+python agente\chat.py
+```
+
+```
+agente> help
+agente> scan agente/examples/sample_repo --scanner owasp --no-llm
+agente> report
+agente> rescan
+agente> exit
+```
+
+Guarda el último escaneo (`rescan`), el escaner/modelo/salida por defecto
+(`scanner`, `model`, `out`) y permite ver el resumen del último reporte sin
+salir (`report`). Los comandos `scan` llaman al mismo código que
+`agente\run.py`.
+
 ### Modelo primero: detección directa sin alertas SAST
 
 El modo `--scanner llm` no ejecuta Bandit: el modelo lee funciones Python y emite

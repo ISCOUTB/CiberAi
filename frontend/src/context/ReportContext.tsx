@@ -28,6 +28,15 @@ const DEFAULT_SUMMARY: ReportSummary = {
   isRealReport: false,
 };
 
+interface ScanRequest {
+  target: string;
+  scanner: string;
+  model: string;
+  no_llm?: boolean;
+  max_alerts?: number;
+  audit_max_chunks?: number;
+}
+
 interface ReportContextType {
   summary: ReportSummary;
   findings: DetailedFinding[];
@@ -37,11 +46,26 @@ interface ReportContextType {
   loadReportFromFile: (file: File) => Promise<boolean>;
   loadReportFromJson: (content: string, filename?: string) => void;
   resetToDemo: () => void;
+  runScan: (req: ScanRequest) => Promise<string>;
+  pollScan: (jobId: string) => Promise<boolean>;
+  refreshReport: () => Promise<void>;
   loading: boolean;
+  loadingScan: boolean;
   error: string | null;
+  scanError: string | null;
 }
 
 const ReportContext = createContext<ReportContextType | undefined>(undefined);
+
+async function fetchReportFromEndpoint(endpoint: string): Promise<string | null> {
+  try {
+    const res = await fetch(endpoint);
+    if (!res.ok) return null;
+    return await res.text();
+  } catch {
+    return null;
+  }
+}
 
 export function ReportProvider({ children }: { children: React.ReactNode }) {
   const [summary, setSummary] = useState<ReportSummary>(DEFAULT_SUMMARY);
@@ -49,33 +73,9 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
   const [discarded, setDiscarded] = useState<DiscardedAlert[]>(INITIAL_DISCARDED);
   const [selectedFindingId, setSelectedFindingId] = useState<string>('SEC-024-003');
   const [loading, setLoading] = useState(false);
+  const [loadingScan, setLoadingScan] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Intentar cargar automáticamente /reporte.json al inicio
-  useEffect(() => {
-    let active = true;
-    async function loadInitial() {
-      try {
-        const res = await fetch('/reporte.json');
-        if (res.ok && active) {
-          const text = await res.text();
-          const parsed = parseReport(text, 'reporte.json (automático)');
-          setSummary(parsed.summary);
-          setFindings(parsed.findings);
-          setDiscarded(parsed.discarded);
-          if (parsed.findings.length > 0) {
-            setSelectedFindingId(parsed.findings[0].id);
-          }
-        }
-      } catch (err) {
-        // Si no está disponible reporte.json, se mantiene los datos demo por defecto
-      }
-    }
-    loadInitial();
-    return () => {
-      active = false;
-    };
-  }, []);
+  const [scanError, setScanError] = useState<string | null>(null);
 
   const loadReportFromJson = (content: string, filename: string = 'reporte.json') => {
     setError(null);
@@ -92,6 +92,47 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
       throw err;
     }
   };
+
+  const refreshReport = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const text = await fetchReportFromEndpoint('/api/report');
+      if (text) {
+        loadReportFromJson(text, 'reporte.json (servidor)');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error al recargar el reporte');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let active = true;
+    async function loadInitial() {
+      try {
+        const text = await fetchReportFromEndpoint('/api/report');
+        if (!text && active) {
+          // Fallback al archivo estático si el backend aún no sirve /api/report
+          const fallback = await fetchReportFromEndpoint('/reporte.json');
+          if (fallback && active) {
+            loadReportFromJson(fallback, 'reporte.json (automático)');
+          }
+          return;
+        }
+        if (text && active) {
+          loadReportFromJson(text, 'reporte.json (servidor)');
+        }
+      } catch (err) {
+        // Si no hay reporte disponible, se mantienen los datos demo
+      }
+    }
+    loadInitial();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const loadReportFromFile = async (file: File): Promise<boolean> => {
     setLoading(true);
@@ -114,6 +155,55 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
     setDiscarded(INITIAL_DISCARDED);
     setSelectedFindingId('SEC-024-003');
     setError(null);
+    setScanError(null);
+  };
+
+  const runScan = async (req: ScanRequest): Promise<string> => {
+    setLoadingScan(true);
+    setScanError(null);
+    try {
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Error al iniciar el escaneo');
+      }
+      return data.job_id as string;
+    } catch (err: any) {
+      setScanError(err.message || 'Error al iniciar el escaneo');
+      setLoadingScan(false);
+      throw err;
+    }
+  };
+
+  const pollScan = async (jobId: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`/api/scan/${jobId}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setScanError(data.detail || 'Error consultando el escaneo');
+        setLoadingScan(false);
+        return true;
+      }
+      if (data.status === 'done') {
+        setLoadingScan(false);
+        await refreshReport();
+        return true;
+      }
+      if (data.status === 'error') {
+        setScanError(data.error || 'El escaneo falló');
+        setLoadingScan(false);
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      setScanError(err.message || 'Error consultando el escaneo');
+      setLoadingScan(false);
+      return true;
+    }
   };
 
   const selectFinding = (id: string) => {
@@ -137,8 +227,13 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
         loadReportFromFile,
         loadReportFromJson,
         resetToDemo,
+        runScan,
+        pollScan,
+        refreshReport,
         loading,
+        loadingScan,
         error,
+        scanError,
       }}
     >
       {children}

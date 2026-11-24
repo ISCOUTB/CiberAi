@@ -12,6 +12,7 @@ from .models import Scan
 from .report import console, write_outputs
 from .sast.bandit_runner import run_tool as run_bandit_tool
 from .sast.owasp_runner import run_owasp_tool
+from .sast.report_loader import load_tool_runs
 from .triage import DEFAULT_NEVER_DISCARD, triage_findings
 
 
@@ -35,6 +36,8 @@ def build_parser() -> argparse.ArgumentParser:
                       default="both",
                       help="Motores: both (Bandit+OWASP, por defecto), bandit, owasp, "
                            "llm (solo auditoria del modelo) o all (LLM primero y luego SAST)")
+    scan.add_argument("--from-report", metavar="ARCHIVO",
+                      help="Cargar hallazgos de un reporte JSON/SARIF existente en lugar de ejecutar el SAST")
     scan.add_argument("--audit-max-chars", type=int, default=DEFAULT_MAX_CHARS,
                       help="Tamano maximo de cada fragmento para la auditoria LLM")
     scan.add_argument("--audit-max-chunks", type=int, default=0,
@@ -43,6 +46,8 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("--never-discard", nargs="*", default=sorted(DEFAULT_NEVER_DISCARD),
                       help="Reglas del SAST que nunca deben ser recomendadas para descarte (por defecto: B403)")
     scan.add_argument("--quiet", action="store_true", help="No imprimir el detalle en consola")
+    scan.add_argument("--no-color", action="store_true",
+                      help="Desactiva los colores ANSI en la salida de consola")
     return parser
 
 
@@ -77,38 +82,52 @@ def main(argv=None) -> int:
                 return 4
             print("Aviso: Ollama no responde en {}. Se aplicara la politica conservadora.".format(args.ollama_url))
 
-    # El modo "modelo primero" se ejecuta antes que Bandit y el escaner OWASP:
-    # el LLM lee el codigo sin conocer las alertas de las herramientas.
-    if llm_audit:
-        print("Ejecutando auditoria LLM (modelo primero) sobre {}...".format(target))
+    if args.from_report:
+        print("Cargando hallazgos desde {}...".format(args.from_report))
         try:
-            tool_run = run_llm_audit(target, client, max_chars=args.audit_max_chars,
-                                     max_chunks=args.audit_max_chunks)
-        except Exception as exc:
-            print("Error al ejecutar la auditoria LLM: {}".format(exc), file=sys.stderr)
+            scan.tool_runs.extend(load_tool_runs(Path(args.from_report), target=target))
+        except ValueError as exc:
+            print("Error al cargar el reporte: {}".format(exc), file=sys.stderr)
             return 4
-        raw = len(tool_run.findings)
-        tool_run.findings = deduplicate(with_ids(tool_run.findings))
-        print("Hallazgos de llm-audit: {} (tras deduplicar: {})".format(raw, len(tool_run.findings)))
-        scan.tool_runs.append(tool_run)
+    else:
+        llm_audit = args.scanner in ("llm", "all")
+        if llm_audit and args.no_llm:
+            print("Error: --scanner {} requiere el modelo; quita --no-llm.".format(args.scanner),
+                  file=sys.stderr)
+            return 2
 
-    runners = []
-    if args.scanner in ("both", "bandit", "all"):
-        runners.append(("Bandit", run_bandit_tool))
-    if args.scanner in ("both", "owasp", "all"):
-        runners.append(("OWASP", run_owasp_tool))
+        # El modo "modelo primero" se ejecuta antes que Bandit y el escaner OWASP:
+        # el LLM lee el codigo sin conocer las alertas de las herramientas.
+        if llm_audit:
+            print("Ejecutando auditoria LLM (modelo primero) sobre {}...".format(target))
+            try:
+                tool_run = run_llm_audit(target, client, max_chars=args.audit_max_chars,
+                                         max_chunks=args.audit_max_chunks)
+            except Exception as exc:
+                print("Error al ejecutar la auditoria LLM: {}".format(exc), file=sys.stderr)
+                return 4
+            raw = len(tool_run.findings)
+            tool_run.findings = deduplicate(with_ids(tool_run.findings))
+            print("Hallazgos de llm-audit: {} (tras deduplicar: {})".format(raw, len(tool_run.findings)))
+            scan.tool_runs.append(tool_run)
 
-    for label, runner in runners:
-        print("Ejecutando {} sobre {}...".format(label, target))
-        try:
-            tool_run = runner(target)
-        except Exception as exc:
-            print("Error al ejecutar {}: {}".format(label, exc), file=sys.stderr)
-            continue
-        raw = len(tool_run.findings)
-        tool_run.findings = deduplicate(with_ids(tool_run.findings))
-        print("Alertas de {}: {} (tras deduplicar: {})".format(label, raw, len(tool_run.findings)))
-        scan.tool_runs.append(tool_run)
+        runners = []
+        if args.scanner in ("both", "bandit", "all"):
+            runners.append(("Bandit", run_bandit_tool))
+        if args.scanner in ("both", "owasp", "all"):
+            runners.append(("OWASP", run_owasp_tool))
+
+        for label, runner in runners:
+            print("Ejecutando {} sobre {}...".format(label, target))
+            try:
+                tool_run = runner(target)
+            except Exception as exc:
+                print("Error al ejecutar {}: {}".format(label, exc), file=sys.stderr)
+                continue
+            raw = len(tool_run.findings)
+            tool_run.findings = deduplicate(with_ids(tool_run.findings))
+            print("Alertas de {}: {} (tras deduplicar: {})".format(label, raw, len(tool_run.findings)))
+            scan.tool_runs.append(tool_run)
 
     if not scan.tool_runs:
         return 3
@@ -130,7 +149,7 @@ def main(argv=None) -> int:
     out_dir = Path(args.out)
     paths = write_outputs(scan, out_dir)
     if not args.quiet:
-        print(console(scan))
+        print(console(scan, no_color=args.no_color))
     print("\nReporte JSON: {}".format(paths["json"]))
     print("Reporte SARIF: {}".format(paths["sarif"]))
     return 0

@@ -1,9 +1,10 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Badge, PageHead } from '../components/ui';
 import { useReport } from '../context/ReportContext';
 import { useToast } from '../hooks/useToast';
 
 const CLI_COMMAND = 'python agente/run.py scan agente/examples/sample_repo --model qwen2.5-coder-triage';
+const SCANNERS = ['both', 'bandit', 'owasp', 'llm', 'all'];
 
 const TOOLS = [
   { name: 'Bandit', desc: 'SAST · código Python', state: 'Disponible' },
@@ -14,8 +15,14 @@ const TOOLS = [
 
 export function Dashboard() {
   const toast = useToast();
-  const { summary, loadReportFromFile } = useReport();
+  const { summary, loadReportFromFile, runScan, pollScan, loadingScan, scanError } = useReport();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [target, setTarget] = useState('agente/examples/sample_repo');
+  const [scanner, setScanner] = useState('both');
+  const [model, setModel] = useState('qwen2.5-coder:1.5b');
+  const [useLlm, setUseLlm] = useState(true);
+  const [jobId, setJobId] = useState<string | null>(null);
 
   const copy = async () => {
     try {
@@ -33,6 +40,29 @@ export function Dashboard() {
     if (ok) toast(`Reporte cargado: ${file.name}`);
     else toast(`Error al procesar ${file.name}`);
   };
+
+  const startScan = async () => {
+    try {
+      const id = await runScan({ target, scanner, model, no_llm: !useLlm });
+      setJobId(id);
+      toast(`Escaneo iniciado: ${id}`);
+    } catch {
+      toast(scanError || 'Error al iniciar el escaneo');
+    }
+  };
+
+  useEffect(() => {
+    if (!jobId) return;
+    const interval = setInterval(async () => {
+      const finished = await pollScan(jobId);
+      if (finished) {
+        clearInterval(interval);
+        setJobId(null);
+        toast('Escaneo completado');
+      }
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [jobId, pollScan, toast]);
 
   const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
 
@@ -132,7 +162,60 @@ export function Dashboard() {
           <div className="kv">Python · Analizador {summary.tool} {summary.toolVersion}</div>
 
           <div className="eyebrow" style={{ marginTop: 18 }}>
-            Ejecutar nuevo análisis desde la consola
+            Ejecutar nuevo análisis desde el navegador
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+            <input
+              className="mono"
+              type="text"
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+              placeholder="Ruta del directorio"
+              style={{ padding: '6px 8px', fontSize: 12 }}
+            />
+            <select
+              value={scanner}
+              onChange={(e) => setScanner(e.target.value)}
+              style={{ padding: '6px 8px', fontSize: 12 }}
+            >
+              {SCANNERS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+            {scanner !== 'llm' && (
+              <label style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <input type="checkbox" checked={useLlm} onChange={(e) => setUseLlm(e.target.checked)} />
+                Usar modelo para triage
+              </label>
+            )}
+            {(useLlm || scanner === 'llm') && (
+              <input
+                className="mono"
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="Modelo Ollama"
+                style={{ padding: '6px 8px', fontSize: 12 }}
+              />
+            )}
+            <button
+              type="button"
+              className="btn primary"
+              onClick={startScan}
+              disabled={loadingScan || !target.trim()}
+              style={{ marginTop: 4 }}
+            >
+              {loadingScan ? 'Escaneando...' : 'Escanear ahora'}
+            </button>
+            {scanError && (
+              <div style={{ color: 'var(--red)', fontSize: 12 }}>{scanError}</div>
+            )}
+          </div>
+
+          <div className="eyebrow" style={{ marginTop: 18 }}>
+            O desde la consola
           </div>
           <div className="cli">
             <span>$ {CLI_COMMAND}</span>
@@ -141,7 +224,7 @@ export function Dashboard() {
             </button>
           </div>
           <div className="note">
-            El archivo de salida se guarda en <code>reportes/reporte.json</code> y puedes cargarlo arriba.
+            El reporte del dashboard se guarda en <code>reportes/web_dashboard/reporte.json</code>.
           </div>
         </div>
       </div>

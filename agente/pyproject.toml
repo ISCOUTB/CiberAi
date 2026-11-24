@@ -9,6 +9,10 @@ description = "Agente de triage de alertas SAST con modelo local en Ollama"
 requires-python = ">=3.9"
 dependencies = ["bandit>=1.7", "requests>=2.28"]
 
+[project.optional-dependencies]
+server = ["fastapi>=0.100", "uvicorn>=0.23"]
+tui = ["textual>=0.50"]
+
 [project.scripts]
 agente-seguridad = "agente_seguridad.cli:main"
 
