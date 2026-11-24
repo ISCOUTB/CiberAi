@@ -6,6 +6,8 @@ CiberAi es un agente local que analiza código Python con escáneres SAST (Bandi
 
 Todo corre en tu máquina: no se envía código a APIs externas.
 
+🚀 **Demo en vivo:** [https://demo-ciberaitest.vercel.app/](https://demo-ciberaitest.vercel.app/)
+
 ---
 
 ## Flujo de trabajo
@@ -232,16 +234,6 @@ Teclas:
 | `Enter` | Ver detalle |
 | `r` | Recargar reporte |
 | `q` / `Esc` | Salir |
-
----
-
-## Tests
-
-```powershell
-python -m unittest discover -s agente\tests -v
-```
-
-Actualmente pasan **44 tests**.
 
 ---
 
